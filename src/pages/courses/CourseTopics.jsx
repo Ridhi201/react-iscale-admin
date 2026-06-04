@@ -1,0 +1,229 @@
+import { useState, useEffect } from 'react'
+import { Eye, Edit2, Trash2 } from 'lucide-react'
+import * as Icons from 'lucide-react'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
+
+export default function CourseTopics() {
+  const navigate = useNavigate()
+ const { subjectId } = useParams()
+const location = useLocation()
+
+const courseId =
+  location.state?.courseId ||
+  localStorage.getItem('currentCourseId')
+
+console.log("COURSE TOPICS COURSE ID:", courseId)
+  console.log("COURSE TOPICS COURSE ID:", courseId)
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [topics, setTopics] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchTopics()
+  }, [subjectId])
+
+  const fetchTopics = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/topics/get-topics/${subjectId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status && response.data.data?.length > 0) {
+        setTopics(response.data.data)
+      } else {
+        setTopics([])
+      }
+    } catch (error) {
+      console.error('Error fetching topics:', error)
+      setTopics([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (topicId) => {
+    if (!window.confirm('Are you sure you want to delete this topic?')) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.delete(`${BASE_URL}/myadmin/topics/delete-topic/${topicId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status) {
+        alert(response.data.message || 'Deleted successfully')
+        fetchTopics()
+      } else {
+        alert(response.data.message || 'Delete failed')
+      }
+    } catch (error) {
+      console.error('Error deleting topic:', error)
+      alert(error.response?.data?.message || 'Delete failed')
+    }
+  }
+
+    const filteredTopics = topics.filter(topic => 
+      topic.ml_title?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    const TOTAL_ENTRIES = filteredTopics.length
+    const TOTAL_PAGES = Math.ceil(TOTAL_ENTRIES / entriesPerPage)
+
+    const paginatedTopics = filteredTopics.slice(
+      (currentPage - 1) * entriesPerPage,
+      currentPage * entriesPerPage
+    )
+
+    const handleEntriesChange = (e) => {
+      setEntriesPerPage(Number(e.target.value))
+      setCurrentPage(1)
+    }
+
+    const headerData = {
+      subject: location.state?.subjectTitle || (topics[0]?.m_subject_title) || (topics[0]?.subject_title) || (topics[0]?.subject?.m_subject_title) || 'Types Of Batteries',
+      category: location.state?.categoryTitle || (topics[0]?.category_title) || (topics[0]?.category?.title) || 'Cohort Courses',
+      course: location.state?.courseTitle || (topics[0]?.course_title) || (topics[0]?.course?.title) || 'Free Electric Vehicle Basic Course ()'
+    }
+
+    return (
+      <div className="min-h-screen bg-[#eaf3f8] p-4 font-sans">
+        
+        {/* Header Card */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-10 flex-wrap flex-1">
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Topic List</h2>
+            
+            <div className="flex gap-8 text-xs text-slate-700">
+              <div className="flex flex-col">
+                <span className="text-slate-500 mb-1">Subject : <span className="text-slate-800 font-medium">{topics.length > 0 ? headerData.subject : 'N/A'}</span></span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-slate-500 mb-1">Category : <span className="text-slate-800 font-medium">{topics.length > 0 ? headerData.category : 'N/A'}</span></span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-slate-500 mb-1">Course : <span className="text-slate-800 font-medium">{topics.length > 0 ? headerData.course : 'N/A'}</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button onClick={() => navigate(-1)} className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5">
+              <span>↩ Courses</span>
+            </button>
+            <button
+            onClick={() => {
+            localStorage.setItem('currentCourseId', courseId)
+
+          navigate(`/courses/topics/add/${subjectId}`, {
+          state: { courseId }
+          })   
+          }}
+          >            <span>+ Add New Topic</span>
+          </button>
+          </div>
+        </div>
+
+        {/* Table Card */}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span>Show</span>
+                <select 
+                  value={entriesPerPage}
+                  onChange={handleEntriesChange}
+                  className="border border-slate-300 rounded px-2 py-1 outline-none focus:border-[#144f36] bg-white"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span>Entries</span>
+              </div>
+              
+              <div className="flex rounded border border-slate-300 overflow-hidden text-sm">
+                <button className="px-3 py-1 bg-white hover:bg-slate-50 border-r border-slate-300 text-slate-600">Copy</button>
+                <button className="px-3 py-1 bg-white hover:bg-slate-50 border-r border-slate-300 text-slate-600">Excel</button>
+                <button className="px-3 py-1 bg-white hover:bg-slate-50 border-r border-slate-300 text-slate-600">PDF</button>
+                <button className="px-3 py-1 bg-white hover:bg-slate-50 text-slate-600">Print</button>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <input 
+                type="text" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search..."
+                className="border border-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] w-64 bg-white"
+              />
+            </div>
+          </div>
+
+          <div className="overflow-x-auto border border-slate-200 rounded">
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="bg-[#144f36] text-white">
+                <tr>
+                  <th className="px-3 py-3 font-semibold border-r border-[#0f3d2a] whitespace-nowrap">S.No. ▼</th>
+                  <th className="px-3 py-3 font-semibold border-r border-[#0f3d2a] whitespace-nowrap">Title</th>
+                  <th className="px-3 py-3 font-semibold border-r border-[#0f3d2a] whitespace-nowrap">Subject</th>
+                  <th className="px-3 py-3 font-semibold border-r border-[#0f3d2a] whitespace-nowrap">Type ↕</th>
+                  <th className="px-3 py-3 font-semibold border-r border-[#0f3d2a] whitespace-nowrap">Questions</th>
+                  <th className="px-3 py-3 font-semibold border-r border-[#0f3d2a] whitespace-nowrap">PDF</th>
+                  <th className="px-3 py-3 font-semibold border-r border-[#0f3d2a] whitespace-nowrap">Status</th>
+                  <th className="px-3 py-3 font-semibold border-r border-[#0f3d2a] whitespace-nowrap">Sequence</th>
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="9" className="text-center py-8">Loading topics...</td>
+                  </tr>
+                ) : paginatedTopics.length > 0 ? (
+                  paginatedTopics.map((row, index) => (
+                    <tr key={row._id} className="border-b border-slate-200 hover:bg-slate-50">
+                      <td className="px-3 py-3 border-r border-slate-200 align-middle">{(currentPage - 1) * entriesPerPage + index + 1}</td>
+                      <td className="px-3 py-3 border-r border-slate-200 align-middle font-medium text-[#144f36]">{row.ml_title}</td>
+                      <td className="px-3 py-3 border-r border-slate-200 align-middle">{row.m_subject_title || row.subject_title || headerData.subject || 'N/A'}</td>
+                      <td className="px-3 py-3 border-r border-slate-200 align-middle">{row.ml_type || 'Topic'}</td>
+                      <td className="px-3 py-3 border-r border-slate-200 align-middle">{row.questions || ''}</td>
+                      <td className="px-3 py-3 border-r border-slate-200 align-middle"></td>
+                      <td className="px-3 py-3 border-r border-slate-200 align-middle">
+                        <input type="text" defaultValue={row.ml_status !== undefined ? row.ml_status : "0"} className="w-16 border border-slate-300 rounded px-2 py-1 text-center bg-white outline-none focus:border-[#144f36]" />
+                      </td>
+                      <td className="px-3 py-3 border-r border-slate-200 align-middle text-center">
+                        <button className="bg-[#144f36] text-white px-4 py-1 rounded-full text-xs hover:bg-[#0f3d2a] transition-colors">
+                          {row.ml_status === 1 ? 'Active' : 'In-Active'}
+                        </button>
+                      </td>
+                      <td className="px-3 py-3 align-middle">
+                        <div className="flex gap-1">
+                          <button onClick={() => navigate(`/courses/topics/add/${subjectId}`, { state: { editTopic: row, courseId } })} className="bg-[#d87025] text-white p-1.5 rounded-full hover:bg-[#c2621f] transition-colors">
+                            <Edit2 size={12} />
+                          </button>
+                          <button onClick={() => handleDelete(row._id)} className="bg-[#d9534f] text-white p-1.5 rounded-full hover:bg-[#c9302c] transition-colors">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="9" className="text-center py-8 text-slate-500">No topics found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    )
+}
