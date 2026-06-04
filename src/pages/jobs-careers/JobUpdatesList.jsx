@@ -1,15 +1,64 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { jobUpdatesData } from '../../utils/mockData'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function JobUpdatesList() {
   const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
-  const TOTAL_ENTRIES = 143
+  const [jobsData, setJobsData] = useState([])
+  const [totalEntries, setTotalEntries] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(false)
 
-  const currentData = jobUpdatesData // Using mock data as it represents what's visible on screen
+  const fetchJobs = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/comp-requirement/get-all-jobs?page=${currentPage}&limit=${entriesPerPage}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      if (response.data && response.data.status) {
+        setJobsData(response.data.data)
+        if (response.data.pagination) {
+          setTotalEntries(response.data.pagination.total)
+          setTotalPages(response.data.pagination.totalPages)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching jobs:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this job?')) {
+      try {
+        const token = localStorage.getItem('token')
+        const response = await axios.delete(`${BASE_URL}/myadmin/comp-requirement/delete-job/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        if (response.data && response.data.status) {
+          alert('Deleted successfully')
+          fetchJobs()
+        }
+      } catch (error) {
+        console.error('Error deleting job:', error)
+        alert('Failed to delete job')
+      }
+    }
+  }
+
+  useEffect(() => {
+    fetchJobs()
+  }, [currentPage, entriesPerPage])
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
@@ -100,44 +149,51 @@ export default function JobUpdatesList() {
                 </tr>
               </thead>
               <tbody>
-                {currentData.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">{row.sno}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top w-48">{row.title}</td>
+                {loading ? (
+                  <tr><td colSpan="10" className="text-center py-4">Loading...</td></tr>
+                ) : jobsData.map((row, index) => (
+                  <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
                     <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top text-center">
-                      <div className={`w-12 h-12 flex items-center justify-center font-bold text-white text-xl rounded
-                        ${row.image === 'A' ? 'bg-[#1b9bf0]' : 
-                          row.image === 'N' ? 'bg-[#f6f6ff] dark:bg-[#1f1b2e] text-red-500' : 
-                          row.image === 'V' ? 'bg-[#f6f6ff] dark:bg-[#1f1b2e] text-[#1a1254]' :
-                          row.image === 'G' ? 'bg-[#00c59a]' :
-                          row.image === 'D' ? 'bg-[#f6f6ff] dark:bg-[#111827] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 dark:hover:bg-[#1f2937] transition-colors' :
-                          row.image === 'M' ? 'bg-[#0b9cdd]' :
-                          row.image === 'U' ? 'bg-[#f6f6ff] dark:bg-[#1f1b2e] text-[#00a98f]' : 'bg-slate-300'}`}>
-                        {row.image === 'N' ? 'N' : row.image === 'V' ? 'V' : row.image === 'D' ? <div className="flex"><div className="w-3 h-3 rounded-full bg-[#00a98f]"></div><div className="w-3 h-3 bg-red-400"></div></div> : row.image === 'U' ? 'U' : row.image}
+                      {(currentPage - 1) * entriesPerPage + index + 1}
+                    </td>
+                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top w-48">{row.job_title}</td>
+                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top text-center">
+                      <div className="w-12 h-12 mx-auto flex items-center justify-center font-bold text-white text-xl rounded bg-[#1b9bf0]">
+                        {row.company_name ? row.company_name.charAt(0).toUpperCase() : 'C'}
                       </div>
                     </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">{row.company}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top w-32">{row.location}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top whitespace-nowrap">{row.experience}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top w-32">{row.salary}</td>
+                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">{row.company_name}</td>
+                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top w-32">{row.job_locations?.join(', ')}</td>
+                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top whitespace-nowrap">
+                      {row.experience?.min}-{row.experience?.max} {row.experience?.label || row.experience?.unit}
+                    </td>
+                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top w-32">
+                      {row.salary?.min}-{row.salary?.max}
+                    </td>
                     <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">
                       <input 
                         type="text" 
-                        defaultValue={row.order} 
+                        defaultValue={1} 
                         className="w-24 border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                       />
                     </td>
                     <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top text-center">
                       <button className="bg-green-600 text-white px-4 py-1.5 rounded-full text-xs hover:bg-green-700 transition-colors">
-                        {row.status}
+                        Active
                       </button>
                     </td>
                     <td className="px-4 py-4 align-top">
                       <div className="flex gap-2">
-                        <button className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 p-1.5 rounded hover:bg-[#152a4a] transition-colors">
+                        <button 
+                          onClick={() => navigate(`/job-updates/edit/${row._id}`, { state: { jobData: row } })}
+                          className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 p-1.5 rounded hover:bg-[#152a4a] transition-colors"
+                        >
                           <Edit2 size={14} />
                         </button>
-                        <button className="bg-[#6366f1] text-white p-1.5 rounded hover:bg-[#d87025] transition-colors">
+                        <button 
+                          onClick={() => handleDelete(row._id)}
+                          className="bg-[#6366f1] text-white p-1.5 rounded hover:bg-[#d87025] transition-colors"
+                        >
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -150,12 +206,18 @@ export default function JobUpdatesList() {
 
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
             <div className="mb-4 md:mb-0">
-              Showing 1 to 50 of {TOTAL_ENTRIES} entries
+              Showing {jobsData.length > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0} to {Math.min(currentPage * entriesPerPage, totalEntries)} of {totalEntries} entries
             </div>
-            <div className="flex items-center space-x-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">1</button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-slate-400">2</button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-slate-400">3</button>
+            <div className="flex items-center space-x-1 overflow-x-auto">
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button 
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`min-w-8 h-8 px-2 flex items-center justify-center rounded-full ${currentPage === i + 1 ? 'bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800' : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-slate-400'}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
             </div>
           </div>
         </div>

@@ -36,6 +36,18 @@ export default function WebinarRegistrations() {
     return pages
   }
 
+  
+  const handleSearchClick = () => {
+    // Implement search logic if needed
+    setCurrentPage(1)
+  }
+
+  
+  const handleReset = () => {
+    // Implement reset logic if needed
+    setCurrentPage(1)
+  }
+
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
     setCurrentPage(1)
@@ -44,32 +56,32 @@ export default function WebinarRegistrations() {
   return (
     <div className="h-full animate-fade-in-up">
       {/* Title Card */}
-           <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-4 mb-5">
-        <h2 className="text-indigo-900 dark:text-indigo-300 font-bold tracking-tight text-xl font-medium">Webinar Registration List</h2>
+           <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group mb-5">
+        <h2 className="text-white font-bold tracking-tight text-xl relative z-10">Webinar Registration List</h2>
       </div>
 
       {/* Filters Card */}
            <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-5 mb-5">
-        <div className="flex flex-wrap items-end gap-5 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-end w-full">
           {/* From Date */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">From Date</label>
             <input type="date" className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
           </div>
           {/* To Date */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">To Date</label>
             <input type="date" className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
           </div>
           {/* Webinar */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Webinar</label>
             <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
               <option>Select Value</option>
             </select>
           </div>
           {/* Registration From */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Registration From</label>
             <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
               <option>Select Value</option>
@@ -78,7 +90,7 @@ export default function WebinarRegistrations() {
             </select>
           </div>
           {/* Status */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Status</label>
             <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
               <option>Select Value</option>
@@ -87,16 +99,17 @@ export default function WebinarRegistrations() {
             </select>
           </div>
           {/* Search */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Search</label>
             <input type="text" placeholder="Search..." className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" />
           </div>
           {/* Buttons */}
-          <div className="flex-none flex gap-2 h-[38px] w-full md:w-auto mt-7">
-            <button className="btn-glossy-blue">Search</button>
-            <button className="btn-glossy-teal">Filter</button>
-            <button className="btn-glossy-purple">Reset</button>
-            <button className="btn-glossy-royalblue">Export</button>
+          <div className="flex gap-2 w-full">
+
+            <button onClick={handleSearchClick} className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Search / Filter</button>
+            <button onClick={handleReset} className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Reset</button>
+            <button className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Export</button>
+
           </div>
           </div>
       </div>
@@ -185,10 +198,10 @@ export default function WebinarRegistrations() {
                   </td>
                   <td className="px-3 py-3 text-xs">
                     <div className="flex gap-2">
-                      <button className="bg-[#428bca] text-white p-1.5 rounded-lg hover:bg-[#3071a9] transition-colors">
+                      <button className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors">
                         <Eye size={16} />
                       </button>
-                      <button className="btn-glossy-red ">
+                      <button className="bg-red-600 text-white p-1.5 rounded hover:bg-red-700 transition-colors">
                         <Trash2 size={16} />
                       </button>
                     </div>

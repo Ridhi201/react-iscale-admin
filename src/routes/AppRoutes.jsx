@@ -197,6 +197,7 @@ export default function AppRoutes() {
         <Route path="/analytics" element={<AnalyticsList />} />
         <Route path="/job-updates" element={<JobUpdatesList />} />
         <Route path="/job-updates/add" element={<AddJobUpdate />} />
+        <Route path="/job-updates/edit/:id" element={<AddJobUpdate />} />
         <Route path="/success-story" element={<SuccessStoryList />} />
         <Route path="/success-story/add" element={<AddSuccessStory />} />
         <Route path="/placement-talks" element={<PlacementTalksList />} />

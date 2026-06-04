@@ -1,34 +1,155 @@
-import { useState } from 'react'
-import { Eye, Trash2 } from 'lucide-react'
-import { allTestSeriesRegistrationData } from '../../utils/mockData'
-
-const TOTAL_ENTRIES = allTestSeriesRegistrationData.length
+import { useState, useEffect } from 'react'
+import { Calendar, Eye, Trash2, X } from 'lucide-react'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function TestSeriesRegistrations() {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(10)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalEntries, setTotalEntries] = useState(0)
 
-  const TOTAL_PAGES = Math.ceil(TOTAL_ENTRIES / entriesPerPage)
+  // Filters
+  const [filters, setFilters] = useState({
+    from_date: '',
+    to_date: '',
+    search: '',
+    package_id: '',
+    payment_status: ''
+  })
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedReg, setSelectedReg] = useState(null)
+  const [loadingModal, setLoadingModal] = useState(false)
+
+  const fetchData = async (overrideFilters = null, page = currentPage) => {
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const activeFilters = overrideFilters || filters
+      
+      const queryParams = new URLSearchParams({
+        page: page,
+        limit: entriesPerPage,
+        search: activeFilters.search,
+        payment_status: activeFilters.payment_status,
+        package_id: activeFilters.package_id,
+        from_date: activeFilters.from_date,
+        to_date: activeFilters.to_date
+      }).toString()
+
+      const response = await axios.get(`${BASE_URL}/myadmin/registrations/test-package-enrollments?${queryParams}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (response.data.status) {
+        setData(response.data.data || [])
+        setTotalPages(response.data.total_pages || 1)
+        setTotalEntries(response.data.total_records || 0)
+      }
+    } catch (err) {
+      console.error('Error fetching test package enrollments:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData(null, currentPage)
+  }, [currentPage, entriesPerPage])
+
+  const handleSearchClick = () => {
+    setCurrentPage(1)
+    fetchData(filters, 1)
+  }
+
+  const handleReset = () => {
+    const emptyFilters = { from_date: '', to_date: '', search: '', package_id: '', payment_status: '' }
+    setFilters(emptyFilters)
+    setCurrentPage(1)
+    fetchData(emptyFilters, 1)
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this test package enrollment?')) return
+    
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.delete(`${BASE_URL}/myadmin/registrations/delete-test-package/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (response.data.status) {
+        alert(response.data.message || 'Deleted successfully')
+        fetchData(filters, currentPage)
+      } else {
+        alert(response.data.message || 'Failed to delete')
+      }
+    } catch (err) {
+      console.error('Error deleting:', err)
+      alert(err.response?.data?.message || 'Error deleting enrollment')
+    }
+  }
+
+  const handleToggleStatus = async (id, currentStatus) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.patch(`${BASE_URL}/myadmin/registrations/change-access-status/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (response.data.status) {
+        fetchData(filters, currentPage)
+      } else {
+        alert(response.data.message || 'Failed to update status')
+      }
+    } catch (err) {
+      console.error('Error changing status:', err)
+      alert(err.response?.data?.message || 'Error changing status')
+    }
+  }
+
+  const handleView = async (id) => {
+    setIsModalOpen(true)
+    setLoadingModal(true)
+    setSelectedReg(null)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/registrations/single-test-package/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data.status) {
+        setSelectedReg(response.data.data)
+      }
+    } catch (err) {
+      console.error('Error fetching single test package details:', err)
+      alert('Failed to load details')
+      setIsModalOpen(false)
+    } finally {
+      setLoadingModal(false)
+    }
+  }
 
   const startIndex = (currentPage - 1) * entriesPerPage
-  const endIndex = Math.min(startIndex + entriesPerPage, TOTAL_ENTRIES)
-  const currentData = allTestSeriesRegistrationData.slice(startIndex, endIndex)
+  const endIndex = Math.min(startIndex + data.length, totalEntries)
 
   const handlePrev = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1)
   }
 
   const handleNext = () => {
-    if (currentPage < TOTAL_PAGES) setCurrentPage(currentPage + 1)
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
   }
 
   const getPageNumbers = () => {
     let startPage = Math.max(1, currentPage - 2)
-    let endPage = Math.min(TOTAL_PAGES, startPage + 4)
+    let endPage = Math.min(totalPages, startPage + 4)
     if (endPage - startPage < 4) {
       startPage = Math.max(1, endPage - 4)
     }
-    
     const pages = []
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i)
@@ -44,67 +165,68 @@ export default function TestSeriesRegistrations() {
   return (
     <div className="h-full animate-fade-in-up">
       {/* Title Card */}
-           <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-4 mb-5">
-        <h2 className="text-indigo-900 dark:text-indigo-300 font-bold tracking-tight text-xl font-medium">Purchased Test Series List</h2>
+      <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group mb-5">
+        <h2 className="text-white font-bold tracking-tight text-xl relative z-10">Purchased Test Series List</h2>
       </div>
 
       {/* Filters Card */}
-           <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-5 mb-5">
-        <div className="flex flex-wrap items-end gap-5 w-full">
-          {/* From Date */}
-          <div className="flex-1 min-w-[200px]">
+      <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-5 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 items-end w-full">
+          <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">From Date</label>
-            <input type="date" className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
+            <input 
+              type="date" 
+              value={filters.from_date}
+              onChange={(e) => setFilters({...filters, from_date: e.target.value})}
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" 
+            />
           </div>
-          {/* To Date */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">To Date</label>
-            <input type="date" className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
+            <input 
+              type="date" 
+              value={filters.to_date}
+              onChange={(e) => setFilters({...filters, to_date: e.target.value})}
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" 
+            />
           </div>
-          {/* Package */}
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Package</label>
-            <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
-              <option>Select Value</option>
+          <div className="w-full">
+            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Payment Status</label>
+            <select 
+              value={filters.payment_status}
+              onChange={(e) => setFilters({...filters, payment_status: e.target.value})}
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+            >
+              <option value="">Select Value</option>
+              <option value="success">Success</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
             </select>
           </div>
-          {/* Registration From */}
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Registration From</label>
-            <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
-              <option>Select Value</option>
-              <option>App</option>
-              <option>Web</option>
-            </select>
+          <div className="w-full">
+            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Search (Name/Email/Phone)</label>
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              value={filters.search}
+              onChange={(e) => setFilters({...filters, search: e.target.value})}
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" 
+            />
           </div>
-          {/* Status */}
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Status</label>
-            <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
-              <option>Select Value</option>
-              <option>Active</option>
-              <option>Inactive</option>
-            </select>
+          <div className="flex gap-2 w-full">
+
+            <button onClick={handleSearchClick} className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Search / Filter</button>
+            <button onClick={handleReset} className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Reset</button>
+            <button className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Export</button>
+
           </div>
-          {/* Search */}
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Search</label>
-            <input type="text" placeholder="Search..." className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" />
-          </div>
-          {/* Buttons */}
-          <div className="flex-none flex gap-2 h-[38px] w-full md:w-auto mt-7">
-            <button className="btn-glossy-blue">Search</button>
-            <button className="btn-glossy-teal">Filter</button>
-            <button className="btn-glossy-purple">Reset</button>
-            <button className="btn-glossy-royalblue">Export</button>
-          </div>
-          </div>
+        </div>
       </div>
       
       {/* Table Section */}
-           <div className="bg-[#f6f6ff] dark:bg-[#1f1b2e] border border-slate-200 dark:border-[#1f1b2e] rounded-xl overflow-hidden mb-5 p-4">
+      <div className="bg-[#f6f6ff] dark:bg-[#1f1b2e] border border-slate-200 dark:border-[#1f1b2e] rounded-xl overflow-hidden mb-5 p-4 shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow">
         {/* Top Controls */}
-           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
           <div className="flex items-center gap-2 mb-4 sm:mb-0">
             <span className="text-sm text-slate-800 dark:text-slate-200">Show</span>
             <select 
@@ -118,132 +240,285 @@ export default function TestSeriesRegistrations() {
               <option value={100}>100</option>
             </select>
             <span className="text-sm text-slate-800 dark:text-slate-200 mr-2">Entries</span>
-            <div className="flex gap-0 border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded overflow-hidden flex-wrap">
-                {[
-                  { label: 'Copy', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> },
-                  { label: 'Excel', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg> },
-                  { label: 'PDF', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg> },
-                  { label: 'Print', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> }
-                ].map(btn => (
-                  <button key={btn.label} title={btn.label} className="px-3 py-1.5 bg-[#f6f6ff] dark:bg-[#1f1b2e] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 border-r border-slate-300 dark:border-slate-600 last:border-r-0 flex items-center justify-center">
-                    {btn.icon}
-                  </button>
-                ))}
-              </div>
-          </div>
-          <div>
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 placeholder:text-slate-600 dark:text-slate-400 min-w-[200px]"
-            />
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
-            <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">
-              <tr>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">S.No.</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Student</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Package</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top w-20">Regn. Date</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Reg. From</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Amount</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Payble</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Discount</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Coupon</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Pay Mode</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Status</th>
-                <th className="px-3 py-3 font-semibold text-xs align-top">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentData.map((row) => (
-                <tr 
-                  key={row.id} 
-                  className={`border-b border-slate-200 dark:border-gray-800/50 bg-[#f6f6ff] dark:bg-[#111827] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 dark:hover:bg-[#1f2937] transition-colors`}
-                >
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.sno}</td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.student}</td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.package}</td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
-                    <div className="w-10 break-words">{row.date}</div>
-                  </td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.regFrom}</td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.amount}</td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.payable}</td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.discount}</td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.coupon}</td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.payMode}</td>
-                  <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
-                    <span className="bg-[#428bca] text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 text-xs">
-                    <div className="flex gap-2">
-                      <button className="bg-[#428bca] text-white p-1.5 rounded-lg hover:bg-[#3071a9] transition-colors">
-                        <Eye size={16} />
-                      </button>
-                      <button className="btn-glossy-red ">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+          {loading ? (
+            <div className="p-4 text-center text-slate-500">Loading...</div>
+          ) : (
+            <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
+              <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">
+                <tr>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">S.No.</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Student Name</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Email</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Package</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top w-20">Reg Date</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Type</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Amount</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Payable</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Discount</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Coupon</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Pay Mode</th>
+                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Status</th>
+                  <th className="px-3 py-3 font-semibold text-xs align-top">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.map((row, index) => (
+                  <tr 
+                    key={row._id} 
+                    className={`border-b border-slate-200 dark:border-gray-800/50 bg-[#f6f6ff] dark:bg-[#111827] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 dark:hover:bg-[#1f2937] transition-colors`}
+                  >
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{startIndex + index + 1}</td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.user_id?.c_first_name} {row.user_id?.c_last_name}</td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
+                      <div className="max-w-[120px] break-words">{row.user_id?.c_email}</div>
+                    </td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
+                      <div className="max-w-[120px] break-words">{row.test_package_id?.m_package_title}</div>
+                    </td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
+                      <div className="w-10 break-words">{new Date(row.enrolled_on).toLocaleDateString()}</div>
+                    </td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50 capitalize">{row.package_type}</td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">₹{row.original_amount}</td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">₹{row.payable_amount}</td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">₹{row.discount_amount}</td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.coupon_code || 'N/A'}</td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50 uppercase">{row.payment_mode || 'N/A'}</td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
+                      <button 
+                        onClick={() => handleToggleStatus(row._id, row.access_status)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-colors ${
+                          row.access_status === 'active' 
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                            : 'bg-red-100 text-red-700 hover:bg-red-200'
+                        }`}
+                      >
+                        {row.access_status === 'active' ? 'Active' : 'Inactive'}
+                      </button>
+                    </td>
+                    <td className="px-3 py-3 text-xs">
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => handleView(row._id)}
+                          className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors"
+                          title="View Details"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(row._id)}
+                          className="bg-red-600 text-white p-1.5 rounded hover:bg-red-700 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {data.length === 0 && (
+                  <tr>
+                    <td colSpan="13" className="px-3 py-4 text-center text-slate-500">
+                      No test package enrollments found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Pagination */}
-           <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
           <div className="mb-4 sm:mb-0 font-medium">
-            Showing {startIndex + 1} to {endIndex} of {TOTAL_ENTRIES} entries
+            Showing {totalEntries > 0 ? startIndex + 1 : 0} to {endIndex} of {totalEntries} entries
           </div>
-          <div className="flex bg-[#f6f6ff] dark:bg-[#1f1b2e] overflow-hidden items-center">
+          <div className="flex bg-[#f6f6ff] dark:bg-[#1f1b2e] overflow-hidden items-center border border-slate-300 dark:border-gray-700 rounded">
             <button 
               onClick={handlePrev}
               disabled={currentPage === 1}
-              className={`px-3 py-1.5 ${currentPage === 1 ? 'text-slate-800 dark:text-slate-200 cursor-not-allowed' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-500 dark:text-slate-400'}`}
+              className={`px-3 py-1.5 border-r border-slate-300 dark:border-gray-700 ${currentPage === 1 ? 'text-slate-800 dark:text-slate-200 cursor-not-allowed' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-500 dark:text-slate-400'}`}
             >
-              ◀
+              «
             </button>
             
-            <div className="flex items-center space-x-1 mx-1">
-              {getPageNumbers().map(pageNum => (
-                <button 
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentPage === pageNum ? 'bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-600 dark:text-slate-400'}`}
-                >
-                  {pageNum}
-                </button>
-              ))}
-              {TOTAL_PAGES > 5 && currentPage < TOTAL_PAGES - 2 && (
-                <>
-                  <span className="text-slate-600 dark:text-slate-400 px-1">...</span>
-                  <button 
-                    onClick={() => setCurrentPage(TOTAL_PAGES)}
-                    className="w-8 h-8 flex items-center justify-center rounded-full text-sm hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-600 dark:text-slate-400"
-                  >
-                    {TOTAL_PAGES}
-                  </button>
-                </>
-              )}
-            </div>
+            {getPageNumbers().map(pageNum => (
+              <button 
+                key={pageNum}
+                onClick={() => setCurrentPage(pageNum)}
+                className={`w-8 h-8 flex items-center justify-center text-sm border-r border-slate-300 dark:border-gray-700 ${currentPage === pageNum ? 'bg-slate-200 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 font-bold' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-600 dark:text-slate-400'}`}
+              >
+                {pageNum}
+              </button>
+            ))}
             
             <button 
               onClick={handleNext}
-              disabled={currentPage === TOTAL_PAGES}
-              className={`px-3 py-1.5 ${currentPage === TOTAL_PAGES ? 'text-slate-800 dark:text-slate-200 cursor-not-allowed' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-500 dark:text-slate-400'}`}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className={`px-3 py-1.5 ${currentPage === totalPages || totalPages === 0 ? 'text-slate-800 dark:text-slate-200 cursor-not-allowed' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-500 dark:text-slate-400'}`}
             >
-              ▶
+              »
             </button>
           </div>
         </div>
       </div>
+
+      {/* Modal for View Purchase Details */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white dark:bg-[#13111c] rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-slate-200 dark:border-gray-800 flex justify-between items-center bg-slate-50 dark:bg-[#1f1b2e]">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">Test Package Enrollment Details</h3>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+              >
+                <X size={20} className="text-slate-500" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              {loadingModal ? (
+                <div className="text-center text-slate-500 py-10">Loading details...</div>
+              ) : selectedReg ? (
+                <div className="space-y-6 text-sm">
+                  {/* Candidate Info */}
+                  <div className="border border-slate-200 dark:border-gray-800 rounded-xl p-4 bg-slate-50 dark:bg-[#1f1b2e]/30">
+                    <h4 className="font-semibold text-indigo-700 dark:text-indigo-400 mb-3 uppercase text-xs tracking-wider">Candidate Information</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Name</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{selectedReg.user_id?.c_first_name} {selectedReg.user_id?.c_last_name}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Email</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{selectedReg.user_id?.c_email}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Contact</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{selectedReg.user_id?.c_contact}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Alternate Contact</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{selectedReg.user_id?.c_alt_contact || 'N/A'}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Address / City</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">
+                          {selectedReg.user_id?.c_current_address1} / {selectedReg.user_id?.c_current_city}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Package Info */}
+                  <div className="border border-slate-200 dark:border-gray-800 rounded-xl p-4 bg-slate-50 dark:bg-[#1f1b2e]/30">
+                    <h4 className="font-semibold text-teal-700 dark:text-teal-400 mb-3 uppercase text-xs tracking-wider">Package Information</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Package Title</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{selectedReg.test_package_id?.m_package_title}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Associated Course</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{selectedReg.test_package_id?.m_package_course?.m_course_title || 'N/A'}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Category</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{selectedReg.test_package_id?.m_package_test_category?.test_categoryName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Language</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200 capitalize">{selectedReg.test_package_id?.m_package_language || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Type</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200 capitalize">{selectedReg.test_package_id?.m_package_type}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Registration & Payment Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="border border-slate-200 dark:border-gray-800 rounded-xl p-4 bg-slate-50 dark:bg-[#1f1b2e]/30">
+                      <h4 className="font-semibold text-purple-700 dark:text-purple-400 mb-3 uppercase text-xs tracking-wider">Enrollment Details</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Enrolled On</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-200">{new Date(selectedReg.enrolled_on).toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Access Type</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-200 capitalize">{selectedReg.access_type}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Access Status</p>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
+                            selectedReg.access_status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {selectedReg.access_status}
+                          </span>
+                        </div>
+                        {selectedReg.remark && (
+                          <div>
+                            <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Remark</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-200 text-xs italic">"{selectedReg.remark}"</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="border border-slate-200 dark:border-gray-800 rounded-xl p-4 bg-slate-50 dark:bg-[#1f1b2e]/30">
+                      <h4 className="font-semibold text-emerald-700 dark:text-emerald-400 mb-3 uppercase text-xs tracking-wider">Payment Details</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Status</p>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
+                            selectedReg.payment_status === 'success' ? 'bg-green-100 text-green-700' : 
+                            selectedReg.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {selectedReg.payment_status}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Amount / Payable / Discount</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-200">₹{selectedReg.original_amount} / ₹{selectedReg.payable_amount} / ₹{selectedReg.discount_amount}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Payment Mode</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-200 uppercase">{selectedReg.payment_mode}</p>
+                        </div>
+                        {selectedReg.transaction_id && (
+                          <div>
+                            <p className="text-slate-500 dark:text-slate-400 text-xs mb-1">Transaction ID</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-200 text-xs break-all">{selectedReg.transaction_id}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-red-500 py-10">Failed to load registration details.</div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-[#1f1b2e] flex justify-end">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="px-6 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-full text-sm font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

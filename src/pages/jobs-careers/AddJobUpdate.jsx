@@ -1,10 +1,106 @@
 import Button from '../../components/common/Button'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 import { Image, Play, Grid, MoreHorizontal } from 'lucide-react'
 
 export default function AddJobUpdate() {
   const navigate = useNavigate()
+  const { id } = useParams()
+  const location = useLocation()
+  const [formData, setFormData] = useState({
+  job_title: '',
+  company_name: '',
+  location: '',
+  experience: '',
+  salaryFrom: '',
+  salaryTo: '',
+  salary_type: 'PM (Per Month)',
+  job_description: '',
+  apply_link: '',
+  linkedin: ''
+})
 
+const handleChange = (e) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value
+  })
+}
+
+useEffect(() => {
+  if (id && location.state?.jobData) {
+    const job = location.state.jobData
+    setFormData({
+      job_title: job.job_title || '',
+      company_name: job.company_name || '',
+      location: job.job_locations?.[0] || '',
+      experience: job.experience?.max?.toString() || '',
+      salaryFrom: job.salary?.min?.toString() || '',
+      salaryTo: job.salary?.max?.toString() || '',
+      salary_type: job.salary_type || 'PM (Per Month)',
+      job_description: job.job_description || '',
+      apply_link: job.application_link || job.apply_link || '',
+      linkedin: job.company_social_links?.linkedin || job.social_links?.linkedin || ''
+    })
+  }
+}, [id, location.state])
+
+const handleSubmit = async () => {
+  try {
+    const token = localStorage.getItem('token')
+
+    const payload = {
+      job_title: formData.job_title,
+      company_name: formData.company_name,
+      job_locations: [formData.location],
+      salary: {
+        min: Number(formData.salaryFrom) || 0,
+        max: Number(formData.salaryTo) || 0
+      },
+      salary_type: formData.salary_type,
+      experience: formData.experience || '0',
+      job_description: formData.job_description || 'No description provided',
+      application_link: formData.apply_link,
+      company_social_links: {
+        linkedin: formData.linkedin
+      }
+    }
+
+    console.log('JOB PAYLOAD:', payload)
+
+    const url = id 
+      ? `${BASE_URL}/myadmin/comp-requirement/update-job/${id}`
+      : `${BASE_URL}/myadmin/comp-requirement/add-jobs`
+
+    const response = await axios({
+      method: id ? 'put' : 'post',
+      url,
+      data: payload,
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    console.log(response.data)
+
+    alert(response.data.message)
+
+    navigate('/job-updates')
+
+  } catch (error) {
+    console.error(error)
+
+    if (error.response && error.response.data) {
+      console.log(error.response.data)
+      const errorMsg = error.response.data.message || JSON.stringify(error.response.data);
+      alert(`Backend Error: ${errorMsg}`);
+    } else {
+      alert('Failed to create job')
+    }
+  }
+}
   return (
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden max-w-6xl">
@@ -22,9 +118,12 @@ export default function AddJobUpdate() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
             <div className="md:col-span-3">
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Title <span className="text-red-500">*</span></label>
-              <input 
-                type="text" 
-                placeholder="Job Title"
+              <input
+             type="text"
+             name="job_title"
+             value={formData.job_title}
+             onChange={handleChange}
+             placeholder="Job Title"
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
               />
             </div>
@@ -101,6 +200,9 @@ export default function AddJobUpdate() {
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Company <span className="text-red-500">*</span></label>
               <input 
                 type="text" 
+                name="company_name"
+                value={formData.company_name}
+                onChange={handleChange}
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
               />
             </div>
@@ -108,6 +210,9 @@ export default function AddJobUpdate() {
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Experience <span className="text-red-500">*</span></label>
               <input 
                 type="text" 
+                name="experience"
+                value={formData.experience}
+                onChange={handleChange}
                 placeholder="Experience"
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
               />
@@ -116,6 +221,9 @@ export default function AddJobUpdate() {
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Location <span className="text-red-500">*</span></label>
               <input 
                 type="text" 
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
                 placeholder="Location"
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
               />
@@ -135,17 +243,35 @@ export default function AddJobUpdate() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <input 
                 type="text" 
+                name="salaryFrom"
+                value={formData.salaryFrom}
+                onChange={handleChange}
                 placeholder="Salary From"
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
               />
               <input 
                 type="text" 
+                name="salaryTo"
+                value={formData.salaryTo}
+                onChange={handleChange}
                 placeholder="Salary To"
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
               />
-              <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-                <option>PM (Per Month)</option>
-                <option>PA (Per Annum)</option>
+              <select 
+                name="salary_type"
+                value={formData.salary_type}
+                onChange={handleChange}
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
+                <option value="PM (Per Month)">PM (Per Month)</option>
+                <option value="PA (Per Annum)">PA (Per Annum)</option>
+                <option value="Per Month">Per Month</option>
+                <option value="Per Annum">Per Annum</option>
+                <option value="Monthly">Monthly</option>
+                <option value="Yearly">Yearly</option>
+                <option value="month">month</option>
+                <option value="year">year</option>
+                <option value="PM">PM</option>
+                <option value="PA">PA</option>
               </select>
             </div>
           </div>
@@ -193,8 +319,31 @@ export default function AddJobUpdate() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Apply Link</label>
+              <input
+                type="text"
+                name="apply_link"
+                value={formData.apply_link}
+                onChange={handleChange}
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">LinkedIn</label>
+              <input
+                type="text"
+                name="linkedin"
+                value={formData.linkedin}
+                onChange={handleChange}
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+              />
+            </div>
+          </div>
+
           <div className="flex gap-4">
-            <Button fullWidth className="py-2">Submit</Button>
+            <Button fullWidth className="py-2" onClick={handleSubmit}>Submit</Button>
             <button 
               onClick={() => navigate('/job-updates')}
               className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#152a4a] transition-colors flex-1"
