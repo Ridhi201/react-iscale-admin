@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import StatCard from '../../components/ui/StatCard'
 import RegistrationChart from '../../components/charts/RegistrationChart'
 import TopCourses from '../../components/ui/TopCourses'
-import RecentTransactions from '../../components/ui/RecentTransactions'
+
 import HeroBanner from '../../components/ui/HeroBanner'
 import ActivityFeed from '../../components/ui/ActivityFeed'
 import QuickActions from '../../components/ui/QuickActions'
@@ -65,13 +65,8 @@ export default function Dashboard() {
               </div>
 
               {/* Bottom Widgets Row */}
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
-                <div className="h-full">
-                  <TopCourses />
-                </div>
-                <div className="h-full">
-                  <RecentTransactions />
-                </div>
+              <div className="mb-8 h-full">
+                <TopCourses />
               </div>
 
             </motion.div>

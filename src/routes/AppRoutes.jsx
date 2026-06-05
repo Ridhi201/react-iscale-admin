@@ -89,6 +89,7 @@ import LocationCountry from '../pages/locations/LocationCountry'
 import LocationState from '../pages/locations/LocationState'
 import LocationCity from '../pages/locations/LocationCity'
 import AddLiveClass from '../pages/live-classes/AddLiveClass'
+import EditLiveClass from '../pages/live-classes/EditLiveClass'
 import AddCourseCategory from '../pages/courses/AddCourseCategory'
 import EditCourseCategory from '../pages/courses/EditCourseCategory'
 import AddCourse from '../pages/courses/AddCourse'
@@ -139,6 +140,7 @@ export default function AppRoutes() {
         <Route path="/batch/create" element={<BatchManagement />} />
         <Route path="/live-classes" element={<LiveClasses />} />
         <Route path="/live-classes/add" element={<AddLiveClass />} />
+        <Route path="/live-classes/edit/:id" element={<EditLiveClass />} />
         <Route path="/webinar" element={<PlaceholderPage title="Webinar" subtitle="Manage webinar events" icon="🎤" />} />
         <Route path="/test-series" element={<TestSeriesCategory />} />
         <Route path="/test-series/category" element={<TestSeriesCategory />} />

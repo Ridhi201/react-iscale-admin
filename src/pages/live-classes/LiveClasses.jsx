@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { allLiveClassesData } from '../../utils/mockData'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function LiveClasses() {
   const navigate = useNavigate()
@@ -9,65 +10,88 @@ export default function LiveClasses() {
   const [entriesPerPage, setEntriesPerPage] = useState(10)
   
   // Data State
-  const [tableData, setTableData] = useState(allLiveClassesData)
+  const [tableData, setTableData] = useState([])
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [loading, setLoading] = useState(false)
   
+  // Dependencies for filters
+  const [batches, setBatches] = useState([])
+  const [teachers, setTeachers] = useState([])
+
   // Filter States
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
-  const [batch, setBatch] = useState('Select Batch')
-  const [teacher, setTeacher] = useState('Select Teacher')
+  const [batchId, setBatchId] = useState('')
+  const [teacherId, setTeacherId] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Derived filtered data
-  const filteredData = useMemo(() => {
-    let data = tableData
-
-    // Batch filter
-    if (batch && batch !== 'Select Batch') {
-      data = data.filter(item => item.batchName === batch)
+  const fetchDependencies = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const headers = { Authorization: `Bearer ${token}` }
+      const [batchesRes, instructorsRes] = await Promise.all([
+        axios.get(`${BASE_URL}/myadmin/batch/all?limit=1000`, { headers }),
+        axios.get(`${BASE_URL}/myadmin/team/all?limit=1000`, { headers })
+      ])
+      if (batchesRes.data.status) setBatches(batchesRes.data.data)
+      if (instructorsRes.data.status) setTeachers(instructorsRes.data.data)
+    } catch (error) {
+      console.error('Error fetching dependencies:', error)
     }
+  }
 
-    // Teacher filter
-    if (teacher && teacher !== 'Select Teacher') {
-      data = data.filter(item => item.teacher === teacher)
+  const fetchLiveClasses = useCallback(async () => {
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const params = {
+        page: currentPage,
+        limit: entriesPerPage,
+        from_date: fromDate || undefined,
+        to_date: toDate || undefined,
+        batch: batchId || undefined,
+        teacher: teacherId || undefined
+      }
+      const response = await axios.get(`${BASE_URL}/myadmin/live-class/all`, {
+        params,
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data.status) {
+        let fetchedData = response.data.data || []
+        if (searchQuery) {
+           fetchedData = fetchedData.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()))
+        }
+        setTableData(fetchedData)
+        setTotalPages(response.data.totalPages || 1)
+        setTotalRecords(response.data.total || 0)
+      }
+    } catch (error) {
+      console.error('Error fetching live classes:', error)
+    } finally {
+      setLoading(false)
     }
+  }, [currentPage, entriesPerPage, fromDate, toDate, batchId, teacherId, searchQuery])
 
-    // Date filters
-    if (fromDate) {
-      data = data.filter(item => item.date >= fromDate)
-    }
+  useEffect(() => {
+    fetchDependencies()
+  }, [])
 
-    // Search filter
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase()
-      data = data.filter(item => 
-        item.title.toLowerCase().includes(q) || 
-        item.teacher.toLowerCase().includes(q) ||
-        item.batchName.toLowerCase().includes(q)
-      )
-    }
-
-    return data
-  }, [tableData, batch, teacher, fromDate, toDate, searchQuery])
-
-  // Pagination logic
-  const TOTAL_ENTRIES = filteredData.length
-  const TOTAL_PAGES = Math.max(1, Math.ceil(TOTAL_ENTRIES / entriesPerPage))
-  const startIndex = (currentPage - 1) * entriesPerPage
-  const endIndex = Math.min(startIndex + entriesPerPage, TOTAL_ENTRIES)
-  const currentData = filteredData.slice(startIndex, endIndex)
+  useEffect(() => {
+    fetchLiveClasses()
+  }, [fetchLiveClasses])
 
   const handlePrev = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1)
   }
 
   const handleNext = () => {
-    if (currentPage < TOTAL_PAGES) setCurrentPage(currentPage + 1)
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
   }
 
   const getPageNumbers = () => {
     let startPage = Math.max(1, currentPage - 2)
-    let endPage = Math.min(TOTAL_PAGES, startPage + 4)
+    let endPage = Math.min(totalPages, startPage + 4)
     if (endPage - startPage < 4) {
       startPage = Math.max(1, endPage - 4)
     }
@@ -87,36 +111,71 @@ export default function LiveClasses() {
   const handleReset = () => {
     setFromDate('')
     setToDate('')
-    setBatch('Select Batch')
-    setTeacher('Select Teacher')
+    setBatchId('')
+    setTeacherId('')
     setSearchQuery('')
     setCurrentPage(1)
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this class?")) {
-      setTableData(prev => prev.filter(item => item.id !== id))
+      try {
+        const token = localStorage.getItem('token')
+        const response = await axios.delete(`${BASE_URL}/myadmin/live-class/delete/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (response.data.status) {
+          fetchLiveClasses()
+        }
+      } catch (error) {
+        console.error('Error deleting live class:', error)
+      }
     }
   }
 
   return (
     <div className="h-full animate-fade-in-up">
       {/* Title Card */}
-           <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-4 mb-5 flex justify-between items-center">
-        <h2 className="text-indigo-900 dark:text-indigo-300 font-bold tracking-tight text-xl font-medium">Live Classes</h2>
+      <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group mb-5">
+        <h2 className="text-white font-bold tracking-tight text-xl font-medium">Live Classes</h2>
         <div className="flex gap-2">
           <button className="px-5 py-2 bg-stone-700 text-white border-none hover:bg-stone-800 text-sm rounded-full transition-colors" onClick={() => navigate('/live-classes/add')}>Create Live Class</button>
         </div>
       </div>
 
       {/* Filters Card */}
-           <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-5 mb-5">
+      <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 p-5 mb-5">
         <div className="flex flex-wrap items-end gap-5 w-full">
+          <div>
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">From Date</label>
+            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">To Date</label>
+            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Batch</label>
+            <select value={batchId} onChange={e => setBatchId(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+              <option value="">Select Batch</option>
+              {batches.map(b => <option key={b._id} value={b._id}>{b.batch_name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Teacher</label>
+            <select value={teacherId} onChange={e => setTeacherId(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+              <option value="">Select Teacher</option>
+              {teachers.map(t => <option key={t._id} value={t._id}>{t.member_name}</option>)}
+            </select>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleReset} className="px-4 py-1.5 bg-slate-200 text-slate-700 text-xs rounded hover:bg-slate-300 transition-colors font-bold">Reset</button>
+          </div>
         </div>
       </div>
       
       {/* Table Section */}
-           <div className="bg-[#f6f6ff] dark:bg-[#1f1b2e] border border-slate-200 dark:border-[#1f1b2e] rounded-xl overflow-hidden p-4">
+      <div className="bg-[#f6f6ff] dark:bg-[#1f1b2e] border border-slate-200 dark:border-[#1f1b2e] rounded-xl overflow-hidden p-4">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
           <div className="flex items-center gap-2 mb-4 sm:mb-0">
             <span className="text-sm text-slate-800 dark:text-slate-200">Show</span>
@@ -151,46 +210,50 @@ export default function LiveClasses() {
                 <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Title</th>
                 <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Date</th>
                 <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Duration</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Join Url</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Host Url</th>
+                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Join Link</th>
                 <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Batch Name</th>
                 <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Teacher</th>
-                <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Send Mail</th>
                 <th className="px-3 py-3 font-semibold text-xs whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody>
-              {currentData.length > 0 ? currentData.map((row) => (
-                <tr key={row.id} className="border-b border-slate-200 dark:border-gray-800/50 bg-[#f6f6ff] dark:bg-[#1f1b2e] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 transition-colors">
-                  <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">{row.sno}</td>
+              {loading ? (
+                <tr><td colSpan="8" className="px-4 py-8 text-center text-slate-500 font-medium">Loading...</td></tr>
+              ) : tableData.length > 0 ? tableData.map((row, index) => (
+                <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 bg-[#f6f6ff] dark:bg-[#1f1b2e] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 transition-colors">
                   <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">
-                    <div className="w-40 break-words text-slate-800 dark:text-slate-200">{row.title}</div>
-                  </td>
-                  <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">{row.date}</td>
-                  <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">{row.duration}</td>
-                  <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">
-                    <a href={row.joinUrl} className="text-blue-700 font-bold hover:underline">Click Here To Join The Meeting</a>
+                    {(currentPage - 1) * entriesPerPage + index + 1}
                   </td>
                   <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">
-                    <a href={row.hostUrl} className="text-blue-700 font-bold hover:underline">Click Here To Host The Meeting</a>
+                    <div className="w-40 break-words text-slate-800 dark:text-slate-200 font-bold">{row.title}</div>
                   </td>
                   <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">
-                    <div className="w-40 break-words uppercase text-slate-500 dark:text-slate-400 text-xs font-semibold">{row.batchName}</div>
+                    {row.class_date ? new Date(row.class_date).toLocaleDateString() : ''} <br/>
+                    <span className="text-xs text-slate-500">{row.start_time}</span>
                   </td>
-                  <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">{row.teacher}</td>
+                  <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">{row.duration} mins</td>
                   <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">
-                    <button className="bg-[#218838] text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-[#1e7e34] transition-colors">
-                      Send Mail
-                    </button>
+                    <a href={row.meeting_link} target="_blank" rel="noreferrer" className="text-blue-700 font-bold hover:underline">Click Here To Join</a>
+                  </td>
+                  <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">
+                    <div className="w-40 break-words uppercase text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                      {row.batch_id?.batch_name || 'N/A'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-top">
+                    {row.teacher_id?.member_name || row.teacher_id?.m_instructor_name || 'N/A'}
                   </td>
                   <td className="px-4 py-4 align-top">
                     <div className="flex flex-row gap-2">
-                      <button className="bg-[#28a745] text-white p-2 rounded-lg hover:bg-[#218838] transition-colors w-fit">
+                      <button 
+                        onClick={() => navigate(`/live-classes/edit/${row._id}`)}
+                        className="bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors w-fit"
+                      >
                         <Edit2 size={14} />
                       </button>
                       <button 
-                        onClick={() => handleDelete(row.id)}
-                        className="btn-glossy-red icon-only"
+                        onClick={() => handleDelete(row._id)}
+                        className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors w-fit"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -199,7 +262,7 @@ export default function LiveClasses() {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="10" className="px-4 py-8 text-center text-slate-500 font-medium">No records found matching the filters.</td>
+                  <td colSpan="8" className="px-4 py-8 text-center text-slate-500 font-medium">No records found matching the filters.</td>
                 </tr>
               )}
             </tbody>
@@ -207,7 +270,10 @@ export default function LiveClasses() {
         </div>
 
         {/* Pagination */}
-           <div className="mt-4 flex justify-end items-center text-sm text-slate-800 dark:text-slate-200">
+        <div className="mt-4 flex justify-between items-center text-sm text-slate-800 dark:text-slate-200">
+           <div>
+             Showing {Math.min((currentPage - 1) * entriesPerPage + 1, totalRecords)} to {Math.min(currentPage * entriesPerPage, totalRecords)} of {totalRecords} entries
+           </div>
           <div className="flex items-center space-x-1">
             <button 
               onClick={handlePrev}
@@ -227,8 +293,8 @@ export default function LiveClasses() {
             ))}
             <button 
               onClick={handleNext}
-              disabled={currentPage === TOTAL_PAGES}
-              className={`ml-2 ${currentPage === TOTAL_PAGES ? 'text-slate-400 cursor-not-allowed' : 'text-slate-800 dark:text-slate-200 hover:text-stone-700 cursor-pointer'}`}
+              disabled={currentPage === totalPages}
+              className={`ml-2 ${currentPage === totalPages ? 'text-slate-400 cursor-not-allowed' : 'text-slate-800 dark:text-slate-200 hover:text-stone-700 cursor-pointer'}`}
             >
               Next
             </button>

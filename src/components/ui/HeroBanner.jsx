@@ -27,9 +27,7 @@ export default function HeroBanner() {
         </p>
         
         <div className="flex gap-4">
-          <button className="bg-gradient-to-b from-white to-[#fcfcfd] text-[#144f36] font-bold py-2.5 px-6 rounded-full hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:-translate-y-0.5">
-            <Icons.Plus size={18} strokeWidth={2.5} /> Create Course
-          </button>
+
           <button className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold py-2.5 px-6 rounded-full hover:bg-white/20 transition-all flex items-center gap-2 hover:-translate-y-0.5">
             <Icons.BarChart2 size={18} strokeWidth={2.5} /> View Analytics
           </button>
