@@ -1,25 +1,86 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Eye, Edit2, Trash2 } from 'lucide-react'
-
-const TOTAL_ENTRIES = 110297
+import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function AppUsers() {
+  const navigate = useNavigate()
+  
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  
   const [currentPage, setCurrentPage] = useState(1)
-  const entriesPerPage = 100 // Fixed as per normal behavior when not given a selector, or maybe add a selector.
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalEntries, setTotalEntries] = useState(0)
+  const entriesPerPage = 10
 
-  const TOTAL_PAGES = Math.ceil(TOTAL_ENTRIES / entriesPerPage)
+  const [search, setSearch] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [userStatus, setUserStatus] = useState('')
+
+  useEffect(() => {
+    fetchUsers()
+  }, [currentPage])
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: entriesPerPage,
+        search,
+        from_date: fromDate,
+        to_date: toDate,
+        user_status: userStatus
+      })
+      const res = await axios.get(`${BASE_URL}/myadmin/app-users/all?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      if (res.data?.status) {
+        setData(res.data.data || [])
+        setTotalPages(res.data.pagination?.totalPages || 1)
+        setTotalEntries(res.data.pagination?.total || 0)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFilter = () => {
+    setCurrentPage(1)
+    fetchUsers()
+  }
+
+  const handleReset = () => {
+    setSearch('')
+    setFromDate('')
+    setToDate('')
+    setUserStatus('')
+    setCurrentPage(1)
+    // Fetch will happen because of state update if we just call it, but let's do it manually or rely on useEffect if page changes.
+    // It's safer to call fetch after a small timeout or rely on the state updates. Since multiple states change, it's better to fetch explicitly.
+    setTimeout(() => {
+      fetchUsers()
+    }, 0)
+  }
 
   const handlePrev = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1)
   }
 
   const handleNext = () => {
-    if (currentPage < TOTAL_PAGES) setCurrentPage(currentPage + 1)
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
   }
 
   const getPageNumbers = () => {
     let startPage = Math.max(1, currentPage - 2)
-    let endPage = Math.min(TOTAL_PAGES, startPage + 4)
+    let endPage = Math.min(totalPages, startPage + 4)
     if (endPage - startPage < 4) {
       startPage = Math.max(1, endPage - 4)
     }
@@ -30,57 +91,11 @@ export default function AppUsers() {
     return pages
   }
 
-  const generateData = (page, perPage) => {
-    const data = []
-    const startIndex = (page - 1) * perPage
-    for (let i = 0; i < perPage; i++) {
-      const idx = startIndex + i
-      if (idx >= TOTAL_ENTRIES) break
-      
-      const isVerified = idx % 2 === 0 || idx % 3 === 0
-      const isAhmad = idx % 2 !== 0 && idx % 3 !== 0
-      const isRohan = idx % 5 === 0
-      const isShubhrakanti = idx % 4 === 0
-      const isAnam = idx % 7 === 0
-
-      let name = 'Akash Gupta'
-      let contact = '9694202909'
-      let email = 'ayushgpt4567@gmail.com'
-      
-      if (isAhmad) {
-        name = 'Ahmad'
-        contact = '1345264238'
-        email = 'ekramulislamm429@gmail.com'
-      } else if (isRohan) {
-        name = 'Rohan'
-        contact = '8767836839'
-        email = 'rohthomas2000jm@gmail.com'
-      } else if (isShubhrakanti) {
-        name = 'Shubhrakanti'
-        contact = '8927993804'
-        email = 'shubhrakantibag563@gmail.com'
-      } else if (isAnam) {
-        name = 'Anam'
-        contact = '+917340441'
-        email = 'anammarianilgar@gmail.com'
-      }
-
-      data.push({
-        id: idx + 1000,
-        sno: idx + 1,
-        userName: name,
-        contactNo: contact,
-        email: email,
-        joinedOn: '23-05-2026',
-        status: isVerified ? 'Verified' : 'Unverified'
-      })
-    }
-    return data
+  const handleDelete = (id) => {
+    alert("Delete API not provided for App User. Please provide DELETE API.")
   }
 
-  const currentData = generateData(currentPage, entriesPerPage)
   const startIndex = (currentPage - 1) * entriesPerPage
-  const endIndex = Math.min(startIndex + entriesPerPage, TOTAL_ENTRIES)
 
   return (
     <div className="h-full animate-fade-in-up">
@@ -105,30 +120,30 @@ export default function AppUsers() {
           <div>
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">From Date</label>
             <div className="relative">
-              <input type="date" className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
+              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">To Date</label>
             <div className="relative">
-              <input type="date" className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
+              <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">User Type</label>
-            <select className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-40 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-              <option>Select Type</option>
-              <option>Verified</option>
-              <option>Unverified</option>
+            <select value={userStatus} onChange={(e) => setUserStatus(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-40">
+              <option value="">Select Type</option>
+              <option value="1">Verified (Active)</option>
+              <option value="0">Unverified (Inactive)</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Search</label>
-            <input type="text" className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
           </div>
           <div className="flex gap-2">
-            <button className="btn-glossy-teal">Filter</button>
-            <button className="btn-glossy-purple">Reset</button>
+            <button onClick={handleFilter} className="btn-glossy-teal">Filter</button>
+            <button onClick={handleReset} className="btn-glossy-purple">Reset</button>
           </div>
         </div>
 
@@ -147,68 +162,78 @@ export default function AppUsers() {
                 </tr>
               </thead>
               <tbody>
-                {currentData.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50">
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.sno}</td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.userName}</td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.contactNo}</td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.email}</td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.joinedOn}</td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                      <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.status === 'Verified' ? 'bg-[#428bca]' : 'bg-[#6366f1]'}`}>
-                        {row.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 align-middle">
-                      <div className="flex gap-1.5">
-                        <button className="bg-[#428bca] text-white p-1.5 rounded hover:bg-[#3071a9] transition-colors">
-                          <Eye size={14} />
-                        </button>
-                        <button className="bg-green-600 text-white p-1.5 rounded hover:bg-green-700 transition-colors">
-                          <Edit2 size={14} />
-                        </button>
-                        <button className="btn-glossy-red icon-only">
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {loading ? (
+                  <tr><td colSpan="7" className="text-center py-6">Loading data...</td></tr>
+                ) : data.length === 0 ? (
+                  <tr><td colSpan="7" className="text-center py-6">No users found.</td></tr>
+                ) : (
+                  data.map((row, index) => (
+                    <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50">
+                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{startIndex + index + 1}</td>
+                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.c_display_name || `${row.c_first_name} ${row.c_last_name}`}</td>
+                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.c_contact}</td>
+                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.c_email}</td>
+                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
+                        {row.c_register_date ? new Date(row.c_register_date).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
+                        <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.c_user_status === 1 ? 'bg-[#428bca]' : 'bg-[#6366f1]'}`}>
+                          {row.c_user_status === 1 ? 'Verified' : 'Unverified'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex gap-1.5">
+                          <button onClick={() => navigate(`/app-users/details/${row._id}`)} className="bg-[#428bca] text-white p-1.5 rounded hover:bg-[#3071a9] transition-colors" title="View Details">
+                            <Eye size={14} />
+                          </button>
+                          <button onClick={() => navigate(`/app-users/edit/${row._id}`)} className="bg-green-600 text-white p-1.5 rounded hover:bg-green-700 transition-colors" title="Edit User">
+                            <Edit2 size={14} />
+                          </button>
+                          <button onClick={() => handleDelete(row._id)} className="btn-glossy-red icon-only" title="Delete User">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
-          <div className="mt-4 flex justify-between items-center text-sm text-slate-800 dark:text-slate-200">
-            <div>
-              Showing {TOTAL_ENTRIES === 0 ? 0 : startIndex + 1} to {endIndex} of {TOTAL_ENTRIES} entries
-            </div>
-            <div className="flex items-center space-x-1">
-              <button 
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 border rounded ${currentPage === 1 ? 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1f1b2e]' : 'text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:bg-[#1f1b2e]/50'}`}
-              >
-                Previous
-              </button>
-              {getPageNumbers().map(pageNum => (
+          {!loading && totalEntries > 0 && (
+            <div className="mt-4 flex justify-between items-center text-sm text-slate-800 dark:text-slate-200">
+              <div>
+                Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, totalEntries)} of {totalEntries} entries
+              </div>
+              <div className="flex items-center space-x-1">
                 <button 
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 flex items-center justify-center rounded ${currentPage === pageNum ? 'bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-600 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:border-[#1f1b2e]'}`}
+                  onClick={handlePrev}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 border rounded ${currentPage === 1 ? 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1f1b2e]' : 'text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:bg-[#1f1b2e]/50'}`}
                 >
-                  {pageNum}
+                  Previous
                 </button>
-              ))}
-              <span className="px-2">...</span>
-              <button 
-                onClick={handleNext}
-                disabled={currentPage === TOTAL_PAGES}
-                className={`px-3 py-1 border rounded ${currentPage === TOTAL_PAGES ? 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1f1b2e]' : 'text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:bg-[#1f1b2e]/50'}`}
-              >
-                Next
-              </button>
+                {getPageNumbers().map(pageNum => (
+                  <button 
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 flex items-center justify-center rounded ${currentPage === pageNum ? 'bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-600 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:border-[#1f1b2e]'}`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+                {totalPages > 5 && currentPage < totalPages - 2 && <span className="px-2">...</span>}
+                <button 
+                  onClick={handleNext}
+                  disabled={currentPage >= totalPages}
+                  className={`px-3 py-1 border rounded ${currentPage >= totalPages ? 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1f1b2e]' : 'text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:bg-[#1f1b2e]/50'}`}
+                >
+                  Next
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

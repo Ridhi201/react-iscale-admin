@@ -1,80 +1,232 @@
-import Button from '../../components/common/Button'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function AddNotesSubCategory() {
   const navigate = useNavigate()
+  const location = useLocation()
+  
+  const editSubCategory = location.state?.editSubCategory
+  const isEditing = !!editSubCategory
+
+  const [loading, setLoading] = useState(false)
+  const [categories, setCategories] = useState([])
+  
+  const [formData, setFormData] = useState({
+    notes_category_id: editSubCategory?.notes_category_id?._id || editSubCategory?.notes_category_id || '',
+    notes_subcategory_name: editSubCategory?.notes_subcategory_name || '',
+    notes_subcategory_description: editSubCategory?.notes_subcategory_description || '',
+    notes_subcategory_status: editSubCategory?.notes_subcategory_status || 'active'
+  })
+  
+  const [iconFile, setIconFile] = useState(null)
+  const [bannerFile, setBannerFile] = useState(null)
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/notes-category/dropdown/list`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status) {
+        setCategories(response.data.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleIconChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setIconFile(e.target.files[0])
+    }
+  }
+
+  const handleBannerChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setBannerFile(e.target.files[0])
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const token = localStorage.getItem('token')
+      const payload = new FormData()
+      payload.append('notes_category_id', formData.notes_category_id)
+      payload.append('notes_subcategory_name', formData.notes_subcategory_name)
+      payload.append('notes_subcategory_description', formData.notes_subcategory_description)
+      payload.append('notes_subcategory_status', formData.notes_subcategory_status)
+      
+      if (iconFile) {
+        payload.append('nc_icon', iconFile)
+      }
+      if (bannerFile) {
+        payload.append('nc_banner', bannerFile)
+      }
+
+      let response
+      if (isEditing) {
+        response = await axios.put(
+          `${BASE_URL}/myadmin/notes-sub-category/update/${editSubCategory._id}`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      } else {
+        response = await axios.post(
+          `${BASE_URL}/myadmin/notes-sub-category/add`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      }
+
+      if (response.data?.status) {
+        alert(response.data.message || (isEditing ? 'Updated successfully!' : 'Added successfully!'))
+        navigate('/notes/sub-category')
+      } else {
+        alert(response.data.message || 'Operation failed')
+      }
+    } catch (error) {
+      console.error('Error saving subcategory:', error)
+      alert(error.response?.data?.message || 'Save failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="h-full animate-fade-in-up">
-      <div className="bg-[#eef5fa] p-4 min-h-screen">
-        <div className="bg-white dark:bg-[#13111c] rounded-lg p-4 mb-4 shadow-sm border border-slate-100">
-          <h2 className="text-xl font-medium text-slate-700 dark:text-slate-300">Add New Sub-Category</h2>
+      <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden w-full mx-auto">
+        <div className="p-4 border-b border-slate-200 bg-[#144f36] text-white">
+          <h2 className="text-xl font-bold tracking-tight text-white">{isEditing ? 'Edit Sub-Category' : 'Add New Sub-Category'}</h2>
         </div>
 
-        <div className="bg-white dark:bg-[#13111c] rounded-lg shadow-sm border border-slate-100 p-6">
+        <form onSubmit={handleSubmit} className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Category</label>
-              <select className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white dark:bg-[#13111c]">
-                <option>- - - Select - - -</option>
+              <label className="block text-sm font-bold text-slate-800 mb-2">Category<span className="text-red-500">*</span></label>
+              <select 
+                name="notes_category_id"
+                value={formData.notes_category_id}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white text-slate-700"
+                required
+              >
+                <option value="">- - - Select - - -</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Sub-Category Name</label>
+              <label className="block text-sm font-bold text-slate-800 mb-2">Sub-Category Name<span className="text-red-500">*</span></label>
               <input 
                 type="text" 
+                name="notes_subcategory_name"
+                value={formData.notes_subcategory_name}
+                onChange={handleChange}
                 placeholder="Enter Sub-Category Name"
-                className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white dark:bg-[#13111c]"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white text-slate-700"
+                required
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Sub-Category Icon ( 512px X 512px )</label>
-              <button className="bg-[#428bca] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#3071a9] transition-colors w-full flex items-center justify-center gap-2">
-                <span>📷</span> Sub-Category Icon
-              </button>
+              <label className="block text-sm font-bold text-slate-800 mb-2">Sub-Category Icon ( 512px X 512px )</label>
+              <div className="relative">
+                <input 
+                  type="file" 
+                  id="subcat-icon"
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleIconChange}
+                />
+                <label 
+                  htmlFor="subcat-icon"
+                  className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors w-full flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>📷</span> {iconFile ? iconFile.name : 'Choose Sub-Category Icon'}
+                </label>
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Sub-Category Banner ( 800px X 450px )</label>
-              <button className="bg-[#428bca] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#3071a9] transition-colors w-full flex items-center justify-center gap-2">
-                <span>📷</span> Sub-Category Banner
-              </button>
+              <label className="block text-sm font-bold text-slate-800 mb-2">Sub-Category Banner ( 800px X 450px )</label>
+              <div className="relative">
+                <input 
+                  type="file" 
+                  id="subcat-banner"
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleBannerChange}
+                />
+                <label 
+                  htmlFor="subcat-banner"
+                  className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors w-full flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>📷</span> {bannerFile ? bannerFile.name : 'Choose Sub-Category Banner'}
+                </label>
+              </div>
             </div>
           </div>
 
           <div className="mb-5">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Sub-Category Description</label>
+            <label className="block text-sm font-bold text-slate-800 mb-2">Sub-Category Description</label>
             <textarea 
+              name="notes_subcategory_description"
+              value={formData.notes_subcategory_description}
+              onChange={handleChange}
               placeholder="Enter Sub-Category Description"
               rows={4}
-              className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white dark:bg-[#13111c] resize-none"
+              className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white text-slate-700 resize-none"
             ></textarea>
           </div>
 
           <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Sub-Category Status</label>
-              <select className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white dark:bg-[#13111c]">
-                <option>Active</option>
-                <option>Inactive</option>
+              <label className="block text-sm font-bold text-slate-800 mb-2">Sub-Category Status</label>
+              <select 
+                name="notes_subcategory_status"
+                value={formData.notes_subcategory_status}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white text-slate-700"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
             </div>
           </div>
 
           <div className="flex gap-4">
-            <button className="bg-[#428bca] text-white px-10 py-2 rounded-lg text-sm font-medium hover:bg-[#3071a9] transition-colors flex-1">
-              Submit
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="bg-[#144f36] text-white px-10 py-2 rounded-lg text-sm font-medium hover:bg-[#0f3d2a] transition-colors flex-1 disabled:opacity-50"
+            >
+              {loading ? 'Saving...' : 'Submit'}
             </button>
             <button 
+              type="button"
               onClick={() => navigate('/notes/sub-category')}
               className="bg-[#d87025] text-white px-10 py-2 rounded-lg text-sm font-medium hover:bg-[#c2621f] transition-colors flex-1"
             >
               Cancel
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   )

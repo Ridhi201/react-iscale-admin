@@ -12,6 +12,7 @@ export default function AddTestSeriesPackage() {
 
   const [loading, setLoading] = useState(false)
   const [courses, setCourses] = useState([])
+  const [categories, setCategories] = useState([])
 
   const [formData, setFormData] = useState({
     m_package_course: editPackage?.m_package_course || '',
@@ -21,12 +22,31 @@ export default function AddTestSeriesPackage() {
     m_package_order: editPackage?.m_package_order || '',
     m_package_intro: editPackage?.m_package_intro || '',
     m_package_description: editPackage?.m_package_description || '',
+    m_package_test_category: editPackage?.m_package_test_category || '',
+    m_package_type: editPackage?.m_package_type || '',
+    m_package_price: editPackage?.m_package_price || '',
+    m_package_offer_price: editPackage?.m_package_offer_price || '',
   })
   const [imageFile, setImageFile] = useState(null)
 
   useEffect(() => {
     fetchCourses()
+    fetchCategories()
   }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/test-category/dropdown`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status) {
+        setCategories(response.data.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching test categories:', error)
+    }
+  }
 
   const fetchCourses = async () => {
     try {
@@ -74,6 +94,18 @@ export default function AddTestSeriesPackage() {
       if (formData.m_package_description) {
         payload.append('m_package_description', formData.m_package_description)
       }
+      if (formData.m_package_test_category) {
+        payload.append('m_package_test_category', formData.m_package_test_category)
+      }
+      if (formData.m_package_type) {
+        payload.append('m_package_type', formData.m_package_type)
+      }
+      if (formData.m_package_price) {
+        payload.append('m_package_price', formData.m_package_price)
+      }
+      if (formData.m_package_offer_price) {
+        payload.append('m_package_offer_price', formData.m_package_offer_price)
+      }
       if (imageFile) {
         payload.append('m_package_image', imageFile)
       }
@@ -114,7 +146,7 @@ export default function AddTestSeriesPackage() {
 
   return (
     <div className="h-full animate-fade-in-up">
-      <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden max-w-6xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden w-full">
         <div className="p-4 flex justify-between items-center flex-wrap gap-4 bg-[#144f36] text-white rounded-t-2xl">
           <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             {isEditing ? 'Edit Package' : 'Add New Package'}
@@ -203,18 +235,57 @@ export default function AddTestSeriesPackage() {
                   htmlFor="package-image-ts"
                   className="w-full bg-[#144f36] hover:bg-[#0f3d2a] text-white text-sm font-medium rounded px-3 py-2 text-center cursor-pointer flex items-center justify-center gap-2 transition-colors"
                 >
-                  📷 {imageFile ? imageFile.name : 'Choose Image'}
+                  <span>📷</span> {imageFile ? imageFile.name : 'Choose Image'}
                 </label>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-800 mb-2">Order</label>
+              <label className="block text-sm font-bold text-slate-800 mb-2">Test Category</label>
+              <select 
+                name="m_package_test_category"
+                value={formData.m_package_test_category}
+                onChange={handleChange}
+                className="w-full border border-slate-300 bg-white text-slate-700 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              >
+                <option value="">- - - Select - - -</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-2">Package Type</label>
+              <input 
+                type="text" 
+                name="m_package_type"
+                value={formData.m_package_type}
+                onChange={handleChange}
+                placeholder="e.g. Free, Paid, etc."
+                className="w-full border border-slate-300 bg-white text-slate-700 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-2">Price</label>
               <input 
                 type="number" 
-                name="m_package_order"
-                value={formData.m_package_order}
+                name="m_package_price"
+                value={formData.m_package_price}
                 onChange={handleChange}
-                placeholder="Enter Package Order"
+                placeholder="Enter Price"
+                className="w-full border border-slate-300 bg-white text-slate-700 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-2">Offer Price</label>
+              <input 
+                type="number" 
+                name="m_package_offer_price"
+                value={formData.m_package_offer_price}
+                onChange={handleChange}
+                placeholder="Enter Offer Price"
                 className="w-full border border-slate-300 bg-white text-slate-700 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>

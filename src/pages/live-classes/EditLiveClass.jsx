@@ -104,7 +104,7 @@ export default function EditLiveClass() {
 
   return (
     <div className="h-full animate-fade-in-up">
-      <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 overflow-hidden max-w-4xl">
+      <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 overflow-hidden w-full">
         <div className="bg-[#144f36] p-5 flex justify-between items-center rounded-t-2xl shadow-md relative overflow-hidden group">
           <h2 className="text-xl font-bold text-white tracking-tight">Edit Live Class</h2>
           <button 

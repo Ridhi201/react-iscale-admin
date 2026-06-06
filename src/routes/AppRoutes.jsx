@@ -42,6 +42,8 @@ import NotesSubCategory from '../pages/notes/NotesSubCategory'
 import AllNotes from '../pages/notes/AllNotes'
 import ClassesList from '../pages/live-classes/ClassesList'
 import AppUsers from '../pages/users-teams/AppUsers'
+import AppUserDetails from '../pages/users-teams/AppUserDetails'
+import EditAppUser from '../pages/users-teams/EditAppUser'
 import OffersList from '../pages/marketing/OffersList'
 import InstructorList from '../pages/instructors/InstructorList'
 import AddInstructor from '../pages/instructors/AddInstructor'
@@ -178,6 +180,8 @@ export default function AppRoutes() {
         <Route path="/classes" element={<ClassesList />} />
         <Route path="/classes/add" element={<AddClass />} />
         <Route path="/app-users" element={<AppUsers />} />
+        <Route path="/app-users/details/:id" element={<AppUserDetails />} />
+        <Route path="/app-users/edit/:id" element={<EditAppUser />} />
         <Route path="/offers" element={<OffersList />} />
         <Route path="/offers/add" element={<AddOffer />} />
         <Route path="/instructors" element={<InstructorList />} />
