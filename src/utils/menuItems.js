@@ -123,6 +123,16 @@ export const menuItems = [
     ],
   },
   {
+    id: 'teams',
+    label: 'Teams',
+    icon: 'Users',
+    path: '/teams',
+    children: [
+      { id: 'team-add', label: 'Add Team', path: '/teams/add' },
+      { id: 'team-all', label: 'All Teams', path: '/teams/all' },
+    ],
+  },
+  {
     id: 'partners',
     label: 'Partners',
     icon: 'Handshake',

@@ -1,26 +1,80 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function OffersList() {
   const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
-  const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [entriesPerPage, setEntriesPerPage] = useState(10)
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [pagination, setPagination] = useState({ totalRecords: 0, totalPages: 1 })
 
-  const currentData = [] // Empty as per screenshot
-  const TOTAL_ENTRIES = 0
+  const fetchOffers = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const res = await axios.get(`${BASE_URL}/myadmin/offers/all?page=${currentPage}&limit=${entriesPerPage}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        setData(res.data.data)
+        setPagination(res.data.pagination)
+      }
+    } catch (err) {
+      console.error(err)
+      alert(err.response?.data?.message || 'Failed to fetch offers')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchOffers()
+  }, [currentPage, entriesPerPage])
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
     setCurrentPage(1)
   }
 
+  const handleToggleStatus = async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.patch(`${BASE_URL}/myadmin/offers/status/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        fetchOffers()
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update status')
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this offer?')) return
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.delete(`${BASE_URL}/myadmin/offers/delete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        fetchOffers()
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete offer')
+    }
+  }
+
   return (
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden flex flex-col h-full">
-        <div className="p-4 border-b border-slate-200 dark:border-gray-800/50 flex justify-between items-center bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-          <h2 className="text-xl font-medium text-indigo-900 dark:text-indigo-300 font-bold tracking-tight">Offers List</h2>
-          <button onClick={() => navigate('/offers/add')} className="bg-[#428bca] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#3071a9] transition-colors flex items-center gap-2">
+        <div className="p-4 flex justify-between items-center bg-[#144f36] dark:bg-[#0f3d2a] rounded-t-2xl">
+          <h2 className="text-xl font-bold tracking-tight text-white">Offers List</h2>
+          <button onClick={() => navigate('/offers/add')} className="bg-white text-[#144f36] px-4 py-2 rounded-full text-sm font-bold hover:bg-slate-100 transition-colors flex items-center gap-2 shadow-sm">
             <span>+ Add New</span>
           </button>
         </div>
@@ -35,6 +89,7 @@ export default function OffersList() {
                   onChange={handleEntriesChange}
                   className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                 >
+                  <option value={5}>5</option>
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
@@ -42,25 +97,6 @@ export default function OffersList() {
                 </select>
                 <span className="text-sm text-slate-800 dark:text-slate-200">Entries</span>
               </div>
-              <div className="flex gap-0 border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded overflow-hidden flex-wrap">
-                {[
-                  { label: 'Copy', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> },
-                  { label: 'Excel', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg> },
-                  { label: 'PDF', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg> },
-                  { label: 'Print', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> }
-                ].map(btn => (
-                  <button key={btn.label} title={btn.label} className="px-3 py-1.5 bg-[#f6f6ff] dark:bg-[#1f1b2e] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 border-r border-slate-300 dark:border-slate-600 last:border-r-0 flex items-center justify-center">
-                    {btn.icon}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <input 
-                type="text" 
-                placeholder="Search..."
-                className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-64"
-              />
             </div>
           </div>
 
@@ -79,20 +115,59 @@ export default function OffersList() {
                 </tr>
               </thead>
               <tbody>
-                {currentData.length === 0 && (
-                  <tr>
-                    <td colSpan="8" className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
-                      No Data Available In Table
+                {loading ? (
+                  <tr><td colSpan="8" className="px-4 py-8 text-center">Loading...</td></tr>
+                ) : data.length === 0 ? (
+                  <tr><td colSpan="8" className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">No Data Available In Table</td></tr>
+                ) : data.map((item, index) => (
+                  <tr key={item._id} className="border-b border-slate-200 dark:border-gray-800 hover:bg-slate-50 dark:hover:bg-[#1f1b2e]/50">
+                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50">{(currentPage - 1) * entriesPerPage + index + 1}</td>
+                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 font-medium">{item.m_offer_title}</td>
+                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50">{item.m_offer_priority}</td>
+                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50">
+                      {item.m_offer_image ? <img src={`${BASE_URL}/${item.m_offer_image.replace(/\\/g, '/')}`} alt="offer" className="h-10 object-cover rounded" /> : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 max-w-[200px] truncate" title={item.m_offer_des}>{item.m_offer_des || 'N/A'}</td>
+                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 max-w-[150px] truncate"><a href={item.m_offer_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">{item.m_offer_url || 'N/A'}</a></td>
+                    <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50">
+                      <button 
+                        onClick={() => handleToggleStatus(item._id)}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${item.m_offer_status === 1 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                      >
+                        {item.m_offer_status === 1 ? 'Active' : 'Inactive'}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <button onClick={() => navigate(`/offers/edit/${item._id}`)} className="p-1.5 bg-[#d87025] text-white rounded hover:bg-[#b55d1f] transition-colors shadow-sm" title="Edit"><Edit2 size={16} /></button>
+                        <button onClick={() => handleDelete(item._id)} className="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors shadow-sm" title="Delete"><Trash2 size={16} /></button>
+                      </div>
                     </td>
                   </tr>
-                )}
+                ))}
               </tbody>
             </table>
           </div>
 
           <div className="mt-4 flex justify-between items-center text-sm text-slate-800 dark:text-slate-200">
             <div>
-              Showing 0 to 0 of 0 entries
+              Showing {data.length > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0} to {Math.min(currentPage * entriesPerPage, pagination.totalRecords)} of {pagination.totalRecords} entries
+            </div>
+            <div className="flex gap-2">
+              <button 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => p - 1)}
+                className="px-3 py-1 border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button 
+                disabled={currentPage === pagination.totalPages || pagination.totalPages === 0}
+                onClick={() => setCurrentPage(p => p + 1)}
+                className="px-3 py-1 border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

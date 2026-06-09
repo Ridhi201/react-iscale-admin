@@ -66,6 +66,44 @@ export default function RecommendedCourses() {
     setLoading(false)
   }
 }
+
+const handleDelete = async (id) => {
+  if (!window.confirm('Are you sure you want to delete this course?')) {
+    return
+  }
+
+  try {
+    const token = localStorage.getItem('token')
+
+    const response = await axios.delete(
+      `${BASE_URL}/myadmin/course/delete-course/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    console.log('DELETE COURSE RESPONSE:', response.data)
+
+    if (response.data?.status) {
+      alert(response.data.message || 'Course deleted successfully')
+      fetchCourses()
+    } else {
+      alert('Delete failed')
+    }
+  } catch (error) {
+    console.error('DELETE COURSE ERROR:', error)
+
+    if (error.response) {
+      console.log(error.response.data)
+      alert(error.response.data?.message || 'Delete failed')
+    } else {
+      alert('Network Error')
+    }
+  }
+}
+
   const handlePrev = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1)
   }
@@ -155,21 +193,18 @@ export default function RecommendedCourses() {
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">S.No.</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap min-w-[150px]">Title</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Code</th>
-                  <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Category</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Banner</th>
-                  <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Video</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Course Type</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Course Price</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Offer Price</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Subjects</th>
-                  <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Status</th>
                   <th className="px-3 py-3 font-bold whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="12" className="px-4 py-16 text-center">
+                    <td colSpan="9" className="px-4 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-8 h-8 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Loading courses...</span>
@@ -178,7 +213,7 @@ export default function RecommendedCourses() {
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan="12" className="px-4 py-16 text-center">
+                    <td colSpan="9" className="px-4 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xl">⚠</div>
                         <span className="text-red-500 font-medium">{error}</span>
@@ -186,60 +221,60 @@ export default function RecommendedCourses() {
                       </div>
                     </td>
                   </tr>
-                ) : courses.map((row, index) => (
+                ) : courses.map((row, index) => {
+                  // Map exact API fields: _id, title, code, banner, type, price, offer_price, slug
+                  const title = row.title || 'N/A'
+                  const code = row.code || 'N/A'
+                  const banner = row.banner || ''
+                  const courseType = row.type || 'N/A'
+                  const price = row.price ?? 'N/A'
+                  const offerPrice = row.offer_price ?? 'N/A'
+                  return (
                   <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/20 transition-all duration-200 group">
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
                       {(currentPage - 1) * entriesPerPage + index + 1}
                     </td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-blue-600 font-medium">
-                      <div className="w-40 break-words">{row.title}</div>
+                      <div className="w-40 break-words">{title}</div>
                     </td>
-                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.code || 'N/A'}</td>
-                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.category || 'N/A'}</td>
+                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{code}</td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                      {row.banner ? (
-                        <img src={getImageUrl(row.banner)} alt="banner" className="w-8 h-8 object-cover rounded" />
+                      {banner ? (
+                        <img src={getImageUrl(banner)} alt="banner" className="w-8 h-8 object-cover rounded" />
                       ) : (
-                        <div className="w-8 h-8 bg-slate-200 border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 flex items-center justify-center text-[10px] text-center overflow-hidden">
+                        <div className="w-8 h-8 bg-slate-200 border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 flex items-center justify-center text-[10px] text-center overflow-hidden rounded">
                           Img
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      Watch Video
-                    </td>
-                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.course_type || row.type}</td>
-                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.price}</td>
-                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.offer_price}</td>
+                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{courseType}</td>
+                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">₹{price}</td>
+                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">₹{offerPrice}</td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
                       <button onClick={() => navigate(`/courses/subjects/${row._id}`)} className="bg-[#144f36] text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-[#0f3d2a] transition-colors flex items-center gap-1.5 whitespace-nowrap">
                         <Book size={12} />
                         Subject
                       </button>
                     </td>
-                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                      <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.status === 'Active' || !row.status ? 'bg-[#144f36]' : 'bg-[#144f36]'}`}>
-                        {row.status || 'Active'}
-                      </span>
-                    </td>
                     <td className="px-3 py-3 align-middle">
                       <div className="flex gap-1.5">
                         <button className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors">
                           <Eye size={14} />
                         </button>
-                        <button className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#c2621f] transition-colors">
+                        <button onClick={() => navigate(`/courses/all/edit/${row._id || row.id}`)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#c2621f] transition-colors">
                           <Edit2 size={14} />
                         </button>
-                        <button className="bg-[#d9534f] text-white p-1.5 rounded hover:bg-[#d9534f] transition-colors">
+                        <button onClick={() => handleDelete(row._id || row.id)} className="bg-[#d9534f] text-white p-1.5 rounded hover:bg-[#d9534f] transition-colors">
                           <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
                 {!loading && !error && courses.length === 0 && (
                   <tr>
-                    <td colSpan="12" className="px-4 py-16 text-center">
+                    <td colSpan="9" className="px-4 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-[#1f1b2e]/50 flex items-center justify-center text-2xl">📚</div>
                         <span className="text-slate-500 dark:text-slate-400 font-medium">No Data Available In Table</span>

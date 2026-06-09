@@ -44,6 +44,8 @@ import ClassesList from '../pages/live-classes/ClassesList'
 import AppUsers from '../pages/users-teams/AppUsers'
 import AppUserDetails from '../pages/users-teams/AppUserDetails'
 import EditAppUser from '../pages/users-teams/EditAppUser'
+import TeamsList from '../pages/users-teams/TeamsList'
+import AddTeam from '../pages/users-teams/AddTeam'
 import OffersList from '../pages/marketing/OffersList'
 import InstructorList from '../pages/instructors/InstructorList'
 import AddInstructor from '../pages/instructors/AddInstructor'
@@ -182,8 +184,12 @@ export default function AppRoutes() {
         <Route path="/app-users" element={<AppUsers />} />
         <Route path="/app-users/details/:id" element={<AppUserDetails />} />
         <Route path="/app-users/edit/:id" element={<EditAppUser />} />
+        <Route path="/teams/all" element={<TeamsList />} />
+        <Route path="/teams/add" element={<AddTeam />} />
+        <Route path="/teams/edit/:id" element={<AddTeam />} />
         <Route path="/offers" element={<OffersList />} />
         <Route path="/offers/add" element={<AddOffer />} />
+        <Route path="/offers/edit/:id" element={<AddOffer />} />
         <Route path="/instructors" element={<InstructorList />} />
         <Route path="/instructors/all" element={<InstructorList />} />
         <Route path="/instructors/add" element={<AddInstructor />} />
@@ -198,8 +204,10 @@ export default function AppRoutes() {
         <Route path="/home-page-reviews/add" element={<AddUserReview />} />
         <Route path="/banners" element={<BannersList />} />
         <Route path="/banners/add" element={<AddBanner />} />
+        <Route path="/banners/edit/:id" element={<AddBanner />} />
         <Route path="/leads" element={<LeadGenerateList />} />
         <Route path="/leads/add" element={<AddLeadGenerate />} />
+        <Route path="/leads/edit/:id" element={<AddLeadGenerate />} />
         <Route path="/analytics" element={<AnalyticsList />} />
         <Route path="/job-updates" element={<JobUpdatesList />} />
         <Route path="/job-updates/add" element={<AddJobUpdate />} />

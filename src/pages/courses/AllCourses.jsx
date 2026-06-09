@@ -56,6 +56,7 @@ const fetchCategoriesDropdown = async () => {
       )
       
       if (response.data && response.data.status) {
+        console.log("=== FIRST COURSE RAW DATA ===", response.data.data[0])
         setCourses(response.data.data || [])
         setTotalEntries(response.data.pagination?.total || 0)
         setTotalPages(response.data.pagination?.totalPages || 1)
@@ -226,7 +227,7 @@ const fetchCategoriesDropdown = async () => {
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Features</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Tools</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Subjects</th>
-                  <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Test Series</th>
+                  <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Test Package</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Training Highlights</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Status</th>
                   <th className="px-3 py-3 font-bold whitespace-nowrap">Action</th>
@@ -281,8 +282,8 @@ const fetchCategoriesDropdown = async () => {
                       </button>
                     </td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                      <button onClick={() => navigate(`/courses/test-series/${row._id}`)} className="bg-[#144f36] text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-[#0f3d2a] transition-colors flex items-center gap-1.5 whitespace-nowrap">
-                        <Book size={12} /> Test Series
+                      <button onClick={() => navigate(`/courses/test-series/${row._id}`, { state: { courseTitle: row.title } })} className="bg-[#144f36] text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-[#0f3d2a] transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                        <Book size={12} /> Test Package
                       </button>
                     </td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
@@ -291,19 +292,17 @@ const fetchCategoriesDropdown = async () => {
                       </button>
                     </td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                      <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.status === 'Active' ? 'bg-[#144f36]' : 'bg-[#144f36]'}`}>
-                        {row.status}
-                      </span>
+                      <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.status === 1 || row.status === 'Active' ? 'bg-[#144f36]' : 'bg-gray-500'}`}>{row.status === 1 || row.status === 'Active' ? 'Active' : 'Inactive'}</span>
                     </td>
                     <td className="px-3 py-3 align-middle">
                       <div className="flex gap-1.5">
-                        <button className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors">
-                          <Eye size={14} />
-                        </button>
-                        <button onClick={() => navigate(`/courses/all/edit/${row._id}`)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#c2621f] transition-colors">
+                      <button onClick={() => navigate(`/courses/view/${row._id}`)} className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors">
+                        <Eye size={14} />
+                      </button>
+                        <button onClick={() => navigate(`/courses/all/edit/${row._id || row.id}`)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#c2621f] transition-colors">
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={() => handleDelete(row._id)} className="btn-glossy-red icon-only">
+                        <button onClick={() => handleDelete(row._id || row.id)} className="bg-red-600 text-white p-1.5 rounded hover:bg-red-700 transition-colors">
                           <Trash2 size={14} />
                         </button>
                       </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Trash2, Edit2 } from 'lucide-react'
+import { Trash2, Edit2, Eye } from 'lucide-react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
@@ -77,6 +77,21 @@ export default function AppUserDetails() {
 function EnrollmentCourses({ candidateId }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [modalData, setModalData] = useState(null)
+
+  const handleView = async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.get(`${BASE_URL}/myadmin/app-users-enrollments-details/course/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        setModalData(res.data.data)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to fetch details')
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -162,12 +177,14 @@ function EnrollmentCourses({ candidateId }) {
               </td>
               <td className="px-4 py-3 border-r border-slate-200 capitalize">{row.enrollment_data?.status}</td>
               <td className="px-4 py-3 flex gap-2">
-                <button onClick={() => handleDelete(row._id)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f]"><Trash2 size={14} /></button>
+                <button onClick={() => handleView(row._id)} className="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700" title="View Details"><Eye size={14} /></button>
+                <button onClick={() => handleDelete(row._id)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f]" title="Delete"><Trash2 size={14} /></button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <DetailsModal isOpen={!!modalData} onClose={() => setModalData(null)} data={modalData} type="Course" />
     </div>
   )
 }
@@ -175,6 +192,21 @@ function EnrollmentCourses({ candidateId }) {
 function EnrollmentTestSeries({ candidateId }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [modalData, setModalData] = useState(null)
+
+  const handleView = async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.get(`${BASE_URL}/myadmin/app-users-enrollments-details/test-series/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        setModalData(res.data.data)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to fetch details')
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -212,7 +244,7 @@ function EnrollmentTestSeries({ candidateId }) {
   const handleToggleStatus = async (id) => {
     try {
       const token = localStorage.getItem('token')
-      const res = await axios.put(`${BASE_URL}/myadmin/app-users-enrollments-details/test-series/status/${id}`, {}, {
+      const res = await axios.patch(`${BASE_URL}/myadmin/app-users-enrollments-details/test-series/status/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) fetchData()
@@ -249,12 +281,14 @@ function EnrollmentTestSeries({ candidateId }) {
                 </button>
               </td>
               <td className="px-4 py-3 flex gap-2">
-                <button onClick={() => handleDelete(row._id)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f]"><Trash2 size={14} /></button>
+                <button onClick={() => handleView(row._id)} className="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700" title="View Details"><Eye size={14} /></button>
+                <button onClick={() => handleDelete(row._id)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f]" title="Delete"><Trash2 size={14} /></button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <DetailsModal isOpen={!!modalData} onClose={() => setModalData(null)} data={modalData} type="Test Series" />
     </div>
   )
 }
@@ -262,6 +296,21 @@ function EnrollmentTestSeries({ candidateId }) {
 function EnrollmentNotes({ candidateId }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [modalData, setModalData] = useState(null)
+
+  const handleView = async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.get(`${BASE_URL}/myadmin/app-users-enrollments-details/notes/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        setModalData(res.data.data)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to fetch details')
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -299,7 +348,7 @@ function EnrollmentNotes({ candidateId }) {
   const handleToggleStatus = async (id) => {
     try {
       const token = localStorage.getItem('token')
-      const res = await axios.put(`${BASE_URL}/myadmin/app-users-enrollments-details/notes/status/${id}`, {}, {
+      const res = await axios.patch(`${BASE_URL}/myadmin/app-users-enrollments-details/notes/status/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) fetchData()
@@ -332,12 +381,14 @@ function EnrollmentNotes({ candidateId }) {
                 </button>
               </td>
               <td className="px-4 py-3 flex gap-2">
-                <button onClick={() => handleDelete(row._id)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f]"><Trash2 size={14} /></button>
+                <button onClick={() => handleView(row._id)} className="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700" title="View Details"><Eye size={14} /></button>
+                <button onClick={() => handleDelete(row._id)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f]" title="Delete"><Trash2 size={14} /></button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <DetailsModal isOpen={!!modalData} onClose={() => setModalData(null)} data={modalData} type="Notes" />
     </div>
   )
 }
@@ -543,3 +594,36 @@ function WishlistNotes({ candidateId }) {
   )
 }
 
+function DetailsModal({ isOpen, onClose, data, type }) {
+  if (!isOpen || !data) return null;
+
+  const renderValue = (val) => {
+    if (val === null || val === undefined) return 'N/A';
+    if (typeof val === 'object') return JSON.stringify(val);
+    return String(val);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-slate-800 font-bold">
+          ✕
+        </button>
+        <h3 className="text-xl font-bold text-[#144f36] mb-6 capitalize">{type} Enrollment Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Object.entries(data).map(([key, value]) => {
+            if (key === '_id' || key === '__v') return null;
+            return (
+              <div key={key} className="bg-slate-50 p-3 rounded border border-slate-100">
+                <div className="text-xs text-slate-500 font-semibold uppercase mb-1">{key.replace(/_/g, ' ')}</div>
+                <div className="text-sm text-slate-800 font-medium break-words">
+                  {renderValue(value)}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
