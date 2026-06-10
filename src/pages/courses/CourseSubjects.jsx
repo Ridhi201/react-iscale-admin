@@ -95,7 +95,7 @@ export default function CourseSubjects() {
               <select 
                 value={entriesPerPage}
                 onChange={handleEntriesChange}
-                className="border border-slate-300 rounded px-2 py-1 outline-none focus:border-[#428bca]"
+                className="border border-slate-300 rounded px-2 py-1 outline-none focus:border-[#144f36]"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
@@ -119,7 +119,7 @@ export default function CourseSubjects() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search..."
-              className="border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#428bca] w-full sm:w-64"
+              className="border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] w-full sm:w-64"
             />
           </div>
         </div>
@@ -146,8 +146,8 @@ export default function CourseSubjects() {
                 </tr>
               ) : filteredSubjects.length > 0 ? (
                 filteredSubjects.slice(0, entriesPerPage).map((row, index) => (
-                  <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/20 transition-all duration-200 group">
-                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-[#428bca]">{index + 1}</td>
+                  <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-[#eaf3f8]/60 dark:hover:bg-indigo-900/20 transition-all duration-200 group">
+                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-[#144f36]">{index + 1}</td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-slate-700 dark:text-slate-300 font-semibold">{row.m_subject_title}</td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle"></td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center text-slate-700 dark:text-slate-300 text-sm">
@@ -164,7 +164,7 @@ export default function CourseSubjects() {
                       </button>
                     </td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                      <input type="number" defaultValue={row.sequence || 0} className="w-16 border border-slate-300 dark:border-gray-700 rounded px-2 py-1 text-center text-sm outline-none focus:border-[#428bca] bg-transparent text-slate-800 dark:text-slate-200" />
+                      <input type="number" defaultValue={row.sequence || 0} className="w-16 border border-slate-300 dark:border-gray-700 rounded px-2 py-1 text-center text-sm outline-none focus:border-[#144f36] bg-transparent text-slate-800 dark:text-slate-200" />
                     </td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
                       <button className={`px-3 py-1 rounded-full text-xs font-medium text-white transition-colors whitespace-nowrap ${row.m_subject_status === 1 ? 'bg-[#144f36]' : 'bg-[#144f36]'}`}>
@@ -195,3 +195,4 @@ export default function CourseSubjects() {
     </div>
   )
 }
+

@@ -15,10 +15,29 @@ const [status, setStatus] = useState(1)
   const [loading, setLoading] = useState(false)
   const [faqs, setFaqs] = useState([])
   const [editId, setEditId] = useState(null)
+  const [courseName, setCourseName] = useState('Loading...')
 
 useEffect(() => {
   fetchFaqs()
+  fetchCourseName()
 }, [id])
+
+const fetchCourseName = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.get(`${BASE_URL}/myadmin/course/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (response.data?.status) {
+      setCourseName(response.data.data?.m_course_title || 'Unknown Course')
+    } else {
+      setCourseName('Unknown Course')
+    }
+  } catch (error) {
+    console.error('Error fetching course name:', error)
+    setCourseName('Unknown Course')
+  }
+}
 
 const fetchFaqs = async () => {
   try {
@@ -146,7 +165,7 @@ const handleDeleteFaq = async (faqId) => {
         <div className="p-4 flex-1 flex flex-col gap-4">
           <div className="bg-white dark:bg-[#13111c] rounded-lg border border-slate-200 dark:border-gray-700 p-4">
              <p className="text-xs font-bold text-slate-500 mb-2 uppercase">COURSE:</p>
-             <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Free Electric Vehicle Basic Course</p>
+             <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{courseName}</p>
           </div>
 
           <div className="bg-white dark:bg-[#13111c] rounded-lg border border-slate-200 dark:border-gray-700">
@@ -161,7 +180,7 @@ const handleDeleteFaq = async (faqId) => {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-indigo-600 bg-transparent"
+                  className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-[#144f36] bg-transparent"
                   />
                 </div>
                 <div>
@@ -169,7 +188,7 @@ const handleDeleteFaq = async (faqId) => {
                   <select
                    value={status}
                    onChange={(e) => setStatus(Number(e.target.value))}
-                   className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-indigo-600 bg-transparent"
+                   className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-[#144f36] bg-transparent"
                   >
                     <option value={1}>Active</option>
                     <option value={0}>Inactive</option>
@@ -181,7 +200,7 @@ const handleDeleteFaq = async (faqId) => {
                 <textarea rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-indigo-600 bg-transparent"
+                className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-[#144f36] bg-transparent"
                 ></textarea>
               </div>
               <div className="flex justify-end">
@@ -278,3 +297,4 @@ const handleDeleteFaq = async (faqId) => {
     </div>
   )
 }
+

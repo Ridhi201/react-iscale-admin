@@ -81,7 +81,7 @@ export default function AddCourseSubject() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter Subject Title"
-                className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 bg-white dark:bg-[#13111c] text-slate-800 dark:text-slate-200"
+                className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] bg-white dark:bg-[#13111c] text-slate-800 dark:text-slate-200"
                 required
               />
             </div>
@@ -102,7 +102,7 @@ export default function AddCourseSubject() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter Subject Description"
               rows={4}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+              className="w-full border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
             ></textarea>
           </div>
 
@@ -126,3 +126,4 @@ export default function AddCourseSubject() {
     </div>
   )
 }
+

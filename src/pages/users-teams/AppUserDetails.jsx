@@ -396,6 +396,21 @@ function EnrollmentNotes({ candidateId }) {
 function WishlistCourses({ candidateId }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [modalData, setModalData] = useState(null)
+
+  const handleView = async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.get(`${BASE_URL}/myadmin/app-users-wishlist-details/course/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        setModalData(res.data.data)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to fetch details')
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -450,12 +465,14 @@ function WishlistCourses({ candidateId }) {
               <td className="px-4 py-3 border-r border-slate-200">{new Date(row.added_on).toLocaleDateString()}</td>
               <td className="px-4 py-3 border-r border-slate-200">₹{row.course_id?.m_course_price}</td>
               <td className="px-4 py-3 flex gap-2">
+                <button onClick={() => handleView(row._id)} className="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700" title="View Details"><Eye size={14} /></button>
                 <button onClick={() => handleDelete(row._id)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f]"><Trash2 size={14} /></button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <DetailsModal isOpen={!!modalData} onClose={() => setModalData(null)} data={modalData} type="Wishlist Course" />
     </div>
   )
 }
@@ -463,6 +480,21 @@ function WishlistCourses({ candidateId }) {
 function WishlistTestSeries({ candidateId }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [modalData, setModalData] = useState(null)
+
+  const handleView = async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.get(`${BASE_URL}/myadmin/app-users-wishlist-details/test/series/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        setModalData(res.data.data)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to fetch details')
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -517,12 +549,14 @@ function WishlistTestSeries({ candidateId }) {
               <td className="px-4 py-3 border-r border-slate-200">{new Date(row.added_on).toLocaleDateString()}</td>
               <td className="px-4 py-3 border-r border-slate-200">₹{row.package_id?.m_package_price}</td>
               <td className="px-4 py-3 flex gap-2">
+                <button onClick={() => handleView(row._id)} className="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700" title="View Details"><Eye size={14} /></button>
                 <button onClick={() => handleDelete(row._id)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f]"><Trash2 size={14} /></button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <DetailsModal isOpen={!!modalData} onClose={() => setModalData(null)} data={modalData} type="Wishlist Test Series" />
     </div>
   )
 }
@@ -530,6 +564,21 @@ function WishlistTestSeries({ candidateId }) {
 function WishlistNotes({ candidateId }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [modalData, setModalData] = useState(null)
+
+  const handleView = async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.get(`${BASE_URL}/myadmin/app-users-wishlist-details/notes/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        setModalData(res.data.data)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to fetch details')
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -584,12 +633,14 @@ function WishlistNotes({ candidateId }) {
               <td className="px-4 py-3 border-r border-slate-200">{new Date(row.added_on).toLocaleDateString()}</td>
               <td className="px-4 py-3 border-r border-slate-200 capitalize">{row.notes_id?.notes_status || 'N/A'}</td>
               <td className="px-4 py-3 flex gap-2">
+                <button onClick={() => handleView(row._id)} className="bg-blue-600 text-white p-1.5 rounded hover:bg-blue-700" title="View Details"><Eye size={14} /></button>
                 <button onClick={() => handleDelete(row._id)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f]"><Trash2 size={14} /></button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <DetailsModal isOpen={!!modalData} onClose={() => setModalData(null)} data={modalData} type="Wishlist Notes" />
     </div>
   )
 }

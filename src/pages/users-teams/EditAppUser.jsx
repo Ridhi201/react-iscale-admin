@@ -81,8 +81,7 @@ export default function EditAppUser() {
     })
 
     try {
-      // Typically put/patch for edit, but FormData works best with POST, I will use PUT as standard but sending FormData
-      const res = await axios.put(`${BASE_URL}/myadmin/app-users/edit/${id}`, formData, {
+      const res = await axios.put(`${BASE_URL}/myadmin/app-users/edit/${id}`, payload, {
         headers: { 
           Authorization: `Bearer ${token}` 
         }

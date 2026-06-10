@@ -87,12 +87,14 @@ export default function InstructorList() {
   return (
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 overflow-hidden flex flex-col h-full">
-        <div className="p-4 border-b border-slate-200 dark:border-gray-800/50 flex justify-between items-center bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-          <h2 className="text-xl font-medium text-indigo-900 dark:text-indigo-300 font-bold tracking-tight">Instructors List</h2>
-          <button 
-            onClick={() => navigate('/instructors/add')}
-            className="bg-[#428bca] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#3071a9] transition-colors flex items-center gap-2"
-          >
+        <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
+          <div className="flex items-center relative z-10">
+            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Instructors List</h2>
+          </div>
+          <button onClick={() => navigate('/instructors/add')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
             <span>+ Add Instructor</span>
           </button>
         </div>
@@ -105,7 +107,7 @@ export default function InstructorList() {
                 <select 
                   value={entriesPerPage}
                   onChange={handleEntriesChange}
-                  className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -148,7 +150,7 @@ export default function InstructorList() {
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-[#1f1b2e] align-top text-blue-600 font-medium">
+                    <td className="px-4 py-3 border-r border-slate-200 dark:border-[#1f1b2e] align-top text-[#144f36] font-medium">
                       {row.m_instructor_name}
                     </td>
                     <td className="px-4 py-3 border-r border-slate-200 dark:border-[#1f1b2e] align-top">{row.m_instructor_email}</td>
@@ -157,7 +159,7 @@ export default function InstructorList() {
                       {row.m_instructor_skills?.join(', ')}
                     </td>
                     <td className="px-4 py-3 border-r border-slate-200 dark:border-[#1f1b2e] align-top">
-                      <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.m_instructor_status === 1 ? 'bg-[#428bca]' : 'bg-[#6366f1]'}`}>
+                      <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.m_instructor_status === 1 ? 'bg-[#144f36]' : 'bg-red-500'}`}>
                         {row.m_instructor_status === 1 ? 'Active' : 'Inactive'}
                       </span>
                     </td>
@@ -225,3 +227,5 @@ export default function InstructorList() {
     </div>
   )
 }
+
+

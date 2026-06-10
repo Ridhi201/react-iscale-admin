@@ -94,37 +94,44 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
       <div className="min-h-screen bg-[#eaf3f8] p-4 font-sans">
         
         {/* Header Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-10 flex-wrap flex-1">
-            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Topic List</h2>
+        <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group mb-4">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
+          
+          <div className="flex items-center relative z-10 gap-10 flex-wrap flex-1">
+            <div className="flex items-center">
+              <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
+              <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Topic List</h2>
+            </div>
             
-            <div className="flex gap-8 text-xs text-slate-700">
+            <div className="flex gap-8 text-xs text-white/80 mt-2 sm:mt-0">
               <div className="flex flex-col">
-                <span className="text-slate-500 mb-1">Subject : <span className="text-slate-800 font-medium">{topics.length > 0 ? headerData.subject : 'N/A'}</span></span>
+                <span className="mb-1">Subject : <span className="text-white font-medium">{topics.length > 0 ? headerData.subject : 'N/A'}</span></span>
               </div>
               <div className="flex flex-col">
-                <span className="text-slate-500 mb-1">Category : <span className="text-slate-800 font-medium">{topics.length > 0 ? headerData.category : 'N/A'}</span></span>
+                <span className="mb-1">Category : <span className="text-white font-medium">{topics.length > 0 ? headerData.category : 'N/A'}</span></span>
               </div>
               <div className="flex flex-col">
-                <span className="text-slate-500 mb-1">Course : <span className="text-slate-800 font-medium">{topics.length > 0 ? headerData.course : 'N/A'}</span></span>
+                <span className="mb-1">Course : <span className="text-white font-medium">{topics.length > 0 ? headerData.course : 'N/A'}</span></span>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button onClick={() => navigate(-1)} className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5">
+          <div className="flex gap-3 relative z-10">
+            <button onClick={() => navigate(-1)} className="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5">
               <span>↩ Courses</span>
             </button>
             <button
-            onClick={() => {
-            localStorage.setItem('currentCourseId', courseId)
-
-          navigate(`/courses/topics/add/${subjectId}`, {
-          state: { courseId }
-          })   
-          }}
-          >            <span>+ Add New Topic</span>
-          </button>
+              onClick={() => {
+                localStorage.setItem('currentCourseId', courseId)
+                navigate(`/courses/topics/add/${subjectId}`, {
+                  state: { courseId }
+                })   
+              }}
+              className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 hover:shadow hover:-translate-y-0.5"
+            >
+              <span>+ Add New Topic</span>
+            </button>
           </div>
         </div>
 

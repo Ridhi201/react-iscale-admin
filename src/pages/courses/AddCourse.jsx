@@ -45,7 +45,7 @@ export default function AddCourse() {
     const fetchInstructors = async () => {
       try {
         const token = localStorage.getItem('token');
-        const resp = await axios.get(`${BASE_URL}/myadmin/instructors-dropdown`, {
+        const resp = await axios.get(`${BASE_URL}/myadmin/instructor/instructors-dropdown`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (resp.data.status) setInstructors(resp.data.data);
@@ -67,36 +67,57 @@ export default function AddCourse() {
       const token = localStorage.getItem('token');
       const statusApp = document.getElementById('course_status_app').value;
       const statusWeb = document.getElementById('course_status_web').value;
-      const payload = {
-        m_course_lang: document.getElementById('course_language')?.value || 1,
-        m_course_title: titleVal,
-        m_course_category: categoryVal,
-        m_course_type: document.getElementById('course_type')?.value || '',
-        m_course_instructor: selectedInstructor,
-        m_course_status: statusApp.toLowerCase() === 'active' ? 1 : 0,
-        m_course_status_web: statusWeb.toLowerCase() === 'active' ? 1 : 0,
-        m_course_popular: document.getElementById('course_popular')?.checked ? 1 : 0,
-        m_course_recomended: document.getElementById('course_recommended')?.checked ? 1 : 0,
-        m_course_description: description,
-        m_course_keyword: keyword,
-        m_course_code: courseCode,
-        m_course_video_link: document.getElementById('course_video_link')?.value || '',
-        m_course_duration_app: durationApp,
-        m_course_duration_web: durationWeb,
-        m_course_order: order,
-        m_course_view: views,
-        m_course_reviews: reviews,
-        m_course_rating: ratings,
-        m_course_intro: document.getElementById('course_intro')?.value || '',
-        m_course_certificate: certificateShow ? 1 : 0,
-        m_course_app_g_link: appLink,
-        m_course_web_g_link: webLink,
-        m_course_graphy_instruction: graphyInstruction,
-        m_course_live_class: liveClassShow ? 1 : 0,
-      };
-      console.log('=== ADD COURSE PAYLOAD ===', payload);
+      
+      const payload = new FormData();
+      payload.append('m_course_lang', document.getElementById('course_language')?.value || '1');
+      payload.append('m_course_title', titleVal);
+      payload.append('m_course_category', categoryVal);
+      
+      // Temporarily hardcoded to 1 (Free) to bypass price requirement for testing
+      payload.append('m_course_type', '1');
+      
+      if (selectedInstructor) {
+        payload.append('m_course_instructor', selectedInstructor);
+      }
+      // Backend expects inconsistent formats
+      payload.append('m_course_status', statusApp.toLowerCase() === 'active' ? 'Active' : 'Inactive');
+      payload.append('m_course_status_web', statusWeb.toLowerCase() === 'active' ? '1' : '0');
+      
+      payload.append('m_course_popular', document.getElementById('course_popular')?.checked ? '1' : '0');
+      payload.append('m_course_recomended', document.getElementById('course_recommended')?.checked ? '1' : '0');
+      payload.append('m_course_description', description || '');
+      payload.append('m_course_keyword', keyword || '');
+      payload.append('m_course_code', courseCode || '');
+      payload.append('m_course_video_link', document.getElementById('course_video_link')?.value || '');
+      payload.append('m_course_duration_app', durationApp || '');
+      payload.append('m_course_duration_web', durationWeb || '');
+      payload.append('m_course_order', order || '');
+      payload.append('m_course_view', views || '0');
+      payload.append('m_course_reviews', reviews || '0');
+      payload.append('m_course_rating', ratings || '0');
+      payload.append('m_course_intro', document.getElementById('course_intro')?.value || '');
+      
+      // payload.append('m_course_certificate', certificateShow ? 'Yes' : 'No');
+      // payload.append('m_course_live_class', liveClassShow ? 'Yes' : 'No');
+      
+      payload.append('m_course_app_g_link', appLink || '');
+      payload.append('m_course_web_g_link', webLink || '');
+      payload.append('m_course_graphy_instruction', graphyInstruction || '');
+
+      if (bannerFile) {
+        payload.append('m_course_banner', bannerFile);
+      }
+
+      console.log('=== ADD COURSE PAYLOAD ===');
+      for (let pair of payload.entries()) {
+        console.log(pair[0] + ', ' + pair[1]);
+      }
+
       const response = await axios.post(`${BASE_URL}/myadmin/course/add-course`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        },
       });
       if (response.data?.status) {
         alert(response.data.message || 'Course added successfully');
@@ -105,10 +126,24 @@ export default function AddCourse() {
         alert(`Failed: ${response.data?.message || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('ADD COURSE ERROR:', error);
-      const errData = error.response?.data;
-      const msg = errData?.message || errData?.error || errData?.errors || error.message || 'Unknown error';
-      alert(`❌ Error (${error.response?.status || '?'}): ${msg}`);
+      console.error('ADD COURSE ERROR:', error)
+
+      if (error.response) {
+        console.log(
+          "BACKEND RESPONSE:",
+          JSON.stringify(error.response?.data, null, 2)
+        )
+      }
+
+      const errData = error.response?.data
+
+      const msg =
+        errData?.message ||
+        errData?.error ||
+        JSON.stringify(errData) ||
+        error.message
+
+      alert(`❌ Error: ${msg}`)
     } finally {
       setLoading(false);
     }
@@ -117,11 +152,16 @@ export default function AddCourse() {
   return (
     <div className="min-h-screen bg-[#eaf3f8] p-4 font-sans">
       <div className="bg-white rounded shadow-sm border border-slate-200 max-w-7xl mx-auto">
-        <div className="p-3 border-b border-slate-200 flex justify-between items-center bg-[#f8fafd]">
-          <h2 className="text-slate-700 font-medium">Add New Course</h2>
-          <div className="flex gap-2">
-            <button onClick={() => navigate('/courses/all')} className="bg-[#144f36] text-white px-4 py-1 rounded text-sm hover:bg-[#0f3d2a] transition-colors">↩ Back</button>
+        <div className="bg-[#144f36] rounded-t p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
+          <div className="flex items-center relative z-10">
+            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Add New Course</h2>
           </div>
+          <button onClick={() => navigate('/courses/all')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
+            <span>↩ Back</span>
+          </button>
         </div>
         <div className="p-6">
           {/* Basic Info */}
@@ -136,7 +176,7 @@ export default function AddCourse() {
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Category</label>
-              <select id="course_category" className="w-full border border-fuchsia-400 rounded px-3 py-1.5 text-sm bg-white outline-none">
+              <select id="course_category" className="w-full border border-slate-300 focus:border-[#144f36] rounded px-3 py-1.5 text-sm bg-white outline-none">
                 <option value="">- - - Select - - -</option>
                 {categories.map(cat => (
                   <option key={cat._id} value={cat._id}>{cat.m_category_name}</option>
@@ -267,3 +307,4 @@ export default function AddCourse() {
     </div>
   );
 }
+

@@ -14,8 +14,12 @@ export default function EditInstructor() {
     m_instructor_phone: '',
     m_instructor_skills: '',
     m_instructor_status: '1',
-    m_linkedin_profile: ''
+    m_linkedin_profile: '',
+    m_instructor_bio: '',
+    m_instructor_experience: '',
+    m_instructor_order: ''
   })
+  const [profileFile, setProfileFile] = useState(null)
 
   useEffect(() => {
     // Fetch all instructors and find the one we need since get-instructor/:id was not provided
@@ -38,7 +42,10 @@ export default function EditInstructor() {
               m_instructor_phone: inst.m_instructor_phone || '',
               m_instructor_skills: Array.isArray(inst.m_instructor_skills) ? inst.m_instructor_skills.join(', ') : '',
               m_instructor_status: inst.m_instructor_status !== undefined ? inst.m_instructor_status.toString() : '1',
-              m_linkedin_profile: inst.m_linkedin_profile || ''
+              m_linkedin_profile: inst.m_linkedin_profile || '',
+              m_instructor_bio: inst.m_instructor_bio || '',
+              m_instructor_experience: inst.m_instructor_experience || '',
+              m_instructor_order: inst.m_instructor_order || ''
             })
           }
         }
@@ -56,6 +63,12 @@ export default function EditInstructor() {
     })
   }
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setProfileFile(e.target.files[0])
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -63,15 +76,31 @@ export default function EditInstructor() {
     try {
       const token = localStorage.getItem('token')
       
-      const payload = {
-        ...formData,
-        m_instructor_skills: formData.m_instructor_skills.split(',').map(s => s.trim()).filter(Boolean)
+      const skillsArray = formData.m_instructor_skills.split(',').map(s => s.trim()).filter(Boolean)
+
+      const payload = new FormData()
+      payload.append('m_instructor_name', formData.m_instructor_name)
+      payload.append('m_instructor_email', formData.m_instructor_email)
+      payload.append('m_instructor_phone', formData.m_instructor_phone)
+      payload.append('m_instructor_bio', formData.m_instructor_bio)
+      payload.append('m_linkedin_profile', formData.m_linkedin_profile)
+      payload.append('m_instructor_experience', formData.m_instructor_experience)
+      payload.append('m_instructor_skills', JSON.stringify(skillsArray))
+      payload.append('m_instructor_status', formData.m_instructor_status)
+      payload.append('m_instructor_order', formData.m_instructor_order)
+      
+      if (profileFile) {
+        payload.append('m_instructor_profile', profileFile)
       }
 
       const response = await axios.put(
         `${BASE_URL}/myadmin/instructor/update-instructor/${id}`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          } 
+        }
       )
 
       if (response.data && response.data.status) {
@@ -90,13 +119,15 @@ export default function EditInstructor() {
   return (
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-gray-800/50 flex justify-between items-center bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-          <h2 className="text-xl font-medium text-indigo-900 dark:text-indigo-300 font-bold tracking-tight">Edit Instructor</h2>
-          <button 
-            onClick={() => navigate('/instructors/all')}
-            className="bg-[#428bca] text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-[#3071a9] transition-colors"
-          >
-            Back
+        <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
+          <div className="flex items-center relative z-10">
+            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Edit Instructor</h2>
+          </div>
+          <button onClick={() => navigate('/instructors/all')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
+            <span>↩ Back</span>
           </button>
         </div>
 
@@ -111,7 +142,7 @@ export default function EditInstructor() {
                 onChange={handleChange}
                 placeholder="Instructor Name"
                 required
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
             <div>
@@ -122,7 +153,7 @@ export default function EditInstructor() {
                 value={formData.m_instructor_email}
                 onChange={handleChange}
                 placeholder="Email Address"
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
             <div>
@@ -133,7 +164,7 @@ export default function EditInstructor() {
                 value={formData.m_instructor_phone}
                 onChange={handleChange}
                 placeholder="Phone Number"
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
 
@@ -145,7 +176,7 @@ export default function EditInstructor() {
                 value={formData.m_instructor_skills}
                 onChange={handleChange}
                 placeholder="e.g. reactjs, nodejs"
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
             <div>
@@ -156,7 +187,50 @@ export default function EditInstructor() {
                 value={formData.m_linkedin_profile}
                 onChange={handleChange}
                 placeholder="Linkedin URL"
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Bio</label>
+              <textarea 
+                name="m_instructor_bio"
+                value={formData.m_instructor_bio}
+                onChange={handleChange}
+                placeholder="Instructor Bio"
+                rows="1"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Experience</label>
+              <input 
+                type="text" 
+                name="m_instructor_experience"
+                value={formData.m_instructor_experience}
+                onChange={handleChange}
+                placeholder="e.g. 5 Years"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Order</label>
+              <input 
+                type="number" 
+                name="m_instructor_order"
+                value={formData.m_instructor_order}
+                onChange={handleChange}
+                placeholder="Sort Order"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Profile Image (Leave blank to keep existing)</label>
+              <input 
+                type="file" 
+                name="m_instructor_profile"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#eaf3f8] file:text-[#144f36] hover:file:bg-slate-200"
               />
             </div>
             <div>
@@ -165,7 +239,7 @@ export default function EditInstructor() {
                 name="m_instructor_status"
                 value={formData.m_instructor_status}
                 onChange={handleChange}
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
@@ -177,7 +251,7 @@ export default function EditInstructor() {
             <button 
               type="submit"
               disabled={loading}
-              className="bg-[#428bca] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#3071a9] transition-colors w-64 text-center disabled:opacity-50"
+              className="bg-[#144f36] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#0f3d2a] transition-colors w-64 text-center disabled:opacity-50"
             >
               {loading ? 'Updating...' : 'Update Instructor'}
             </button>
@@ -187,3 +261,4 @@ export default function EditInstructor() {
     </div>
   )
 }
+

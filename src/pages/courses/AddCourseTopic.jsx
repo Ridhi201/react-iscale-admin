@@ -79,19 +79,32 @@ export default function AddCourseTopic() {
       
       payload.append('ml_title', formData.ml_title || '')
       payload.append('ml_code', formData.ml_code || '')
-      payload.append('ml_type', formData.ml_type || '')
-      payload.append('ml_stype', formData.ml_stype || '')
-      payload.append('ml_video_id', formData.ml_video_id || '')
-      if (formData.ml_file) {
-        payload.append('ml_file', formData.ml_file)
+      let rawType = formData.ml_type || '';
+      // Assuming UI sends '1'/'2' or 'Video'/'Document', normalize it to the numeric string for the payload
+      const payloadType = (rawType === 'Video' || rawType === '1') ? '1' : '2';
+      const isVideo = payloadType === '1';
+      
+      payload.append('ml_type', payloadType);
+      payload.append('ml_stype', formData.ml_stype || 'Topic');
+      
+      if (isVideo && formData.ml_video_id) {
+        payload.append('ml_video_id', formData.ml_video_id);
       }
+      // Prevent Multer 'Unexpected field' crash by only sending ONE file field
       if (formData.ml_pdffile) {
-        payload.append('ml_pdffile', formData.ml_pdffile)
+        payload.append('ml_pdffile', formData.ml_pdffile);
+      } else if (formData.ml_file) {
+        payload.append('ml_file', formData.ml_file);
       }
       payload.append('ml_status', formData.ml_status ? String(formData.ml_status) : '0')
       
       if (!isEditing) {
         payload.append('ml_subject', formData.ml_subject || '')
+        if (courseId) {
+          payload.append('m_course_id', courseId)
+          payload.append('ml_course', courseId)
+          payload.append('course_id', courseId)
+        }
       }
 
       console.log("Submitting payload:");
@@ -105,11 +118,17 @@ export default function AddCourseTopic() {
       let response
       if (isEditing) {
         response = await axios.put(`${BASE_URL}/myadmin/topics/update-topic/${editTopic._id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
         })
       } else {
         response = await axios.post(`${BASE_URL}/myadmin/topics/add-topic`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
         })
       }
 
@@ -200,7 +219,7 @@ export default function AddCourseTopic() {
                   value={formData.ml_title}
                   onChange={handleChange}
                   placeholder="Enter Topic Title" 
-                  className="w-full border-2 border-fuchsia-400 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-fuchsia-200 bg-white dark:bg-[#13111c] shadow-sm transition-all" 
+                  className="w-full border-2 border-slate-300 focus:border-[#144f36] rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#144f36] bg-white dark:bg-[#13111c] shadow-sm transition-all" 
                   required 
                 />
               </div>
@@ -221,11 +240,11 @@ export default function AddCourseTopic() {
                 <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">Status</label>
                 <div className="flex items-center gap-6 bg-slate-50 dark:bg-[#1f1b2e]/50 p-3 rounded-lg border border-slate-200 dark:border-[#1f1b2e] w-fit">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="ml_status" value="1" checked={formData.ml_status === '1'} onChange={handleChange} className="w-4 h-4 text-[#428bca] focus:ring-[#428bca]" />
+                    <input type="radio" name="ml_status" value="1" checked={formData.ml_status === '1'} onChange={handleChange} className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" />
                     <span className="text-sm font-medium text-slate-800 dark:text-slate-200">Active</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="ml_status" value="0" checked={formData.ml_status === '0'} onChange={handleChange} className="w-4 h-4 text-[#428bca] focus:ring-[#428bca]" />
+                    <input type="radio" name="ml_status" value="0" checked={formData.ml_status === '0'} onChange={handleChange} className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" />
                     <span className="text-sm font-medium text-slate-800 dark:text-slate-200">Inactive</span>
                   </label>
                 </div>
@@ -304,3 +323,5 @@ export default function AddCourseTopic() {
     </div>
   )
 }
+
+

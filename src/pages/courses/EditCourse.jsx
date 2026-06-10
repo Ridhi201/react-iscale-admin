@@ -1,11 +1,13 @@
-import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BASE_URL } from '../../config/api';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 export default function EditCourse() {
-  const navigate = useNavigate();
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [instructors, setInstructors] = useState([]);
@@ -69,7 +71,7 @@ export default function EditCourse() {
     const fetchInstructors = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`${BASE_URL}/myadmin/instructors-dropdown`, {
+        const res = await axios.get(`${BASE_URL}/myadmin/instructor/instructors-dropdown`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.status) setInstructors(res.data.data);
@@ -79,48 +81,81 @@ export default function EditCourse() {
     };
 
     const fetchCourse = async () => {
+      // If we received data from the previous page's navigation state, use it directly!
+      if (location.state?.courseData) {
+        console.log('=== USING COURSE DATA FROM ROUTER STATE ===', location.state.courseData);
+        populateForm(location.state.courseData);
+        return;
+      }
+
+      // Fallback: try to fetch it if user refreshed the page directly
       try {
         const token = localStorage.getItem('token');
         const res = await axios.get(`${BASE_URL}/myadmin/course/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        const course = res.data?.data || {};
-        setCourseData({
-          m_course_lang: course.m_course_lang || 1,
-          m_course_title: course.m_course_title || '',
-          m_course_category: course.m_course_category || '',
-          m_course_type: course.m_course_type || '',
-          m_course_status: course.m_course_status ?? 1,
-          m_course_status_web: course.m_course_status_web ?? 1,
-          m_course_popular: course.m_course_popular ?? 0,
-          m_course_recomended: course.m_course_recomended ?? 0,
-          m_course_description: course.m_course_description || '',
-          m_course_keyword: course.m_course_keyword || '',
-          m_course_code: course.m_course_code || '',
-          m_course_video_link: course.m_course_video_link || '',
-          m_course_duration_app: course.m_course_duration_app || '',
-          m_course_duration_web: course.m_course_duration_web || '',
-          m_course_order: course.m_course_order || '',
-          m_course_view: course.m_course_view ?? '0',
-          m_course_reviews: course.m_course_reviews ?? '0',
-          m_course_rating: course.m_course_rating ?? '0',
-          m_course_intro: course.m_course_intro || '',
-          m_course_certificate: course.m_course_certificate ?? 0,
-          m_course_live_class: course.m_course_live_class ?? 0,
-          m_course_app_g_link: course.m_course_app_g_link || '',
-          m_course_web_g_link: course.m_course_web_g_link || '',
-          m_course_graphy_instruction: course.m_course_graphy_instruction || '',
-          instructor: course.m_course_instructor || ''
-        });
+
+        let course = {};
+        const findCourse = (obj) => {
+          if (!obj || typeof obj !== 'object') return false;
+          if (obj.m_course_title || obj.title) {
+            course = obj;
+            return true;
+          }
+          for (const key of Object.keys(obj)) {
+            if (typeof obj[key] === 'object') {
+              if (findCourse(obj[key])) return true;
+            }
+          }
+          return false;
+        };
+        findCourse(res.data);
+        populateForm(course);
       } catch (err) {
         console.error('Failed to fetch course details', err);
       }
     };
 
+    const populateForm = (course) => {
+      const normStatus = (val) => {
+        if (!val) return 'active';
+        const s = String(val).toLowerCase();
+        return s === 'inactive' || s === '0' ? 'inactive' : 'active';
+      };
+
+      setCourseData({
+        m_course_lang: course.lang || course.m_course_lang || 1,
+        m_course_title: course.title || course.m_course_title || '',
+        m_course_category: course.category || course.m_course_category || '',
+        m_course_type: course.course_type || course.type || course.m_course_type || '',
+        m_course_status: normStatus(course.status || course.m_course_status),
+        m_course_status_web: normStatus(course.status_web || course.m_course_status_web),
+        m_course_popular: Number(course.popular || course.m_course_popular || 0),
+        m_course_recomended: Number(course.recomended || course.recommended || course.m_course_recomended || 0),
+        m_course_description: course.description || course.m_course_description || '',
+        m_course_keyword: course.keyword || course.m_course_keyword || '',
+        m_course_code: course.code || course.m_course_code || '',
+        m_course_video_link: course.video_link || course.m_course_video_link || '',
+        m_course_duration_app: course.duration_app || course.m_course_duration_app || '',
+        m_course_duration_web: course.duration_web || course.m_course_duration_web || '',
+        m_course_order: course.order || course.m_course_order || '',
+        m_course_view: course.view || course.m_course_view || '0',
+        m_course_reviews: course.reviews || course.m_course_reviews || '0',
+        m_course_rating: course.rating || course.m_course_rating || '0',
+        m_course_intro: course.intro || course.m_course_intro || '',
+        m_course_certificate: Number(course.certificate || course.m_course_certificate || 0),
+        m_course_live_class: Number(course.live_class || course.m_course_live_class || 0),
+        m_course_app_g_link: course.app_g_link || course.m_course_app_g_link || '',
+        m_course_web_g_link: course.web_g_link || course.m_course_web_g_link || '',
+        m_course_graphy_instruction: course.graphy_instruction || course.m_course_graphy_instruction || '',
+        instructor: course.instructor || course.m_course_instructor || ''
+      });
+    };
+
     fetchCategories();
     fetchInstructors();
     fetchCourse();
-  }, [id]);
+  }, [id, location.state]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -152,17 +187,18 @@ export default function EditCourse() {
   return (
     <div className="min-h-screen bg-[#eaf3f8] p-4 font-sans">
       <div className="bg-white rounded shadow-sm border border-slate-200 max-w-7xl mx-auto">
-        <div className="p-3 border-b border-slate-200 flex justify-between items-center bg-[#f8fafd]">
-          <h2 className="text-slate-700 font-medium">Edit Course</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={() => navigate('/courses/all')}
-              className="bg-[#144f36] text-white px-4 py-1 rounded text-sm hover:bg-[#0f3d2a] transition-colors"
-            >
-              ↩ Back
-            </button>
+        <div className="bg-[#144f36] rounded-t p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
+          <div className="flex items-center relative z-10">
+            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Edit Course</h2>
           </div>
+          <button onClick={() => navigate('/courses/all')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
+            <span>↩ Back</span>
+          </button>
         </div>
+        
         <div className="p-6">
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
@@ -176,7 +212,7 @@ export default function EditCourse() {
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Category</label>
-              <select id="m_course_category" value={courseData.m_course_category} onChange={handleChange} className="w-full border border-fuchsia-400 rounded px-3 py-1.5 text-sm bg-white outline-none">
+              <select id="m_course_category" value={courseData.m_course_category} onChange={handleChange} className="w-full border border-slate-300 focus:border-[#144f36] rounded px-3 py-1.5 text-sm bg-white outline-none">
                 <option value="">- - - Select - - -</option>
                 {categories.map((cat) => (
                   <option key={cat._id} value={cat._id}>{cat.m_category_name}</option>
@@ -229,15 +265,15 @@ export default function EditCourse() {
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Status (App)</label>
               <select id="m_course_status" value={courseData.m_course_status} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
-                <option value={1}>Active</option>
-                <option value={0}>Inactive</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Status (Web)</label>
               <select id="m_course_status_web" value={courseData.m_course_status_web} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
-                <option value={1}>Active</option>
-                <option value={0}>Inactive</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
             </div>
             <div>
@@ -336,3 +372,4 @@ export default function EditCourse() {
     </div>
   );
 }
+

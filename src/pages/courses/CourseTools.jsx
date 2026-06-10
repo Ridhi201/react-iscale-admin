@@ -12,6 +12,7 @@ export default function CourseTools() {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [editId, setEditId] = useState(null)
+  const [courseName, setCourseName] = useState('Loading...')
   
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -22,7 +23,25 @@ export default function CourseTools() {
 
   useEffect(() => {
     fetchTools()
+    fetchCourseName()
   }, [id])
+
+  const fetchCourseName = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/course/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status) {
+        setCourseName(response.data.data?.m_course_title || 'Unknown Course')
+      } else {
+        setCourseName('Unknown Course')
+      }
+    } catch (error) {
+      console.error('Error fetching course name:', error)
+      setCourseName('Unknown Course')
+    }
+  }
 
   const fetchTools = async () => {
     try {
@@ -163,8 +182,8 @@ export default function CourseTools() {
 
         <div className="p-4 flex-1 flex flex-col gap-4 bg-white border-x border-b border-slate-200 rounded-b-2xl">
           <div className="bg-white dark:bg-[#13111c] rounded-lg border border-slate-200 dark:border-gray-700 p-4">
-             <p className="text-xs font-bold text-slate-500 mb-2 uppercase">COURSE ID:</p>
-             <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{id}</p>
+             <p className="text-xs font-bold text-slate-500 mb-2 uppercase">COURSE:</p>
+             <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{courseName}</p>
           </div>
 
           <div className="bg-white dark:bg-[#13111c] rounded-lg border border-slate-200 dark:border-gray-700">
@@ -185,7 +204,7 @@ export default function CourseTools() {
                   type="text" 
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-indigo-600 bg-transparent text-sm text-slate-800 dark:text-slate-200" 
+                  className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-[#144f36] bg-transparent text-sm text-slate-800 dark:text-slate-200" 
                   placeholder="Enter tool title" 
                   required 
                 />
@@ -197,7 +216,7 @@ export default function CourseTools() {
                     type="file" 
                     ref={fileInputRef}
                     onChange={(e) => setImage(e.target.files[0])}
-                    className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-1.5 outline-none focus:border-indigo-600 bg-transparent text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-slate-100 dark:bg-[#1f1b2e]/50 file:text-slate-700 dark:text-slate-300 hover:file:bg-slate-200 text-slate-700 dark:text-slate-300" 
+                    className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-1.5 outline-none focus:border-[#144f36] bg-transparent text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-slate-100 dark:bg-[#1f1b2e]/50 file:text-slate-700 dark:text-slate-300 hover:file:bg-slate-200 text-slate-700 dark:text-slate-300" 
                   />
                 </div>
                 <div>
@@ -205,7 +224,7 @@ export default function CourseTools() {
                   <select 
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-indigo-600 bg-transparent text-slate-800 dark:text-slate-200 text-sm"
+                    className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 outline-none focus:border-[#144f36] bg-transparent text-slate-800 dark:text-slate-200 text-sm"
                   >
                     <option value="1">Active</option>
                     <option value="0">Inactive</option>
@@ -279,7 +298,7 @@ export default function CourseTools() {
                           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl whitespace-pre-line">{tool.c_tool_description}</p>
                         </td>
                         <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${tool.c_tool_status === 1 ? 'bg-[#144f36]' : 'bg-[#144f36]'}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium text-white ${tool.c_tool_status === 1 ? 'bg-[#144f36]' : 'bg-slate-500'}`}>
                             {tool.c_tool_status === 1 ? 'Active' : 'In-Active'}
                           </span>
                         </td>
@@ -304,3 +323,4 @@ export default function CourseTools() {
       </div>
   )
 }
+

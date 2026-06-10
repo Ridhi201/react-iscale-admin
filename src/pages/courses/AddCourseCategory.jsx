@@ -199,7 +199,7 @@ export default function AddCourseCategory() {
                   value={formData.categoryName}
                   onChange={handleChange}
                   placeholder="Enter category name"
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
               </div>
 
@@ -209,7 +209,7 @@ export default function AddCourseCategory() {
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
@@ -224,7 +224,7 @@ export default function AddCourseCategory() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleFileChange(e, setIconFile)}
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
                 <p className="text-xs text-slate-500">Recommended size: 100x100 pixels</p>
               </div>
@@ -235,7 +235,7 @@ export default function AddCourseCategory() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleFileChange(e, setBannerFile)}
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
                 <p className="text-xs text-slate-500">Recommended size: 1200x400 pixels</p>
               </div>
@@ -250,7 +250,7 @@ export default function AddCourseCategory() {
                   value={formData.order}
                   onChange={handleChange}
                   placeholder="e.g. 1"
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
               </div>
 
@@ -262,7 +262,7 @@ export default function AddCourseCategory() {
                   value={formData.keywords}
                   onChange={handleChange}
                   placeholder="e.g. solid,courses"
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
               </div>
             </div>
@@ -275,7 +275,7 @@ export default function AddCourseCategory() {
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Enter category description..."
-                className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
 
@@ -309,3 +309,4 @@ export default function AddCourseCategory() {
     </div>
   )
 }
+

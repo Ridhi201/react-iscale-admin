@@ -20,9 +20,9 @@ export const menuItems = [
     children: [
       { id: 'reg-course', label: 'Course Registrations', path: '/registrations/course' },
       { id: 'reg-cert', label: 'Certificate Request', path: '/registrations/certificate' },
-      { id: 'reg-test', label: 'Test Series Registration', path: '/registrations/test-series' },
-      { id: 'reg-notes', label: 'Notes Registration', path: '/registrations/notes' },
-      { id: 'reg-webinar', label: 'Webinar Registrations', path: '/registrations/webinar' },
+//       { id: 'reg-test', label: 'Test Series Registration', path: '/registrations/test-series' },
+//       { id: 'reg-notes', label: 'Notes Registration', path: '/registrations/notes' },
+//       { id: 'reg-webinar', label: 'Webinar Registrations', path: '/registrations/webinar' },
       { id: 'reg-job', label: 'Job Registration', path: '/registrations/job' },
       { id: 'reg-event', label: 'Event Registration', path: '/registrations/event' },
     ],
@@ -55,12 +55,12 @@ export const menuItems = [
     icon: 'Video',
     path: '/live-classes',
   },
-  {
-    id: 'webinar',
-    label: 'Webinar',
-    icon: 'Mic2',
-    path: '/webinar',
-  },
+//   {
+//     id: 'webinar',
+//     label: 'Webinar',
+//     icon: 'Mic2',
+//     path: '/webinar',
+//   },
   {
     id: 'test-series',
     label: 'Test Series',
@@ -83,23 +83,23 @@ export const menuItems = [
       { id: 'courses-recommended', label: 'Recommended Courses', path: '/courses/recommended' },
     ],
   },
-  {
-    id: 'notes',
-    label: 'Notes',
-    icon: 'StickyNote',
-    path: '/notes',
-    children: [
-      { id: 'notes-category', label: 'Notes Category', path: '/notes/category' },
-      { id: 'notes-sub-category', label: 'Notes Sub Category', path: '/notes/sub-category' },
-      { id: 'notes-all', label: 'All Notes', path: '/notes/all' },
-    ],
-  },
-  {
-    id: 'classes',
-    label: 'Classes',
-    icon: 'GraduationCap',
-    path: '/classes',
-  },
+//   {
+//     id: 'notes',
+//     label: 'Notes',
+//     icon: 'StickyNote',
+//     path: '/notes',
+//     children: [
+//       { id: 'notes-category', label: 'Notes Category', path: '/notes/category' },
+//       { id: 'notes-sub-category', label: 'Notes Sub Category', path: '/notes/sub-category' },
+//       { id: 'notes-all', label: 'All Notes', path: '/notes/all' },
+//     ],
+//   },
+//   {
+//     id: 'classes',
+//     label: 'Classes',
+//     icon: 'GraduationCap',
+//     path: '/classes',
+//   },
   {
     id: 'app-users',
     label: 'App Users',
@@ -132,27 +132,27 @@ export const menuItems = [
       { id: 'team-all', label: 'All Teams', path: '/teams/all' },
     ],
   },
-  {
-    id: 'partners',
-    label: 'Partners',
-    icon: 'Handshake',
-    path: '/partners',
-    children: [
-      { id: 'partner-add', label: 'Add Partners', path: '/partners/add' },
-      { id: 'partner-all', label: 'All Partners', path: '/partners/all' },
-    ],
-  },
-  {
-    id: 'ratings',
-    label: 'Ratings',
-    icon: 'Star',
-    path: '/ratings',
-    children: [
-      { id: 'ratings-course', label: 'All Testimonials/Course Ratings', path: '/ratings/course' },
-      { id: 'ratings-subject', label: 'Subject Ratings', path: '/ratings/subject' },
-      { id: 'ratings-home', label: 'All Home Page Reviews', path: '/ratings/home-page' },
-    ],
-  },
+//   {
+//     id: 'partners',
+//     label: 'Partners',
+//     icon: 'Handshake',
+//     path: '/partners',
+//     children: [
+//       { id: 'partner-add', label: 'Add Partners', path: '/partners/add' },
+//       { id: 'partner-all', label: 'All Partners', path: '/partners/all' },
+//     ],
+//   },
+//   {
+//     id: 'ratings',
+//     label: 'Ratings',
+//     icon: 'Star',
+//     path: '/ratings',
+//     children: [
+//       { id: 'ratings-course', label: 'All Testimonials/Course Ratings', path: '/ratings/course' },
+//       { id: 'ratings-subject', label: 'Subject Ratings', path: '/ratings/subject' },
+//       { id: 'ratings-home', label: 'All Home Page Reviews', path: '/ratings/home-page' },
+//     ],
+//   },
   {
     id: 'banners',
     label: 'Banners',

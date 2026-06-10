@@ -137,16 +137,15 @@ export default function EditCourseCategory() {
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 overflow-hidden flex flex-col">
         
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-[#1f1b2e] flex justify-between items-center bg-[#f6f6ff]">
-          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            Edit Category
-          </h2>
-          <button
-            onClick={() => navigate('/courses/categories')}
-            className="bg-slate-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-slate-600 transition-colors flex items-center gap-2"
-          >
-            <ArrowLeft size={16} />
-            <span>Back to List</span>
+        <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
+          <div className="flex items-center relative z-10">
+            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Edit Category</h2>
+          </div>
+          <button onClick={() => navigate('/courses/categories')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
+            <span>↩ Back to List</span>
           </button>
         </div>
 
@@ -164,7 +163,7 @@ export default function EditCourseCategory() {
                   value={formData.categoryName}
                   onChange={handleChange}
                   placeholder="Enter category name"
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
               </div>
 
@@ -174,7 +173,7 @@ export default function EditCourseCategory() {
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
@@ -189,7 +188,7 @@ export default function EditCourseCategory() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleFileChange(e, setIconFile)}
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
                 <p className="text-xs text-slate-500">Recommended size: 100x100 pixels. Leave empty to keep current.</p>
               </div>
@@ -200,7 +199,7 @@ export default function EditCourseCategory() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleFileChange(e, setBannerFile)}
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
                 <p className="text-xs text-slate-500">Recommended size: 1200x400 pixels. Leave empty to keep current.</p>
               </div>
@@ -215,7 +214,7 @@ export default function EditCourseCategory() {
                   value={formData.order}
                   onChange={handleChange}
                   placeholder="e.g. 1"
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
               </div>
 
@@ -227,7 +226,7 @@ export default function EditCourseCategory() {
                   value={formData.keywords}
                   onChange={handleChange}
                   placeholder="e.g. solid,courses"
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
               </div>
             </div>
@@ -240,7 +239,7 @@ export default function EditCourseCategory() {
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Enter category description..."
-                className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
 
@@ -274,3 +273,4 @@ export default function EditCourseCategory() {
     </div>
   )
 }
+

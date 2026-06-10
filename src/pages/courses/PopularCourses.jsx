@@ -172,7 +172,7 @@ export default function PopularCourses() {
                 <select 
                   value={entriesPerPage}
                   onChange={handleEntriesChange}
-                  className="bg-transparent text-slate-800 dark:text-slate-200 font-bold text-sm outline-none cursor-pointer focus:text-indigo-600 transition-colors"
+                  className="bg-transparent text-slate-800 dark:text-slate-200 font-bold text-sm outline-none cursor-pointer focus:text-[#144f36] transition-colors"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -240,14 +240,16 @@ export default function PopularCourses() {
                   </tr>
                 ) : courses.map((row, index) => {
                   // Map exact API fields: _id, title, code, banner, type, price, offer_price, slug
-                  const title = row.title || 'N/A'
-                  const code = row.code || 'N/A'
-                  const banner = row.banner || ''
-                  const courseType = row.type || 'N/A'
-                  const price = row.price ?? 'N/A'
-                  const offerPrice = row.offer_price ?? 'N/A'
+                  const title = row.title || row.m_course_title || 'N/A'
+                  const code = row.code || row.m_course_code || 'N/A'
+                  const banner = row.banner || row.m_course_banner || ''
+                  const courseType = row.type || row.m_course_type || 'N/A'
+                  const price = row.price ?? row.m_course_price ?? 'N/A'
+                  const offerPrice = row.offer_price ?? row.m_course_offer_price ?? 'N/A'
+                  const courseId = row._id || row.id || row.course_id || row.m_course_id || '';
+                  
                   return (
-                  <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/20 transition-all duration-200 group">
+                  <tr key={courseId || index} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-[#eaf3f8]/60 dark:hover:bg-indigo-900/20 transition-all duration-200 group">
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
                       {(currentPage - 1) * entriesPerPage + index + 1}
                     </td>
@@ -268,20 +270,20 @@ export default function PopularCourses() {
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">₹{price}</td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">₹{offerPrice}</td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                      <button onClick={() => navigate(`/courses/subjects/${row._id}`)} className="bg-[#144f36] text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-[#0f3d2a] transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                      <button onClick={() => navigate(`/courses/subjects/${courseId}`)} className="bg-[#144f36] text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-[#0f3d2a] transition-colors flex items-center gap-1.5 whitespace-nowrap">
                         <Book size={12} />
                         Subject
                       </button>
                     </td>
                     <td className="px-3 py-3 align-middle">
                       <div className="flex gap-1.5">
-                        <button className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors">
+                        <button onClick={() => navigate(`/courses/view/${courseId}`)} className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors">
                           <Eye size={14} />
                         </button>
-                        <button onClick={() => navigate(`/courses/all/edit/${row._id || row.id}`)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#c2621f] transition-colors">
+                        <button onClick={() => navigate(`/courses/all/edit/${courseId}`)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#c2621f] transition-colors">
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={() => handleDelete(row._id || row.id)} className="bg-[#d9534f] text-white p-1.5 rounded hover:bg-[#d9534f] transition-colors">
+                        <button onClick={() => handleDelete(courseId)} className="bg-[#d9534f] text-white p-1.5 rounded hover:bg-[#d9534f] transition-colors">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -334,3 +336,4 @@ export default function PopularCourses() {
       </div>
   )
 }
+

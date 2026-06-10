@@ -289,7 +289,7 @@ export default function CourseTrainingHighlights() {
                 ) : highlights.length > 0 ? (
                   highlights.map((item, index) => (
                     <tr key={item._id} className="border-b border-slate-200 bg-white hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-3 border-r border-slate-200 align-middle text-[#428bca]">{index + 1}</td>
+                      <td className="px-4 py-3 border-r border-slate-200 align-middle text-[#144f36]">{index + 1}</td>
                       <td className="px-4 py-3 border-r border-slate-200 align-middle">
                         {item.icon ? (
                           <div className="w-10 h-10 bg-[#144f36] rounded flex items-center justify-center overflow-hidden">
@@ -340,3 +340,4 @@ export default function CourseTrainingHighlights() {
     </div>
   )
 }
+

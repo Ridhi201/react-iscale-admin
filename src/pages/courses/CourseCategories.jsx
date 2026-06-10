@@ -147,7 +147,7 @@ export default function CourseCategories() {
                 <select 
                   value={entriesPerPage}
                   onChange={handleEntriesChange}
-                  className="bg-transparent text-slate-800 dark:text-slate-200 font-bold text-sm outline-none cursor-pointer focus:text-indigo-600 transition-colors"
+                  className="bg-transparent text-slate-800 dark:text-slate-200 font-bold text-sm outline-none cursor-pointer focus:text-[#144f36] transition-colors"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -201,7 +201,7 @@ export default function CourseCategories() {
                   currentData.map((row, index) => {
                     const status = row.m_category_status === 1 ? 'Active' : 'Inactive';
                     return (
-                      <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/20 transition-all duration-200 group">
+                      <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-[#eaf3f8]/60 dark:hover:bg-indigo-900/20 transition-all duration-200 group">
                         <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-top">{startIndex + index + 1}</td>
                         <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-top">{row.m_category_name}</td>
                         <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-top">
@@ -284,3 +284,4 @@ export default function CourseCategories() {
     </div>
   )
 }
+
