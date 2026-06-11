@@ -18,8 +18,8 @@ export default function EditCourse() {
     m_course_title: '',
     m_course_category: '',
     m_course_type: '',
-    m_course_status: 1,
-    m_course_status_web: 1,
+    m_course_status: 'active',
+    m_course_status_web: 'active',
     m_course_popular: 0,
     m_course_recomended: 0,
     m_course_description: '',
@@ -38,7 +38,9 @@ export default function EditCourse() {
     m_course_app_g_link: '',
     m_course_web_g_link: '',
     m_course_graphy_instruction: '',
-    instructor: ''
+    instructor: '',
+    m_course_price: '',
+    m_course_offer_price: ''
   });
 
   const [bannerFile, setBannerFile] = useState(null);
@@ -55,20 +57,21 @@ export default function EditCourse() {
   };
 
   useEffect(() => {
-    // Load dropdown data
-    const fetchCategories = async () => {
+    const loadData = async () => {
+      let loadedCategories = [];
       try {
         const token = localStorage.getItem('token');
         const res = await axios.get(`${BASE_URL}/myadmin/course/categories-dropdown`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (res.data.status) setCategories(res.data.data);
+        if (res.data.status) {
+          setCategories(res.data.data);
+          loadedCategories = res.data.data;
+        }
       } catch (err) {
         console.error('Failed to load categories', err);
       }
-    };
 
-    const fetchInstructors = async () => {
       try {
         const token = localStorage.getItem('token');
         const res = await axios.get(`${BASE_URL}/myadmin/instructor/instructors-dropdown`, {
@@ -78,56 +81,51 @@ export default function EditCourse() {
       } catch (err) {
         console.error('Failed to load instructors', err);
       }
-    };
 
-    const fetchCourse = async () => {
-      // If we received data from the previous page's navigation state, use it directly!
-      if (location.state?.courseData) {
-        console.log('=== USING COURSE DATA FROM ROUTER STATE ===', location.state.courseData);
-        populateForm(location.state.courseData);
-        return;
-      }
-
-      // Fallback: try to fetch it if user refreshed the page directly
+      let course = null;
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`${BASE_URL}/myadmin/course/${id}`, {
+        const res = await axios.get(`${BASE_URL}/myadmin/course/course/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-
-        let course = {};
-        const findCourse = (obj) => {
-          if (!obj || typeof obj !== 'object') return false;
-          if (obj.m_course_title || obj.title) {
-            course = obj;
-            return true;
-          }
-          for (const key of Object.keys(obj)) {
-            if (typeof obj[key] === 'object') {
-              if (findCourse(obj[key])) return true;
-            }
-          }
-          return false;
-        };
-        findCourse(res.data);
-        populateForm(course);
+        if (res.data?.data) {
+          course = res.data.data;
+        }
       } catch (err) {
         console.error('Failed to fetch course details', err);
       }
+
+      if (!course && location.state?.courseData) {
+        course = location.state.courseData;
+      }
+
+      if (course) {
+        populateForm(course, loadedCategories);
+      }
     };
 
-    const populateForm = (course) => {
+    const populateForm = (course, categoriesList) => {
       const normStatus = (val) => {
         if (!val) return 'active';
         const s = String(val).toLowerCase();
         return s === 'inactive' || s === '0' ? 'inactive' : 'active';
       };
 
+      let categoryId = course.category || course.m_course_category || '';
+      if (categoryId && !categoriesList.find(c => c._id === categoryId)) {
+        const found = categoriesList.find(c => c.m_category_name === categoryId);
+        if (found) categoryId = found._id;
+      }
+
+      let typeVal = course.course_type || course.type || course.m_course_type || '';
+      if (typeVal === 'Paid') typeVal = '2';
+      if (typeVal === 'Free') typeVal = '1';
+
       setCourseData({
         m_course_lang: course.lang || course.m_course_lang || 1,
         m_course_title: course.title || course.m_course_title || '',
-        m_course_category: course.category || course.m_course_category || '',
-        m_course_type: course.course_type || course.type || course.m_course_type || '',
+        m_course_category: categoryId,
+        m_course_type: typeVal,
         m_course_status: normStatus(course.status || course.m_course_status),
         m_course_status_web: normStatus(course.status_web || course.m_course_status_web),
         m_course_popular: Number(course.popular || course.m_course_popular || 0),
@@ -148,13 +146,13 @@ export default function EditCourse() {
         m_course_app_g_link: course.app_g_link || course.m_course_app_g_link || '',
         m_course_web_g_link: course.web_g_link || course.m_course_web_g_link || '',
         m_course_graphy_instruction: course.graphy_instruction || course.m_course_graphy_instruction || '',
-        instructor: course.instructor || course.m_course_instructor || ''
+        instructor: course.instructor || course.m_course_instructor || '',
+        m_course_price: course.price || course.m_course_price || '',
+        m_course_offer_price: course.offer_price || course.m_course_offer_price || ''
       });
     };
 
-    fetchCategories();
-    fetchInstructors();
-    fetchCourse();
+    loadData();
   }, [id, location.state]);
 
   const handleSubmit = async () => {
@@ -242,7 +240,20 @@ export default function EditCourse() {
                 <option value="Self Paced">Self Paced</option>
                 <option value="Live">Live</option>
                 <option value="Hybrid">Hybrid</option>
+                <option value="1">Free</option>
+                <option value="2">Paid</option>
               </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div>
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Price</label>
+              <input id="m_course_price" type="number" value={courseData.m_course_price} onChange={handleChange} placeholder="Course Price" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">Offer Price</label>
+              <input id="m_course_offer_price" type="number" value={courseData.m_course_offer_price} onChange={handleChange} placeholder="Offer Price" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
           </div>
 
