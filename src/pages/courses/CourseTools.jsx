@@ -29,11 +29,11 @@ export default function CourseTools() {
   const fetchCourseName = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get(`${BASE_URL}/myadmin/course/${id}`, {
+      const response = await axios.get(`${BASE_URL}/myadmin/course/course/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        setCourseName(response.data.data?.m_course_title || 'Unknown Course')
+        setCourseName(response.data.data?.title || response.data.data?.m_course_title || 'Unknown Course')
       } else {
         setCourseName('Unknown Course')
       }
@@ -181,10 +181,7 @@ export default function CourseTools() {
         </div>
 
         <div className="p-4 flex-1 flex flex-col gap-4 bg-white border-x border-b border-slate-200 rounded-b-2xl">
-          <div className="bg-white dark:bg-[#13111c] rounded-lg border border-slate-200 dark:border-gray-700 p-4">
-             <p className="text-xs font-bold text-slate-500 mb-2 uppercase">COURSE:</p>
-             <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{courseName}</p>
-          </div>
+
 
           <div className="bg-white dark:bg-[#13111c] rounded-lg border border-slate-200 dark:border-gray-700">
             <div className="p-4 border-b border-slate-200 dark:border-gray-700 flex justify-between items-center">
