@@ -4,45 +4,55 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
-export default function NewsList() {
+export default function PPTList() {
   const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
   const [search, setSearch] = useState('')
   const [data, setData] = useState([])
+  const [totalEntries, setTotalEntries] = useState(0)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    fetchData()
+  }, [currentPage, entriesPerPage, search])
 
   const fetchData = async () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await axios.get(`${BASE_URL}/myadmin/news&updates/all-news&updates`, {
+      const params = {
+        page: currentPage,
+        limit: entriesPerPage
+      }
+      if (search) params.search = search
+
+      const response = await axios.get(`${BASE_URL}/myadmin/ppt/get-ppts`, {
+        params,
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
         setData(response.data.data || [])
+        setTotalEntries(response.data.pagination?.total || response.data.total || 0)
       } else {
         setData([])
+        setTotalEntries(0)
       }
     } catch (error) {
-      console.error('Error fetching News:', error)
+      console.error('Error fetching PPTs:', error)
       setData([])
+      setTotalEntries(0)
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this News/Update?')) return
+    if (!window.confirm('Are you sure you want to delete this PPT?')) return
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.delete(`${BASE_URL}/myadmin/news&updates/delete-news&updates/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        data: {}
+      const response = await axios.delete(`${BASE_URL}/myadmin/ppt/delete-ppt/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
         alert(response.data.message || 'Deleted successfully')
@@ -51,7 +61,7 @@ export default function NewsList() {
         alert(response.data.message || 'Delete failed')
       }
     } catch (error) {
-      console.error('Error deleting:', error)
+      console.error('Error deleting PPT:', error)
       alert(error.response?.data?.message || 'Delete failed')
     }
   }
@@ -59,7 +69,7 @@ export default function NewsList() {
   const handleToggleStatus = async (id) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.patch(`${BASE_URL}/myadmin/news&updates/status/${id}`, {}, {
+      const response = await axios.patch(`${BASE_URL}/myadmin/ppt/status/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
@@ -86,15 +96,7 @@ export default function NewsList() {
     return `${baseUrl}/${formattedPath}`
   }
 
-  // Client side filtering and pagination
-  const filteredData = data.filter(item => 
-    item.m_news_title?.toLowerCase().includes(search.toLowerCase()) ||
-    item.m_news_intro?.toLowerCase().includes(search.toLowerCase())
-  )
-
-  const totalEntries = filteredData.length
   const totalPages = Math.ceil(totalEntries / entriesPerPage) || 1
-  const paginatedData = filteredData.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)
 
   return (
     <div className="h-full animate-fade-in-up">
@@ -105,11 +107,11 @@ export default function NewsList() {
           
           <div className="flex items-center relative z-10">
             <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">News & Updates</h2>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Pre-Placement Talks</h2>
           </div>
           
           <button 
-            onClick={() => navigate('/news-updates/add')}
+            onClick={() => navigate('/placement-talks/add')}
             className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5"
           >
             <span>+ Add New</span>
@@ -139,68 +141,92 @@ export default function NewsList() {
                 type="text" 
                 placeholder="Search..."
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => setSearch(e.target.value)}
                 className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-64"
               />
             </div>
           </div>
 
-          <div className="overflow-auto border border-slate-200 dark:border-[#1f1b2e] flex-1 min-h-0 relative">
+          <div className="overflow-auto border border-slate-200 dark:border-[#1f1b2e] flex-1 min-h-0">
             <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
-              <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 sticky top-0 z-10">
+              <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">
                 <tr>
                   <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">S.No.</th>
                   <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Image</th>
-                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Title</th>
-                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 min-w-[250px]">Intro</th>
-                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap text-center">Status</th>
-                  <th className="px-4 py-3 font-bold whitespace-nowrap text-center">Action</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Company Logo</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Full Name</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Designation</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Company</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Video</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Order</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Status</th>
+                  <th className="px-4 py-3 font-bold whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-8">Loading...</td>
+                    <td colSpan="10" className="text-center py-8">Loading...</td>
                   </tr>
-                ) : paginatedData.length === 0 ? (
+                ) : data.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-8">No News/Updates found</td>
+                    <td colSpan="10" className="text-center py-8">No PPTs found</td>
                   </tr>
                 ) : (
-                  paginatedData.map((row, index) => (
+                  data.map((row, index) => (
                     <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
                       <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">
                         {(currentPage - 1) * entriesPerPage + index + 1}
                       </td>
                       <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                        <div className="w-20 h-16 mx-auto bg-slate-100 dark:bg-slate-700 flex flex-col items-center justify-center border border-slate-200 dark:border-[#1f1b2e] rounded overflow-hidden">
-                          {row.m_news_image ? (
-                            <img src={getImageUrl(row.m_news_image)} alt={row.m_news_title} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                        <div className="w-16 h-16 mx-auto bg-slate-100 dark:bg-slate-700 flex flex-col items-center justify-center border border-slate-200 dark:border-[#1f1b2e] rounded overflow-hidden">
+                          {row.m_pre_image ? (
+                            <img src={getImageUrl(row.m_pre_image)} alt={row.m_pre_name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                           ) : null}
-                          <div className={`flex flex-col items-center justify-center ${row.m_news_image ? 'hidden' : ''}`}>
+                          <div className={`flex flex-col items-center justify-center ${row.m_pre_image ? 'hidden' : ''}`}>
                             <Camera className="text-slate-600 dark:text-slate-400 mb-1" size={20} />
-                            <span className="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">No image</span>
+                            <span className="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">No image<br/>available</span>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle font-medium text-slate-900 dark:text-slate-100">
-                        {row.m_news_title}
+                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
+                        <div className="w-16 h-16 mx-auto bg-slate-100 dark:bg-slate-700 flex flex-col items-center justify-center border border-slate-200 dark:border-[#1f1b2e] rounded overflow-hidden">
+                          {row.m_pre_company_img ? (
+                            <img src={getImageUrl(row.m_pre_company_img)} alt={row.m_pre_company} className="w-full h-full object-contain p-1" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                          ) : null}
+                          <div className={`flex flex-col items-center justify-center ${row.m_pre_company_img ? 'hidden' : ''}`}>
+                            <Camera className="text-slate-600 dark:text-slate-400 mb-1" size={20} />
+                            <span className="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">No image<br/>available</span>
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                        <p className="line-clamp-2">{row.m_news_intro || '-'}</p>
+                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle font-medium text-slate-900 dark:text-slate-100">{row.m_pre_name}</td>
+                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.m_pre_designation || '-'}</td>
+                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.m_pre_company || '-'}</td>
+                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
+                        {row.m_pre_video_link ? (
+                          <a href={row.m_pre_video_link} target="_blank" rel="noreferrer" className="text-white bg-[#144f36] px-3 py-1 rounded-full text-xs hover:bg-[#0f3d2a] transition-colors inline-block whitespace-nowrap shadow-sm">
+                            Watch Video
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">No Link</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
+                        {row.m_pre_order || 0}
                       </td>
                       <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
                         <button 
                           onClick={() => handleToggleStatus(row._id)}
-                          className={`text-white px-3 py-1 rounded-full text-xs transition-colors shadow-sm ${row.m_news_status === 'active' || String(row.m_news_status) === '1' ? 'bg-[#144f36] hover:bg-[#0f3d2a]' : row.m_news_status === 'inactive' || String(row.m_news_status) === '0' ? 'bg-red-500 hover:bg-red-600' : 'bg-[#144f36] hover:bg-[#0f3d2a]'}`}
+                          className={`text-white px-3 py-1 rounded-full text-xs transition-colors shadow-sm ${row.m_pre_status === 'active' || String(row.m_pre_status) === '1' ? 'bg-[#144f36] hover:bg-[#0f3d2a]' : 'bg-red-500 hover:bg-red-600'}`}
                         >
-                          {row.m_news_status === 'inactive' || String(row.m_news_status) === '0' ? 'Inactive' : 'Active'}
+                          {row.m_pre_status === 'active' || String(row.m_pre_status) === '1' ? 'Active' : 'Inactive'}
                         </button>
                       </td>
-                      <td className="px-4 py-4 align-middle text-center">
-                        <div className="flex justify-center gap-2">
+                      <td className="px-4 py-4 align-middle">
+                        <div className="flex gap-2">
                           <button 
-                            onClick={() => navigate(`/news-updates/edit/${row._id}`, { state: { news: row } })}
+                            onClick={() => navigate(`/placement-talks/edit/${row._id}`, { state: { ppt: row } })}
                             className="bg-orange-500 text-white p-1.5 rounded hover:bg-orange-600 transition-colors shadow-sm"
                             title="Edit"
                           >
@@ -224,7 +250,7 @@ export default function NewsList() {
 
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
             <div className="mb-4 md:mb-0">
-              Showing {totalEntries > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0} to {Math.min(currentPage * entriesPerPage, totalEntries)} of {totalEntries} entries
+              Showing {data.length > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0} to {Math.min(currentPage * entriesPerPage, totalEntries)} of {totalEntries} entries
             </div>
             <div className="flex items-center space-x-1">
               <button 

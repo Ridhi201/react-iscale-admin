@@ -180,6 +180,7 @@ export const menuItems = [
       { id: 'job-updates', label: 'Job Updates', path: '/job-updates' },
       { id: 'success-story', label: 'Success Story', path: '/success-story' },
       { id: 'placement-talks', label: 'Placement Talks', path: '/placement-talks' },
+      { id: 'news-updates', label: 'News & Updates', path: '/news-updates' },
       { id: 'our-allied', label: 'Our Allied', path: '/our-allied' },
       { id: 'our-clients', label: 'Our Clients', path: '/our-clients' }
     ]

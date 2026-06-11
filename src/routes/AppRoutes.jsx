@@ -64,14 +64,19 @@ import JobUpdatesList from '../pages/jobs-careers/JobUpdatesList'
 import AddJobUpdate from '../pages/jobs-careers/AddJobUpdate'
 import SuccessStoryList from '../pages/cms-content/SuccessStoryList'
 import AddSuccessStory from '../pages/cms-content/AddSuccessStory'
-import PlacementTalksList from '../pages/cms-content/PlacementTalksList'
-import AddPlacementTalk from '../pages/cms-content/AddPlacementTalk'
-import AlliedList from '../pages/partners-clients/AlliedList'
-import AddAllied from '../pages/partners-clients/AddAllied'
-import ClientList from '../pages/partners-clients/ClientList'
-import AddClient from '../pages/partners-clients/AddClient'
+import EditSuccessStory from '../pages/cms-content/EditSuccessStory'
+import PPTList from '../pages/cms-content/PPTList'
+import AddPPT from '../pages/cms-content/AddPPT'
+import EditPPT from '../pages/cms-content/EditPPT'
 import NewsList from '../pages/cms-content/NewsList'
 import AddNews from '../pages/cms-content/AddNews'
+import EditNews from '../pages/cms-content/EditNews'
+import AlliedList from '../pages/partners-clients/AlliedList'
+import AddAllied from '../pages/partners-clients/AddAllied'
+import EditAllied from '../pages/partners-clients/EditAllied'
+import ClientList from '../pages/partners-clients/ClientList'
+import AddClient from '../pages/partners-clients/AddClient'
+import EditClient from '../pages/partners-clients/EditClient'
 import ContactQueriesList from '../pages/misc/ContactQueriesList'
 import HireWithUsList from '../pages/jobs-careers/HireWithUsList'
 import CouponsList from '../pages/marketing/CouponsList'
@@ -214,14 +219,22 @@ export default function AppRoutes() {
         <Route path="/job-updates/edit/:id" element={<AddJobUpdate />} />
         <Route path="/success-story" element={<SuccessStoryList />} />
         <Route path="/success-story/add" element={<AddSuccessStory />} />
-        <Route path="/placement-talks" element={<PlacementTalksList />} />
-        <Route path="/placement-talks/add" element={<AddPlacementTalk />} />
+        <Route path="/success-story/edit/:id" element={<EditSuccessStory />} />
+        
+        <Route path="/placement-talks" element={<PPTList />} />
+        <Route path="/placement-talks/add" element={<AddPPT />} />
+        <Route path="/placement-talks/edit/:id" element={<EditPPT />} />
+        
+        <Route path="/news-updates" element={<NewsList />} />
+        <Route path="/news-updates/add" element={<AddNews />} />
+        <Route path="/news-updates/edit/:id" element={<EditNews />} />
+
         <Route path="/our-allied" element={<AlliedList />} />
         <Route path="/our-allied/add" element={<AddAllied />} />
+        <Route path="/our-allied/edit/:id" element={<EditAllied />} />
         <Route path="/our-clients" element={<ClientList />} />
         <Route path="/our-clients/add" element={<AddClient />} />
-        <Route path="/news" element={<NewsList />} />
-        <Route path="/news/add" element={<AddNews />} />
+        <Route path="/our-clients/edit/:id" element={<EditClient />} />
         <Route path="/forms/contact-query" element={<ContactQueriesList />} />
         <Route path="/forms/hire-with-us" element={<HireWithUsList />} />
         <Route path="/events/category" element={<EventCategoryList />} />

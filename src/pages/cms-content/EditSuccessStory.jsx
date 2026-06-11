@@ -1,23 +1,31 @@
 import Button from '../../components/common/Button'
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
-export default function AddSuccessStory() {
+export default function EditSuccessStory() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { id } = useParams()
+  
   const [imageFile, setImageFile] = useState(null)
+  
+  const story = location.state?.story || {}
+
   const [formData, setFormData] = useState({
-    m_ss_name: '',
-    m_ss_designation: '',
-    m_ss_linkedin: '',
-    m_ss_video: '',
-    m_ss_placed: '',
-    m_ss_package: '',
-    m_ss_order: '',
-    m_ss_feedback: ''
+    m_ss_name: story.m_ss_name || '',
+    m_ss_designation: story.m_ss_designation || '',
+    m_ss_linkedin: story.m_ss_linkedin || '',
+    m_ss_video: story.m_ss_youtube_url || story.m_ss_video || '',
+    m_ss_placed: story.m_ss_placed || '',
+    m_ss_package: story.m_ss_package || '',
+    m_ss_order: story.m_ss_order || '',
+    m_ss_feedback: story.m_ss_feedback || ''
   })
-  const [loading, setLoading] = useState(false)
+
+  // If page is refreshed and state is lost, we could fetch by ID here, 
+  // but let's stick to using the form data for now.
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -40,27 +48,22 @@ export default function AddSuccessStory() {
     const parsedOrder = parseInt(formData.m_ss_order, 10);
     submitData.append('m_ss_order', isNaN(parsedOrder) ? 0 : parsedOrder)
     submitData.append('m_ss_feedback', formData.m_ss_feedback)
-    if (imageFile) {
-      submitData.append('m_ss_image', imageFile)
-    }
+    if (imageFile) submitData.append('m_ss_image', imageFile)
 
     try {
-      setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await axios.post(`${BASE_URL}/myadmin/success-story/add-ss`, submitData, {
+      const response = await axios.put(`${BASE_URL}/myadmin/success-story/update-ss/${id}`, submitData, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Success story added')
+        alert('Updated successfully')
         navigate('/success-story')
       } else {
-        alert(response.data?.message || 'Failed to add')
+        alert(response.data?.message || 'Failed to update')
       }
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.message || 'Error adding success story')
-    } finally {
-      setLoading(false)
+      alert('Error updating success story')
     }
   }
 
@@ -73,7 +76,7 @@ export default function AddSuccessStory() {
           
           <div className="flex items-center relative z-10">
             <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Add Success Story</h2>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Edit Success Story</h2>
           </div>
           
           <button 
@@ -98,7 +101,7 @@ export default function AddSuccessStory() {
               />
             </div>
             <div className="lg:col-span-1">
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Designation</label>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Designation <span className="text-red-500">*</span></label>
               <input 
                 name="m_ss_designation"
                 type="text" 
@@ -109,7 +112,7 @@ export default function AddSuccessStory() {
               />
             </div>
             <div className="lg:col-span-1">
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Image</label>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Image (leave empty to keep current)</label>
               <div className="flex items-center gap-2 mt-1">
                 <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} className="text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-1 file:px-3 file:rounded file:border file:border-slate-300 dark:border-[#1f1b2e] file:bg-[#f6f6ff] file:text-slate-700 dark:text-slate-300 hover:file:bg-slate-50 dark:bg-[#1f1b2e]/50 cursor-pointer" />
               </div>
@@ -143,7 +146,7 @@ export default function AddSuccessStory() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Placed At</label>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Placed At <span className="text-red-500">*</span></label>
               <input 
                 name="m_ss_placed"
                 type="text" 
@@ -154,7 +157,7 @@ export default function AddSuccessStory() {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Package</label>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Package <span className="text-red-500">*</span></label>
               <input 
                 name="m_ss_package"
                 type="text" 
@@ -178,7 +181,7 @@ export default function AddSuccessStory() {
           </div>
 
           <div className="mb-5">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Feedback</label>
+            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Feedback <span className="text-red-500">*</span></label>
             <textarea 
               name="m_ss_feedback"
               value={formData.m_ss_feedback}
@@ -191,11 +194,10 @@ export default function AddSuccessStory() {
 
           <div className="flex gap-4">
             <button 
-              onClick={handleSubmit} 
-              disabled={loading}
-              className="bg-[#144f36] text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-[#0f3d2a] transition-colors flex-1 shadow-sm disabled:opacity-50"
+              onClick={handleSubmit}
+              className="bg-[#144f36] text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-[#0f3d2a] transition-colors flex-1 shadow-sm"
             >
-              {loading ? 'Submitting...' : 'Submit'}
+              Submit
             </button>
             <button 
               onClick={() => navigate('/success-story')}

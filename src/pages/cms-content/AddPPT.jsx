@@ -3,13 +3,15 @@ import { useState } from 'react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
-export default function AddNews() {
+export default function AddPPT() {
   const navigate = useNavigate()
   const [imageFile, setImageFile] = useState(null)
+  const [companyImgFile, setCompanyImgFile] = useState(null)
   const [formData, setFormData] = useState({
-    m_news_title: '',
-    m_news_intro: '',
-    m_news_description: ''
+    m_pre_name: '',
+    m_pre_designation: '',
+    m_pre_company: '',
+    m_pre_video_link: ''
   })
   const [loading, setLoading] = useState(false)
   const [backendError, setBackendError] = useState(null)
@@ -19,40 +21,43 @@ export default function AddNews() {
   }
 
   const handleSubmit = async () => {
-    if (!formData.m_news_title) {
-      alert('Title is required')
+    if (!formData.m_pre_name) {
+      alert('Name is required')
       return
     }
 
     const submitData = new FormData()
-    submitData.append('m_news_title', formData.m_news_title)
-    submitData.append('m_news_intro', formData.m_news_intro)
-    submitData.append('m_news_description', formData.m_news_description)
+    submitData.append('m_pre_name', formData.m_pre_name)
+    submitData.append('m_pre_designation', formData.m_pre_designation)
+    submitData.append('m_pre_company', formData.m_pre_company)
+    submitData.append('m_pre_video_link', formData.m_pre_video_link)
 
     if (imageFile) {
-      submitData.append('m_news_image', imageFile)
+      submitData.append('m_pre_image', imageFile)
+    }
+    if (companyImgFile) {
+      submitData.append('m_pre_company_img', companyImgFile)
     }
 
     try {
       setLoading(true)
       setBackendError(null)
       const token = localStorage.getItem('token')
-      const response = await axios.post(`${BASE_URL}/myadmin/news&updates/add-news&updates`, submitData, {
+      const response = await axios.post(`${BASE_URL}/myadmin/ppt/add-ppt`, submitData, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      if (response.data?.status || response.data?.msg === 'News&Updates added successfully') {
-        alert(response.data.msg || response.data.message || 'News & Updates added successfully')
-        navigate('/news-updates')
+      if (response.data?.status) {
+        alert(response.data.message || 'PPT added successfully')
+        navigate('/placement-talks')
       } else {
-        setBackendError(response.data?.message || response.data?.msg || 'Failed to add (Backend returned status: false)')
+        setBackendError(response.data?.message || 'Failed to add PPT (Backend returned status: false)')
       }
     } catch (err) {
       console.error(err)
       setBackendError(
         err.response?.data?.message || 
-        err.response?.data?.msg || 
         err.message || 
-        'Unknown error occurred while adding News & Updates'
+        'Unknown error occurred while adding PPT'
       )
     } finally {
       setLoading(false)
@@ -68,11 +73,11 @@ export default function AddNews() {
           
           <div className="flex items-center relative z-10">
             <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Add News & Updates</h2>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Add Pre-Placement Talk</h2>
           </div>
           
           <button 
-            onClick={() => navigate('/news-updates')}
+            onClick={() => navigate('/placement-talks')}
             className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5"
           >
             « Back
@@ -87,53 +92,67 @@ export default function AddNews() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Title <span className="text-red-500">*</span></label>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
+            <div className="lg:col-span-1">
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Full Name <span className="text-red-500">*</span></label>
               <input 
-                name="m_news_title"
+                name="m_pre_name"
                 type="text" 
-                value={formData.m_news_title}
+                value={formData.m_pre_name}
                 onChange={handleChange}
-                placeholder="News/Update Title"
+                placeholder="Full Name"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Designation</label>
+              <input 
+                name="m_pre_designation"
+                type="text" 
+                value={formData.m_pre_designation}
+                onChange={handleChange}
+                placeholder="Designation"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Company</label>
+              <input 
+                name="m_pre_company"
+                type="text" 
+                value={formData.m_pre_company}
+                onChange={handleChange}
+                placeholder="Company Name"
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Intro</label>
-              <textarea 
-                name="m_news_intro"
-                rows="2"
-                value={formData.m_news_intro}
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Video Link</label>
+              <input 
+                name="m_pre_video_link"
+                type="text" 
+                value={formData.m_pre_video_link}
                 onChange={handleChange}
-                placeholder="Short Introduction..."
+                placeholder="Youtube or Video URL"
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Description</label>
-              <textarea 
-                name="m_news_description"
-                rows="6"
-                value={formData.m_news_description}
-                onChange={handleChange}
-                placeholder="Full Description..."
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 mb-8">
-            <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Image</label>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Person Image</label>
               <div className="flex items-center gap-2 mt-1">
                 <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} className="text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border file:border-slate-300 dark:border-[#1f1b2e] file:bg-white file:text-slate-700 dark:text-slate-300 hover:file:bg-slate-50 cursor-pointer" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Company Logo</label>
+              <div className="flex items-center gap-2 mt-1">
+                <input type="file" accept="image/*" onChange={e => setCompanyImgFile(e.target.files[0])} className="text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border file:border-slate-300 dark:border-[#1f1b2e] file:bg-white file:text-slate-700 dark:text-slate-300 hover:file:bg-slate-50 cursor-pointer" />
               </div>
             </div>
           </div>
@@ -144,7 +163,7 @@ export default function AddNews() {
               disabled={loading}
               className="bg-[#144f36] text-white px-8 py-2.5 rounded shadow hover:bg-[#0f3d2a] transition-colors disabled:opacity-50 font-bold"
             >
-              {loading ? 'Submitting...' : 'Submit News'}
+              {loading ? 'Submitting...' : 'Submit PPT'}
             </button>
           </div>
         </div>

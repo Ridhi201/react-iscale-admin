@@ -1,15 +1,21 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
-export default function AddAllied() {
+export default function EditAllied() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { id } = useParams()
+  
+  const college = location.state?.college || {}
+
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    m_allied_title: '',
-    m_allied_inr: '',
-    m_allied_order: ''
+    m_allied_title: college.m_allied_title || '',
+    m_allied_inr: college.m_allied_inr || '',
+    m_allied_order: college.m_allied_order || '',
+    m_allied_status: college.m_allied_status || 'active'
   })
   const [imageFile, setImageFile] = useState(null)
 
@@ -29,6 +35,7 @@ export default function AddAllied() {
     
     const parsedOrder = parseInt(formData.m_allied_order, 10)
     submitData.append('m_allied_order', isNaN(parsedOrder) ? 0 : parsedOrder)
+    submitData.append('m_allied_status', formData.m_allied_status)
     
     if (imageFile) {
       submitData.append('m_allied_image', imageFile)
@@ -37,18 +44,18 @@ export default function AddAllied() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await axios.post(`${BASE_URL}/myadmin/allied/add-allied`, submitData, {
+      const response = await axios.put(`${BASE_URL}/myadmin/allied/update-allied/${id}`, submitData, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert('Added successfully')
+        alert('Updated successfully')
         navigate('/our-allied')
       } else {
-        alert(response.data?.message || 'Failed to add')
+        alert(response.data?.message || 'Failed to update')
       }
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.message || 'Error adding allied college')
+      alert(err.response?.data?.message || 'Error updating allied college')
     } finally {
       setLoading(false)
     }
@@ -63,7 +70,7 @@ export default function AddAllied() {
           
           <div className="flex items-center relative z-10">
             <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Add Allied College</h2>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Edit Allied College</h2>
           </div>
           
           <button 
@@ -75,21 +82,35 @@ export default function AddAllied() {
         </div>
 
         <div className="p-6 overflow-y-auto flex-1">
-          <div className="mb-4">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Title <span className="text-red-500">*</span></label>
-            <input 
-              name="m_allied_title"
-              type="text" 
-              value={formData.m_allied_title}
-              onChange={handleChange}
-              placeholder="Allied Title"
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
-            />
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Title <span className="text-red-500">*</span></label>
+              <input 
+                name="m_allied_title"
+                type="text" 
+                value={formData.m_allied_title}
+                onChange={handleChange}
+                placeholder="Allied Title"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Status</label>
+              <select 
+                name="m_allied_status"
+                value={formData.m_allied_status}
+                onChange={handleChange}
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Image</label>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Image (leave empty to keep current)</label>
               <div className="flex items-center gap-2 mt-1">
                 <input 
                   type="file" 
