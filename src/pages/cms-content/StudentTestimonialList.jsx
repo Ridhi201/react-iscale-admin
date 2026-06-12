@@ -1,13 +1,171 @@
-import { useState } from 'react'
-import { Edit2, Trash2 } from 'lucide-react'
-import { studentTestimonialData } from '../../utils/mockData'
+import { useState, useEffect } from 'react'
+import { Edit2, Trash2, X } from 'lucide-react'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function StudentTestimonialList() {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
-  const TOTAL_ENTRIES = 38
 
-  const currentData = studentTestimonialData
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [currentVideoUrl, setCurrentVideoUrl] = useState('')
+  const [currentVideoType, setCurrentVideoType] = useState('url') // 'url' or 'local'
+
+  // Form State
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [formData, setFormData] = useState({
+    id: null,
+    m_st_url: '',
+    m_st_status: '1'
+  })
+  const [videoFile, setVideoFile] = useState(null)
+
+  useEffect(() => {
+    fetchTestimonials()
+  }, [])
+
+  const fetchTestimonials = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/stdtestimonial/all-stdtestimonials`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data && response.data.data) {
+        setData(response.data.data)
+      } else {
+        setData([])
+      }
+    } catch (error) {
+      console.error('Failed to fetch testimonials:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this testimonial?')) return
+    try {
+      const token = localStorage.getItem('token')
+      let url = `${BASE_URL}/myadmin/stdtestimonial/delete-stdtestimonial/${id}`
+      const config = { headers: { Authorization: `Bearer ${token}` } }
+      try {
+        await axios.delete(url, config)
+      } catch(e) {
+        if (e.response?.status === 404) {
+          await axios.delete(`${BASE_URL}/myadmin/stdtestimonial/${id}`, config)
+        } else throw e
+      }
+      fetchTestimonials()
+      if (isEditing && formData.id === id) {
+        resetForm()
+      }
+    } catch (error) {
+      console.error('Delete failed:', error)
+      alert(error.response?.data?.message || 'Failed to delete')
+    }
+  }
+
+  const getField = (row, fieldNames, defaultVal = '') => {
+    for (const name of fieldNames) {
+      if (row[name] !== undefined && row[name] !== null) return row[name]
+    }
+    return defaultVal
+  }
+
+  const handleEditClick = (row) => {
+    const id = row._id || row.id;
+    const url = getField(row, ['url', 'm_st_url', 'video_url', 'link']);
+    const statusStr = getField(row, ['status', 'm_st_status', 'is_active'], 'active');
+    
+    setFormData({
+      id: id,
+      m_st_url: url,
+      m_st_status: (String(statusStr).toLowerCase() === 'active' || statusStr === 1 || String(statusStr).toLowerCase() === 'true') ? '1' : '0'
+    })
+    setVideoFile(null)
+    setIsEditing(true)
+    
+    setTimeout(() => {
+      const formElement = document.getElementById('testimonial-form-section')
+      if (formElement) formElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
+  const resetForm = () => {
+    setFormData({
+      id: null,
+      m_st_url: '',
+      m_st_status: '1'
+    })
+    setVideoFile(null)
+    setIsEditing(false)
+    
+    // Reset file input via DOM if possible, or just rely on state
+    const fileInput = document.getElementById('videoFileInput')
+    if (fileInput) fileInput.value = ''
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    try {
+      const token = localStorage.getItem('token')
+      const payload = new FormData()
+      payload.append('m_st_url', formData.m_st_url)
+      payload.append('m_st_status', formData.m_st_status)
+      
+      if (videoFile) {
+        payload.append('m_st_video', videoFile)
+      }
+
+      if (isEditing) {
+        await axios.put(`${BASE_URL}/myadmin/stdtestimonial/update-stdtestimonial/${formData.id}`, payload, {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+        })
+      } else {
+        await axios.post(`${BASE_URL}/myadmin/stdtestimonial/add-stdtestimonial`, payload, {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+        })
+      }
+      
+      resetForm()
+      fetchTestimonials()
+    } catch (error) {
+      console.error('Submit error:', error)
+      const errorMsg = error.response?.data?.message || error.message
+      alert(`Failed to save testimonial.\n\nBackend Error: ${errorMsg}`)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const getYouTubeId = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const getVimeoId = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const match = url.match(/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/i);
+    return match ? match[1] : null;
+  };
+
+  const getLocalVideoUrl = (videoFile) => {
+    if (!videoFile) return null;
+    let normalized = videoFile.replace(/\\/g, '/');
+    if (normalized.startsWith('src/')) {
+      normalized = normalized.substring(4);
+    }
+    const baseUrlStripped = BASE_URL.replace(/\/api$/, '');
+    return `${baseUrlStripped}/${normalized}`;
+  };
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
@@ -16,161 +174,275 @@ export default function StudentTestimonialList() {
 
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = currentData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
+  const TOTAL_ENTRIES = data.length
+
+  const handleViewClick = (url, type = 'url') => {
+    setCurrentVideoUrl(url)
+    setCurrentVideoType(type)
+    setIsModalOpen(true)
+  }
 
   return (
-    <div className="h-full animate-fade-in-up">
-      <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden flex flex-col h-full">
-        <div className="p-4 border-b border-slate-200 dark:border-gray-800/50 flex justify-between items-center bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-          <h2 className="text-xl font-medium text-indigo-900 dark:text-indigo-300 font-bold tracking-tight">Student Testimonials</h2>
-          <button className="bg-[#428bca] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#3071a9] transition-colors flex items-center gap-2">
-            <span>+ Back</span>
-          </button>
+    <div className="h-full animate-fade-in-up flex flex-col">
+      <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 flex flex-col h-full w-full overflow-hidden">
+        {/* Header - Success Story Theme */}
+        <div className="p-4 flex justify-between items-center bg-gradient-to-r from-[#144f36] to-[#1a6545]">
+          <div className="flex items-center">
+            <div className="w-1.5 h-6 bg-white rounded-full mr-3"></div>
+            <h2 className="text-xl font-bold text-white tracking-tight">Student Testimonials</h2>
+          </div>
+          {isEditing && (
+            <button 
+              onClick={resetForm}
+              className="bg-white text-[#144f36] px-5 py-2 rounded-full flex items-center gap-2 text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm"
+            >
+              <span>+ Add New</span>
+            </button>
+          )}
         </div>
 
-        <div className="p-4 flex-1 flex flex-col lg:flex-row gap-6">
-          <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-              <div className="flex items-center gap-4 mb-4 sm:mb-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-800 dark:text-slate-200">Show</span>
-                  <select 
-                    value={entriesPerPage}
-                    onChange={handleEntriesChange}
-                    className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e]"
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                  <span className="text-sm text-slate-800 dark:text-slate-200">Entries</span>
-                </div>
-                <div className="flex gap-0 border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded overflow-hidden flex-wrap">
-                {[
-                  { label: 'Copy', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> },
-                  { label: 'Excel', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg> },
-                  { label: 'PDF', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg> },
-                  { label: 'Print', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> }
-                ].map(btn => (
-                  <button key={btn.label} title={btn.label} className="px-3 py-1.5 bg-[#f6f6ff] dark:bg-[#1f1b2e] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 border-r border-slate-300 dark:border-slate-600 last:border-r-0 flex items-center justify-center">
-                    {btn.icon}
-                  </button>
-                ))}
-              </div>
+        <div className="p-4 flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden">
+          
+          {/* LEFT PANEL: TABLE */}
+          <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-700">Show</span>
+                <select 
+                  value={entriesPerPage}
+                  onChange={handleEntriesChange}
+                  className="border border-slate-300 bg-white text-slate-700 rounded px-2 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span className="text-sm font-medium text-slate-700">Entries</span>
               </div>
               <div className="flex items-center gap-2">
                 <input 
                   type="text" 
                   placeholder="Search..."
-                  className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-64"
+                  className="border border-slate-300 bg-white text-slate-700 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-full sm:w-64 shadow-inner"
                 />
               </div>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200 dark:border-[#1f1b2e] flex-1">
-              <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
-                <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">
+            <div className="overflow-x-auto flex-1">
+              <table className="w-full text-left text-sm text-slate-800">
+                <thead className="bg-[#1b3d58] text-white">
                   <tr>
-                    <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">
-                      <div className="flex items-center justify-between">
-                        Sn.
-                        <span className="text-[10px] flex flex-col leading-[0.5]"><span className="text-white/50">▲</span><span>▼</span></span>
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Cover Video</th>
-                    <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Url</th>
-                    <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Status</th>
-                    <th className="px-4 py-3 font-bold whitespace-nowrap">Action</th>
+                    <th className="px-4 py-3 font-bold border-r border-slate-600 whitespace-nowrap">Sn.</th>
+                    <th className="px-4 py-3 font-bold border-r border-slate-600 whitespace-nowrap">Cover Video</th>
+                    <th className="px-4 py-3 font-bold border-r border-slate-600 whitespace-nowrap text-center">Url</th>
+                    <th className="px-4 py-3 font-bold border-r border-slate-600 whitespace-nowrap">Status</th>
+                    <th className="px-4 py-3 font-bold whitespace-nowrap text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {currentEntries.map((row) => (
-                    <tr key={row.id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.sno}</td>
-                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                        <button className="bg-[#428bca] text-white px-5 py-1.5 rounded-full text-sm hover:bg-[#3071a9] transition-colors">
-                          View
-                        </button>
-                      </td>
-                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                        <button className="bg-[#428bca] text-white px-5 py-1.5 rounded-full text-sm hover:bg-[#3071a9] transition-colors">
-                          View
-                        </button>
-                      </td>
-                      <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">{row.status}</td>
-                      <td className="px-4 py-4 align-middle">
-                        <div className="flex gap-2">
-                          <button className="bg-green-600 text-white p-1.5 rounded-full hover:bg-green-700 transition-colors inline-flex items-center justify-center">
-                            <Edit2 size={12} />
-                          </button>
-                          <button className="bg-[#6366f1] text-white p-1.5 rounded-full hover:bg-[#d87025] transition-colors inline-flex items-center justify-center">
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      </td>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-8">Loading student testimonials...</td>
                     </tr>
-                  ))}
+                  ) : data.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-8">No student testimonials found</td>
+                    </tr>
+                  ) : (
+                    currentEntries.map((row, index) => {
+                      const id = row._id || row.id;
+                      const sno = indexOfFirstEntry + index + 1;
+                      const url = getField(row, ['url', 'm_st_url', 'video_url', 'link']);
+                      const statusStr = getField(row, ['status', 'm_st_status', 'is_active']);
+                      const videoFile = row.m_st_video || row.video_file || row.cover_video || null;
+                      
+                      const isActive = String(statusStr).toLowerCase() === 'active' || String(statusStr).toLowerCase() === 'true' || statusStr === 1;
+                      const localVideo = getLocalVideoUrl(videoFile);
+
+                      return (
+                        <tr key={id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle">{sno}</td>
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle text-center">
+                            {localVideo ? (
+                              <button 
+                                onClick={() => handleViewClick(localVideo, 'local')}
+                                className="bg-[#337ab7] text-white px-5 py-1.5 rounded font-medium hover:bg-[#286090] transition-colors shadow-sm"
+                              >
+                                View
+                              </button>
+                            ) : (
+                              <span className="text-slate-400 text-xs">-</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle text-center">
+                            {url && url !== '-' ? (
+                              <button 
+                                onClick={() => handleViewClick(url, 'url')}
+                                className="bg-[#337ab7] text-white px-5 py-1.5 rounded font-medium hover:bg-[#286090] transition-colors shadow-sm"
+                              >
+                                View
+                              </button>
+                            ) : (
+                              <span className="text-slate-400 text-xs">-</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle">
+                            {isActive ? 'Active' : 'Inactive'}
+                          </td>
+                          <td className="px-4 py-4 align-middle">
+                            <div className="flex gap-2 justify-center">
+                              <button 
+                                onClick={() => handleEditClick(row)}
+                                className="bg-[#5cb85c] text-white p-1.5 rounded hover:bg-[#4cae4c] transition-colors shadow-sm"
+                                title="Edit"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(id)}
+                                className="bg-[#d9534f] text-white p-1.5 rounded hover:bg-[#c9302c] transition-colors shadow-sm"
+                                title="Delete"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
-
-            <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
-              <div className="mb-4 md:mb-0">
-                Showing {indexOfFirstEntry + 1} to {Math.min(indexOfLastEntry, TOTAL_ENTRIES)} of {TOTAL_ENTRIES} entries
-              </div>
-              <div className="flex items-center space-x-1">
-                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">1</button>
+            
+            <div className="p-4 border-t border-slate-200 flex justify-between items-center text-sm text-slate-600 bg-slate-50">
+              <div>Showing {indexOfFirstEntry + 1} to {Math.min(indexOfLastEntry, TOTAL_ENTRIES)} of {TOTAL_ENTRIES} entries</div>
+              <div className="flex space-x-1">
+                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 shadow-sm">1</button>
               </div>
             </div>
           </div>
 
-          <div className="w-full lg:w-80 flex-shrink-0">
-            <div className="bg-[#f6f6ff] dark:bg-[#1f1b2e] rounded-lg border border-slate-200 dark:border-[#1f1b2e] p-4 sticky top-4">
-              <h3 className="text-sm font-medium text-white mb-4">Add New</h3>
-              
-              <div className="space-y-4">
+          {/* RIGHT PANEL: ADD/EDIT FORM */}
+          <div id="testimonial-form-section" className="w-full lg:w-[400px] flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 h-fit">
+            <div className="p-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
+              <h3 className="font-bold text-slate-800 text-lg">
+                {isEditing ? 'Edit Testimonial' : 'Add New'}
+              </h3>
+            </div>
+            <div className="p-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
+                  <label className="block text-sm font-bold text-slate-700 mb-1">
                     Cover Video * (1920x1080)
                   </label>
-                  <div className="flex border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded overflow-hidden">
-                    <button className="bg-slate-100 dark:bg-slate-700 border-r border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm text-slate-800 dark:text-slate-200 whitespace-nowrap hover:bg-slate-200">
-                      Choose File
-                    </button>
-                    <span className="px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">No file chosen</span>
-                  </div>
+                  <input 
+                    type="file" 
+                    id="videoFileInput"
+                    accept="video/*"
+                    onChange={(e) => setVideoFile(e.target.files[0])}
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-slate-50"
+                  />
+                  {isEditing && !videoFile && (
+                    <p className="text-xs text-slate-500 mt-1">Leave blank to keep existing video.</p>
+                  )}
                 </div>
+
                 <div>
-                  <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
-                    Url (Youtube Embed Link)<span className="text-red-500">*</span>
+                  <label className="block text-sm font-bold text-red-600 mb-1">
+                    Url (Youtube Embed Link)*
                   </label>
                   <textarea 
+                    name="m_st_url"
+                    value={formData.m_st_url}
+                    onChange={(e) => setFormData(prev => ({...prev, m_st_url: e.target.value}))}
                     placeholder="Enter Url (Youtube Embed Link)"
-                    rows={4}
-                    className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 resize-none placeholder:text-slate-800 dark:text-slate-200"
+                    rows="3"
+                    required
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-slate-50 resize-none"
                   ></textarea>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Status</label>
-                  <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-                    <option>Active</option>
-                    <option>In-Active</option>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
+                  <select 
+                    name="m_st_status"
+                    value={formData.m_st_status}
+                    onChange={(e) => setFormData(prev => ({...prev, m_st_status: e.target.value}))}
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-slate-50"
+                  >
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
                   </select>
                 </div>
-                <div className="flex gap-2 pt-2">
-                  <button className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#152a4a] transition-colors shadow-sm">
-                    Submit
+
+                <div className="flex gap-3 pt-2">
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="bg-[#1b3d58] text-white px-6 py-2 rounded font-medium hover:bg-[#132c40] transition-colors disabled:opacity-50 shadow-sm"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Submit'}
                   </button>
-                  <button className="bg-[#d35400] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#b04500] transition-colors shadow-sm">
+                  <button 
+                    type="button" 
+                    onClick={resetForm}
+                    className="bg-[#e96b35] text-white px-6 py-2 rounded font-medium hover:bg-[#d05726] transition-colors shadow-sm"
+                  >
                     Cancel
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Video View Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-slate-200">
+              <h3 className="font-bold text-lg text-slate-800">
+                {currentVideoType === 'local' ? 'Cover Video' : 'URL'}
+              </h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={24}/>
+              </button>
+            </div>
+            <div className="p-6 bg-slate-50 flex-1">
+              <p className="text-sm font-bold text-slate-700 mb-4 break-all">{currentVideoUrl}</p>
+              <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-inner flex items-center justify-center">
+                {(() => {
+                  if (currentVideoType === 'local') {
+                    return <video src={currentVideoUrl} className="w-full h-full object-contain" controls autoPlay />
+                  } else {
+                    const ytId = getYouTubeId(currentVideoUrl);
+                    const vimId = getVimeoId(currentVideoUrl);
+                    if (ytId) {
+                      return <iframe src={`https://www.youtube.com/embed/${ytId}?autoplay=1`} className="w-full h-full" frameBorder="0" allow="autoplay; fullscreen" allowFullScreen></iframe>
+                    } else if (vimId) {
+                      return <iframe src={`https://player.vimeo.com/video/${vimId}?autoplay=1`} className="w-full h-full" frameBorder="0" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen></iframe>
+                    } else {
+                      return <div className="text-white flex items-center justify-center h-full text-sm">Unsupported Video URL Format</div>
+                    }
+                  }
+                })()}
+              </div>
+            </div>
+            <div className="p-4 border-t border-slate-200 flex justify-end bg-white">
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="bg-slate-200 text-slate-700 px-6 py-2 rounded-lg font-bold hover:bg-slate-300 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

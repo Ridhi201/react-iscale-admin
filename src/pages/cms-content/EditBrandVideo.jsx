@@ -1,0 +1,171 @@
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
+
+export default function EditBrandVideo() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { id } = useParams()
+  const videoData = location.state?.videoData || {}
+
+  const [loading, setLoading] = useState(false)
+  
+  // Try to safely extract values from various possible keys
+  const getField = (row, fieldNames, defaultVal = '') => {
+    for (const name of fieldNames) {
+      if (row[name] !== undefined && row[name] !== null) return row[name]
+    }
+    return defaultVal
+  }
+
+  const name = getField(videoData, ['name', 'title', 'brand_video_name', 'bv_name', 'm_bv_name'])
+  const url = getField(videoData, ['url', 'video_url', 'link', 'm_bv_url', 'bv_url'])
+  const statusStr = getField(videoData, ['status', 'm_bv_status', 'bv_status'], 'active')
+
+  const [formData, setFormData] = useState({
+    m_bv_name: name,
+    m_bv_url: url,
+    m_bv_status: (String(statusStr).toLowerCase() === 'active' || statusStr === 1 || String(statusStr).toLowerCase() === 'true') ? '1' : '0'
+  })
+  const [videoFile, setVideoFile] = useState(null)
+
+  useEffect(() => {
+    if (!videoData || Object.keys(videoData).length === 0) {
+      // If no data in state, redirect back to list
+      navigate('/master/brand-video')
+    }
+  }, [videoData, navigate])
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const token = localStorage.getItem('token')
+      
+      const payload = new FormData()
+      payload.append('name', formData.m_bv_name)
+      payload.append('url', formData.m_bv_url)
+      payload.append('status', formData.m_bv_status === '1' ? 'active' : 'inactive')
+      
+      if (videoFile) {
+        payload.append('video_file', videoFile)
+      }
+
+      await axios.put(`${BASE_URL}/myadmin/brand-video/update/${id}`, payload, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      navigate('/master/brand-video')
+    } catch (error) {
+      console.error('Submit error:', error)
+      const errorMsg = error.response?.data?.message || error.message
+      alert(`Failed to update brand video.\n\nBackend Error: ${errorMsg}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="h-full animate-fade-in-up">
+      <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 overflow-hidden flex flex-col h-full w-full max-w-4xl mx-auto">
+        <div className="p-4 flex justify-between items-center bg-gradient-to-r from-[#144f36] to-[#1a6545] rounded-t-2xl">
+          <div className="flex items-center">
+            <div className="w-1.5 h-6 bg-white rounded-full mr-3"></div>
+            <h2 className="text-xl font-bold text-white tracking-tight">Edit Brand Video</h2>
+          </div>
+          <button 
+            onClick={() => navigate('/master/brand-video')}
+            className="bg-white/20 hover:bg-white/30 text-white px-5 py-2 rounded-full flex items-center gap-2 text-sm font-bold transition-colors"
+          >
+            <span>📄 List</span>
+          </button>
+        </div>
+
+        <div className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-slate-800 mb-1">Video Name / Title</label>
+                <input 
+                  type="text" 
+                  name="m_bv_name"
+                  value={formData.m_bv_name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter video title"
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-[#f6f6ff] text-slate-700"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-slate-800 mb-1">YouTube URL</label>
+                <input 
+                  type="url" 
+                  name="m_bv_url"
+                  value={formData.m_bv_url}
+                  onChange={handleChange}
+                  required
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-[#f6f6ff] text-slate-700"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-slate-800 mb-1">Upload New Video File (Optional - leaves existing if empty)</label>
+                <input 
+                  type="file" 
+                  name="video_file"
+                  accept="video/*"
+                  onChange={(e) => setVideoFile(e.target.files[0])}
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-[#f6f6ff] text-slate-700"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-1">Status</label>
+                <select 
+                  name="m_bv_status"
+                  value={formData.m_bv_status}
+                  onChange={handleChange}
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-[#f6f6ff] text-slate-700"
+                >
+                  <option value="1">Active</option>
+                  <option value="0">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-4 border-t border-slate-200">
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="bg-[#144f36] text-white px-8 py-2.5 rounded hover:bg-[#0f3d2a] font-medium transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Submitting...' : 'Submit'}
+              </button>
+              <button 
+                type="button" 
+                onClick={() => navigate('/master/brand-video')}
+                className="bg-slate-100 text-slate-600 px-8 py-2.5 rounded hover:bg-slate-200 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}

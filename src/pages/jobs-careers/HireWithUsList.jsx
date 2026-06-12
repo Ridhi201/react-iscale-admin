@@ -1,13 +1,60 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Trash2 } from 'lucide-react'
-import { hireWithUsData } from '../../utils/mockData'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function HireWithUsList() {
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
-  const TOTAL_ENTRIES = 6
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [totalEntries, setTotalEntries] = useState(0)
 
-  const currentData = hireWithUsData
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/hiring-form/all`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status || response.data?.success || response.data?.data) {
+        setData(response.data.data || [])
+        setTotalEntries(response.data.data?.length || 0)
+      } else {
+        setData([])
+        setTotalEntries(0)
+      }
+    } catch (error) {
+      console.error('Error fetching hiring forms:', error)
+      setData([])
+      setTotalEntries(0)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this form entry?')) return
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.delete(`${BASE_URL}/myadmin/hiring-form/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status || response.data?.success || response.data?.msg === 'Form deleted successfully') {
+        alert(response.data.msg || response.data.message || 'Deleted successfully')
+        fetchData()
+      } else {
+        alert(response.data.message || response.data.msg || 'Delete failed')
+      }
+    } catch (error) {
+      console.error('Error deleting form:', error)
+      alert(error.response?.data?.message || error.response?.data?.msg || 'Delete failed')
+    }
+  }
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
@@ -16,7 +63,8 @@ export default function HireWithUsList() {
 
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = currentData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
+  const totalPages = Math.ceil(data.length / entriesPerPage) || 1
 
   return (
     <div className="h-full animate-fade-in-up">
@@ -121,60 +169,107 @@ export default function HireWithUsList() {
                   <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Org Name</th>
                   <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">HR Email</th>
                   <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Contact No.</th>
-                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Alt Contact No.</th>
-                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Description</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Whatsapp No.</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap text-center">Description</th>
                   <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Date</th>
-                  <th className="px-4 py-3 font-bold whitespace-nowrap">Action</th>
+                  <th className="px-4 py-3 font-bold whitespace-nowrap text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {currentEntries.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.sno}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle w-40">
-                      <div className="whitespace-pre-wrap">{row.orgType}</div>
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                      <button className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 px-3 py-1 rounded-full text-xs hover:bg-[#152a4a] transition-colors whitespace-nowrap">
-                        {row.orgName}
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle break-all max-w-[150px]">
-                      {row.hrEmail}
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">
-                      {row.contactNo}
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap max-w-[150px] overflow-hidden">
-                      <div className="break-words whitespace-pre-wrap">
-                        {row.altContactNo}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                      <button className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 px-3 py-1 rounded-full text-xs hover:bg-[#152a4a] transition-colors">
-                        View
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">
-                      <div className="w-20">{row.date}</div>
-                    </td>
-                    <td className="px-4 py-4 align-middle text-center bg-[#fdf2e9]">
-                      <button className="bg-[#6366f1] text-white p-1.5 rounded-full hover:bg-[#d87025] transition-colors inline-flex items-center justify-center">
-                        <Trash2 size={12} />
-                      </button>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan="9" className="text-center py-8">Loading...</td>
                   </tr>
-                ))}
+                ) : data.length === 0 ? (
+                  <tr>
+                    <td colSpan="9" className="text-center py-8">No forms found</td>
+                  </tr>
+                ) : (
+                  currentEntries.map((row, index) => {
+                    const getField = (fields) => {
+                      for (const field of fields) {
+                        if (row[field] !== undefined && row[field] !== null && row[field] !== '') return row[field];
+                      }
+                      return '-';
+                    };
+
+                    const orgType = getField(['orgType', 'organizationType', 'm_hf_orgType', 'type', 'm_type']);
+                    const orgName = getField(['orgName', 'organizationName', 'm_hf_orgName', 'companyName', 'company', 'name', 'm_name']);
+                    const hrEmail = getField(['hrEmail', 'email', 'm_hf_email', 'm_email']);
+                    const contactNo = getField(['contactNo', 'contact', 'phone', 'mobile', 'mobileNo', 'm_hf_contact', 'm_phone', 'm_mobile']);
+                    const whatsappNo = getField(['whatsappNo', 'altContactNo', 'whatsapp', 'alternateContact', 'm_hf_whatsapp', 'm_whatsapp']);
+                    const dateStr = row.createdAt ? new Date(row.createdAt).toLocaleDateString() : row.date || '-';
+
+                    return (
+                      <tr key={row._id || index} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">
+                          {(currentPage - 1) * entriesPerPage + index + 1}
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle w-40">
+                          <div className="whitespace-pre-wrap">{orgType}</div>
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">
+                          <span className="bg-[#144f36] text-white border border-transparent px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shadow-sm">
+                            {orgName}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle break-all max-w-[150px]">
+                          {hrEmail}
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">
+                          {contactNo}
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap max-w-[150px] overflow-hidden">
+                          <div className="break-words whitespace-pre-wrap">
+                            {whatsappNo}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
+                          <button className="bg-white text-slate-700 border border-slate-300 px-4 py-1.5 rounded-full text-xs font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                            View
+                          </button>
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">
+                          <div className="w-20">{dateStr}</div>
+                        </td>
+                        <td className="px-4 py-4 align-middle text-center">
+                          <button 
+                            onClick={() => handleDelete(row._id || row.id)}
+                            className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 transition-colors shadow-sm inline-flex items-center justify-center"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
               </tbody>
             </table>
           </div>
 
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
             <div className="mb-4 md:mb-0">
-              Showing {indexOfFirstEntry + 1} to {Math.min(indexOfLastEntry, TOTAL_ENTRIES)} of {TOTAL_ENTRIES} entries
+              Showing {data.length > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, data.length)} of {data.length} entries
             </div>
             <div className="flex items-center space-x-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">1</button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded bg-slate-50 dark:bg-[#13111c] disabled:opacity-50 border border-slate-200 dark:border-slate-700"
+              >
+                Prev
+              </button>
+              <button className="w-8 h-8 flex items-center justify-center rounded bg-[#144f36] text-white shadow-sm">
+                {currentPage}
+              </button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded bg-slate-50 dark:bg-[#13111c] disabled:opacity-50 border border-slate-200 dark:border-slate-700"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

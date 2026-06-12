@@ -1,18 +1,22 @@
 import Button from '../../components/common/Button'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { Camera } from 'lucide-react'
 import { useState } from 'react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
-export default function AddEventCategory() {
+export default function EditEventCategory() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { id } = useParams()
+  const categoryData = location.state?.categoryData || {}
+
   const [formData, setFormData] = useState({
-    m_event_category_name: '',
-    m_event_category_status: 'Active',
-    m_event_category_keyword: '',
-    m_event_category_order: '',
-    m_event_category_description: ''
+    m_event_category_name: categoryData.m_ec_title || categoryData.m_event_category_name || categoryData.name || categoryData.title || categoryData.categoryName || '',
+    m_event_category_status: (categoryData.m_ec_status && categoryData.m_ec_status.toLowerCase() === 'active') ? 'Active' : (categoryData.m_ec_status && categoryData.m_ec_status.toLowerCase() === 'inactive') ? 'In-Active' : categoryData.m_event_category_status || categoryData.status || 'Active',
+    m_event_category_keyword: categoryData.m_ec_keyword || categoryData.m_event_category_keyword || categoryData.keyword || '',
+    m_event_category_order: categoryData.m_ec_order || categoryData.m_event_category_order || categoryData.order || '',
+    m_event_category_description: categoryData.m_ec_desc || categoryData.m_event_category_description || categoryData.description || ''
   })
   const [iconFile, setIconFile] = useState(null)
   const [bannerFile, setBannerFile] = useState(null)
@@ -53,30 +57,34 @@ export default function AddEventCategory() {
         data.append('m_ec_banner', bannerFile);
       }
 
-      const res = await axios.post(`${BASE_URL}/myadmin/event-category/add-event-category`, data, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      let res;
+      try {
+        res = await axios.put(`${BASE_URL}/myadmin/event-category/update-event-category/${id}`, data, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      } catch (err) {
+        if (err.response?.status === 404) {
+          res = await axios.post(`${BASE_URL}/myadmin/event-category/update-event-category/${id}`, data, {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+        } else throw err;
+      }
+      
       if (res.data?.status || res.data?.success || res.data?.msg) {
-        alert(res.data?.message || res.data?.msg || 'Added successfully');
+        alert(res.data?.message || res.data?.msg || 'Updated successfully');
         navigate('/events/category');
       } else {
-        alert(res.data?.message || res.data?.msg || 'Failed to add');
+        alert(res.data?.message || res.data?.msg || 'Failed to update');
       }
     } catch (err) {
       console.error('Submit error:', err);
-      let errorDetails = '';
-      if (err.response && typeof err.response.data === 'string') {
-        // Extract raw error text (like Multer Unexpected field)
-        errorDetails = err.response.data.replace(/<[^>]*>?/gm, ' ').substring(0, 300);
-      } else if (err.response && err.response.data) {
-        errorDetails = JSON.stringify(err.response.data);
-      }
-      
-      const msg = err.response?.data?.message || err.response?.data?.msg || err.message;
-      alert(`Backend Error: ${msg}\n\nDetails: ${errorDetails}`);
+      alert(err.response?.data?.message || err.response?.data?.msg || 'Failed to update');
     } finally {
       setLoading(false);
     }
@@ -88,7 +96,7 @@ export default function AddEventCategory() {
         <div className="p-4 flex justify-between items-center bg-gradient-to-r from-[#144f36] to-[#1a6545] rounded-t-2xl">
           <div className="flex items-center">
             <div className="w-1.5 h-6 bg-white rounded-full mr-3"></div>
-            <h2 className="text-xl font-bold text-white tracking-tight">Add New Event Category</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">Edit Event Category</h2>
           </div>
           <button 
             onClick={() => navigate('/events/category')}

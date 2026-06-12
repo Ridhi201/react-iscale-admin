@@ -1,15 +1,65 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Edit2, Trash2, Camera } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { eventData } from '../../utils/mockData'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function EventList() {
   const navigate = useNavigate()
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
-  const TOTAL_ENTRIES = 5
 
-  const currentData = eventData
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/event/get-events`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status || response.data?.success) {
+        setData(response.data.data || response.data.events || [])
+      } else {
+        setData(response.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error)
+      setData([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this event?')) return;
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.delete(`${BASE_URL}/myadmin/event/delete-event/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status || response.data?.success || response.data?.msg) {
+        fetchData()
+      } else {
+        alert(response.data?.message || response.data?.msg || 'Delete failed')
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error)
+      alert(error.response?.data?.message || error.response?.data?.msg || 'Delete failed')
+    }
+  }
+
+  const getField = (row, possibleKeys) => {
+    for (const key of possibleKeys) {
+      if (row[key] !== undefined && row[key] !== null) return row[key];
+    }
+    return '-';
+  }
+
+  const TOTAL_ENTRIES = data.length
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
@@ -18,7 +68,7 @@ export default function EventList() {
 
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = currentData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
 
   return (
     <div className="h-full animate-fade-in-up">
@@ -112,54 +162,88 @@ export default function EventList() {
                 </tr>
               </thead>
               <tbody>
-                {currentEntries.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.sno}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle w-[300px]">
-                      <div className="whitespace-pre-wrap">{row.title}</div>
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle w-48">
-                      <div className="whitespace-pre-wrap">{row.category}</div>
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center w-32">
-                      {row.banner === 'image' ? (
-                        <div className="w-[100px] h-16 bg-slate-900 rounded overflow-hidden mx-auto">
-                          <img 
-                            src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=64&q=80" 
-                            alt="Event banner"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400">
-                          <Camera size={32} />
-                          <span className="text-[10px] mt-1">No image<br/>available</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.order}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                      <button className="bg-[#d35400] text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-[#b04500] transition-colors shadow-sm">
-                        {row.eventStatus}
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                      <button className={`text-white px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${row.status === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-[#6366f1] hover:bg-[#d87025]'}`}>
-                        {row.status}
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 align-middle">
-                      <div className="flex gap-2">
-                        <button className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 p-2 rounded hover:bg-[#152a4a] transition-colors inline-flex items-center justify-center">
-                          <Edit2 size={16} />
-                        </button>
-                        <button className="bg-[#6366f1] text-white p-2 rounded hover:bg-[#d87025] transition-colors inline-flex items-center justify-center">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan="8" className="text-center py-8">Loading...</td>
                   </tr>
-                ))}
+                ) : data.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="text-center py-8">No events found</td>
+                  </tr>
+                ) : (
+                  currentEntries.map((row, index) => {
+                    const id = row._id || row.id;
+                    const title = getField(row, ['m_event_title', 'title', 'eventTitle', 'm_title']);
+                    const category = getField(row, ['m_event_category', 'category', 'eventCategory', 'm_category']);
+                    const banner = getField(row, ['m_event_banner', 'banner', 'image', 'm_banner']);
+                    const order = getField(row, ['m_event_order', 'order', 'm_order', 'sortOrder']);
+                    const eventStatus = getField(row, ['m_event_type', 'eventStatus', 'type', 'm_type', 'eventType']);
+                    const statusStr = getField(row, ['m_event_status', 'status', 'm_status']);
+                    const status = statusStr !== '-' ? String(statusStr) : 'Active';
+                    const sno = indexOfFirstEntry + index + 1;
+
+                    return (
+                      <tr key={id || index} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">{sno}</td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle w-[300px]">
+                          <div className="whitespace-pre-wrap">{title}</div>
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle w-48">
+                          <div className="whitespace-pre-wrap">{category}</div>
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center w-32">
+                          {banner && banner !== '-' && banner !== 'image' ? (
+                            <div className="w-[100px] h-16 bg-slate-900 rounded overflow-hidden mx-auto">
+                              <img 
+                                src={banner.startsWith('http') ? banner : `${BASE_URL.replace(/\/api\/?$/, '')}/uploads/events/${banner}`} 
+                                alt="Event banner"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.target.onerror = null; 
+                                  e.target.src = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=64&q=80"
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400">
+                              <Camera size={32} />
+                              <span className="text-[10px] mt-1">No image<br/>available</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">{order}</td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
+                          <button className="bg-[#144f36] text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+                            {eventStatus !== '-' ? eventStatus : 'Event'}
+                          </button>
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
+                          <button className={`text-white px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${status.toLowerCase() === 'active' || status === '1' ? 'bg-[#144f36] hover:bg-[#0f3d2a]' : 'bg-red-500 hover:bg-red-600'}`}>
+                            {status.toLowerCase() === 'active' || status === '1' ? 'Active' : 'Inactive'}
+                          </button>
+                        </td>
+                        <td className="px-4 py-4 align-middle">
+                          <div className="flex gap-2 justify-center">
+                            <button 
+                              onClick={() => navigate(`/events/list/edit/${id}`, { state: { eventData: row } })}
+                              className="bg-orange-500 text-white p-1.5 rounded hover:bg-orange-600 transition-colors"
+                              title="Edit"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(id)}
+                              className="bg-red-500 text-white p-1.5 rounded hover:bg-red-600 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
               </tbody>
             </table>
           </div>

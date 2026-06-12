@@ -1,113 +1,292 @@
-import Button from '../../components/common/Button'
-import { useNavigate } from 'react-router-dom'
-import { Camera, Eye } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { User, Eye, EyeOff } from 'lucide-react'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function AddUser() {
   const navigate = useNavigate()
+  const { id } = useParams()
+  const isEditing = Boolean(id)
+  const fileInputRef = useRef(null)
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [selectedFileName, setSelectedFileName] = useState('')
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    login_id: '',
+    role: '1',
+    status: 'active',
+    password: ''
+  })
+
+  useEffect(() => {
+    if (isEditing) {
+      fetchUser()
+    }
+  }, [id])
+
+  const fetchUser = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/auth/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const user = response.data.data || response.data
+      
+      const statusStr = user.status || user.is_active || user.m_status
+      const isActive = String(statusStr).toLowerCase() === 'active' || String(statusStr).toLowerCase() === 'true' || String(statusStr) === '1'
+
+      setFormData({
+        name: user.admin_name || user.user_name || user.name || '',
+        phone: user.contact_no || user.phone || user.contact || '',
+        role: user.role || user.permission || '1',
+        status: isActive ? 'active' : 'inactive',
+        email: user.email || '',
+        login_id: user.login_id || user.email || '',
+        password: '' // Always blank on edit
+      })
+    } catch (error) {
+      console.error('Failed to fetch user:', error)
+      alert('Failed to load user details for editing.')
+    }
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setErrorMessage('')
+
+    try {
+      const token = localStorage.getItem('token')
+      
+      const formPayload = new FormData()
+
+      formPayload.append('admin_name', formData.name)
+      formPayload.append('user_name', formData.name)
+      formPayload.append('email', formData.email)
+      formPayload.append('login_id', formData.login_id || formData.email)
+      formPayload.append('contact_no', formData.phone)
+      formPayload.append('permission', formData.role)
+      formPayload.append('status', formData.status)
+      formPayload.append('password', formData.password || '123456')
+      
+      if (fileInputRef.current?.files?.[0]) {
+        formPayload.append('profile_pic', fileInputRef.current.files[0])
+      }
+
+      console.log("FORM DATA")
+      for (let pair of formPayload.entries()) {
+        console.log(pair[0], pair[1])
+      }
+
+      if (isEditing) {
+        await axios.put(`${BASE_URL}/myadmin/auth/update/${id}`, formPayload, {
+          headers: { 
+            Authorization: `Bearer ${token}`
+          }
+        })
+      } else {
+        await axios.post(`${BASE_URL}/myadmin/auth/add`, formPayload, {
+          headers: { 
+            Authorization: `Bearer ${token}`
+          }
+        })
+      }
+      
+      navigate('/user-role')
+    } catch (error) {
+      console.error('Submit error:', error)
+      const msg = error.response?.data?.message || error.response?.data?.error || error.message
+      setErrorMessage(`Backend Validation Error: ${msg}`)
+      alert(`Backend Validation Error: ${msg}\n\nPlease check your inputs carefully!`)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
-    <div className="h-full animate-fade-in-up">
-      <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden max-w-5xl">
-        <div className="p-4 border-b border-slate-200 dark:border-gray-800/50 bg-[#f6f6ff] dark:bg-[#1f1b2e] flex justify-between items-center">
-          <h2 className="text-xl font-medium text-indigo-900 dark:text-indigo-300 font-bold tracking-tight">Add New User</h2>
+    <div className="h-full animate-fade-in-up flex flex-col">
+      <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 flex flex-col h-full w-full">
+        
+        {/* Header - White Theme with Green Button per screenshot */}
+        <div className="p-4 flex justify-between items-center bg-white rounded-t-2xl border-b border-slate-200">
+          <div className="flex items-center">
+            <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+              {isEditing ? 'Edit User' : 'Add New User'}
+            </h2>
+          </div>
           <button 
             onClick={() => navigate('/user-role')}
-            className="bg-[#00a65a] text-white px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium hover:bg-[#008d4c] transition-colors shadow-sm"
+            className="bg-[#144f36] text-white px-5 py-2 rounded flex items-center gap-2 text-sm font-bold hover:bg-[#0f3d2a] transition-colors shadow-sm"
           >
-            <span>👤 View All Users</span>
+            <User size={16} />
+            <span>View All Users</span>
           </button>
         </div>
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
-            <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
-                Name<span className="text-red-500">*</span>
-              </label>
-              <input 
-                type="text" 
-                placeholder="Enter Name"
-                className="w-full border border-fuchsia-500 rounded px-3 py-2 text-sm outline-none focus:border-fuchsia-600 bg-[#f6f6ff] dark:bg-[#1f1b2e] shadow-[0_0_0_1px_rgba(217,70,239,0.5)] placeholder:text-slate-800 dark:text-slate-200"
-              />
+        {/* Form Body */}
+        <div className="p-6 bg-white flex-1 rounded-b-2xl">
+          {errorMessage && (
+            <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded text-red-700 font-medium whitespace-pre-wrap">
+              {errorMessage}
             </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
-                Phone Number<span className="text-red-500">*</span>
-              </label>
-              <input 
-                type="text" 
-                placeholder="Enter Phone Number"
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 placeholder:text-slate-800 dark:text-slate-200"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">User Type</label>
-              <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e] text-slate-800 dark:text-slate-200">
-                <option>User</option>
-                <option>Admin</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Status</label>
-              <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e] text-slate-800 dark:text-slate-200">
-                <option>Active</option>
-                <option>In-Active</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
-            <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Email Address</label>
-              <input 
-                type="text" 
-                placeholder="Enter Email Address"
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 placeholder:text-slate-800 dark:text-slate-200"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Profile Image</label>
-              <button className="w-full bg-[#428bca] text-white px-4 py-2 rounded flex items-center justify-center gap-2 hover:bg-[#3071a9] transition-colors shadow-sm">
-                <Camera size={18} />
-                <span>Profile Image (196 X 215)</span>
-              </button>
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
-                Login Id <span className="text-red-500">*</span>
-              </label>
-              <input 
-                type="text" 
-                placeholder="Enter Login Id"
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 placeholder:text-slate-800 dark:text-slate-200"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
+          )}
+          
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            
+            {/* ROW 1 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Name<span className="text-red-500">*</span></label>
                 <input 
-                  type="password" 
-                  placeholder="Enter Password"
-                  className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 pr-10 placeholder:text-slate-800 dark:text-slate-200"
+                  type="text" 
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter Name"
+                  required
+                  className="w-full border-2 border-fuchsia-500 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-fuchsia-500 bg-white"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300">
-                  <Eye size={16} />
-                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Phone Number<span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="Enter Phone Number"
+                  required
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">User Type</label>
+                <select 
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23131313%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-no-repeat bg-[position:right_10px_center] pr-8"
+                >
+                  <option value="1">Admin (Level 1)</option>
+                  <option value="2">User (Level 2)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
+                <select 
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23131313%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-no-repeat bg-[position:right_10px_center] pr-8"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
               </div>
             </div>
-          </div>
 
-          <div className="flex gap-4">
-            <Button fullWidth className="py-2">Submit</Button>
-            <button 
-              onClick={() => navigate('/user-role')}
-              className="bg-[#d35400] text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-[#b04500] transition-colors flex-1 shadow-sm"
-            >
-              Cancel
-            </button>
-          </div>
+            {/* ROW 2 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Email Address</label>
+                <input 
+                  type="email" 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter Email Address"
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Profile Image</label>
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  onChange={(e) => setSelectedFileName(e.target.files[0]?.name || '')}
+                  className="hidden" 
+                  accept="image/*"
+                />
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full bg-[#144f36] text-white rounded px-3 py-2 text-sm font-medium hover:bg-[#0f3d2a] transition-colors flex items-center justify-center gap-2 shadow-sm truncate"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  {selectedFileName ? selectedFileName : 'Profile Image (196 X 215)'}
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Login Id <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  name="login_id"
+                  value={formData.login_id}
+                  onChange={handleInputChange}
+                  placeholder="Enter Login Id"
+                  required
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Password <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Enter Password"
+                    required={!isEditing}
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white pr-10"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#144f36]"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* BUTTONS */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-100">
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="flex-1 bg-[#144f36] text-white px-6 py-2.5 rounded font-medium hover:bg-[#0f3d2a] transition-colors disabled:opacity-50 shadow-sm"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit'}
+              </button>
+              <button 
+                type="button" 
+                onClick={() => navigate('/user-role')}
+                className="flex-1 bg-[#d97706] text-white px-6 py-2.5 rounded font-medium hover:bg-amber-600 transition-colors shadow-sm"
+              >
+                Cancel
+              </button>
+            </div>
+
+          </form>
         </div>
       </div>
     </div>

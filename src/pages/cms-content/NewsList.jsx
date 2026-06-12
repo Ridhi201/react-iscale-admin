@@ -59,7 +59,7 @@ export default function NewsList() {
   const handleToggleStatus = async (id) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.patch(`${BASE_URL}/myadmin/news&updates/status/${id}`, {}, {
+      const response = await axios.put(`${BASE_URL}/myadmin/news&updates/status/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {

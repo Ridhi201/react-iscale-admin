@@ -1,13 +1,111 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Trash2 } from 'lucide-react'
-import { contactQueriesData } from '../../utils/mockData'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function ContactQueriesList() {
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
-  const TOTAL_ENTRIES = 1493
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [totalEntries, setTotalEntries] = useState(0)
 
-  const currentData = contactQueriesData
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/contact-us/all`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status || response.data?.success || response.data?.data) {
+        setData(response.data.data || [])
+        setTotalEntries(response.data.data?.length || 0)
+      } else {
+        setData([])
+        setTotalEntries(0)
+      }
+    } catch (error) {
+      console.error('Error fetching contact queries:', error)
+      setData([])
+      setTotalEntries(0)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this query?')) return
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.delete(`${BASE_URL}/myadmin/contact-us/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status || response.data?.success || response.data?.msg === 'Query deleted successfully') {
+        alert(response.data.msg || response.data.message || 'Deleted successfully')
+        fetchData()
+      } else {
+        alert(response.data.message || response.data.msg || 'Delete failed')
+      }
+    } catch (error) {
+      console.error('Error deleting contact query:', error)
+      alert(error.response?.data?.message || error.response?.data?.msg || 'Delete failed')
+    }
+  }
+
+  const handleToggleStatus = async (id, currentStatus) => {
+    try {
+      const token = localStorage.getItem('token')
+      
+      const isCurrentlyNew = currentStatus?.toLowerCase() === 'new' || currentStatus?.toLowerCase() === 'active' || String(currentStatus) === '1';
+      
+      // Possible values the backend enum might accept
+      const possibleStatuses = isCurrentlyNew 
+        ? ['viewed', 'Viewed', 'Inactive', 'inactive', '0', 0] 
+        : ['new', 'New', 'Active', 'active', '1', 1];
+
+      let response;
+      let lastError;
+
+      // Try patching with each possible status format until one succeeds (doesn't return 400 Bad Request)
+      for (const attemptStatus of possibleStatuses) {
+        try {
+          response = await axios.patch(`${BASE_URL}/myadmin/contact-us/status/${id}`, { status: attemptStatus }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          // If it didn't throw an error, we found the right format!
+          lastError = null;
+          break;
+        } catch (err) {
+          lastError = err;
+          // If it's 400, it's likely a validation error ("status invalid"). Continue to next possibility.
+          if (err.response && err.response.status === 400) {
+            continue;
+          } else {
+            // If it's a 401, 500, etc., break out and throw
+            break;
+          }
+        }
+      }
+
+      if (lastError) {
+        throw lastError;
+      }
+
+      if (response && (response.data?.status || response.data?.success || response.data?.msg || response.status === 200)) {
+        fetchData()
+      } else {
+        alert(response?.data?.message || response?.data?.msg || 'Failed to update status')
+      }
+    } catch (error) {
+      console.error('Error updating status:', error)
+      const errorMsg = error.response?.data?.message || error.response?.data?.msg || error.response?.data?.error || error.message;
+      alert('Error updating status: ' + (typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg))
+    }
+  }
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
@@ -16,8 +114,8 @@ export default function ContactQueriesList() {
 
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = currentData.slice(indexOfFirstEntry, indexOfLastEntry)
-  const totalPages = Math.ceil(TOTAL_ENTRIES / entriesPerPage)
+  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
+  const totalPages = Math.ceil(data.length / entriesPerPage) || 1
 
   return (
     <div className="h-full animate-fade-in-up">
@@ -86,50 +184,94 @@ export default function ContactQueriesList() {
                 </tr>
               </thead>
               <tbody>
-                {currentEntries.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.sno}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">{row.name}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">{row.mobile}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">{row.email}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap max-w-[200px] truncate">{row.subject}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                      <button className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 px-3 py-1 rounded-full text-xs hover:bg-[#152a4a] transition-colors">
-                        View
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">{row.date}</td>
-                    <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                      <button className="bg-green-600 text-white px-3 py-1 rounded-full text-xs hover:bg-green-700 transition-colors">
-                        {row.status}
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 align-middle text-center">
-                      <button className="bg-[#6366f1] text-white p-1.5 rounded-full hover:bg-[#d87025] transition-colors inline-flex items-center justify-center">
-                        <Trash2 size={12} />
-                      </button>
-                    </td>
+                {loading ? (
+                  <tr>
+                    <td colSpan="9" className="text-center py-8">Loading...</td>
                   </tr>
-                ))}
+                ) : data.length === 0 ? (
+                  <tr>
+                    <td colSpan="9" className="text-center py-8">No contact queries found</td>
+                  </tr>
+                ) : (
+                  currentEntries.map((row, index) => {
+                    const getField = (fields) => {
+                      for (const field of fields) {
+                        if (row[field] !== undefined && row[field] !== null && row[field] !== '') return row[field];
+                      }
+                      return '-';
+                    };
+
+                    const name = getField(['name', 'fullName', 'm_cq_name', 'm_name']);
+                    const mobile = getField(['mobile', 'phone', 'contact', 'mobileNumber', 'phoneNumber', 'm_cq_mobile', 'm_mobile', 'm_phone']);
+                    const email = getField(['email', 'm_cq_email', 'm_email']);
+                    const subject = getField(['subject', 'm_cq_subject', 'm_subject']);
+                    const statusStr = getField(['status', 'm_cq_status', 'm_status']);
+                    const status = statusStr !== '-' ? String(statusStr) : 'New';
+                    const dateStr = row.createdAt ? new Date(row.createdAt).toLocaleDateString() : row.date || '-';
+
+                    return (
+                      <tr key={row._id || index} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">
+                          {(currentPage - 1) * entriesPerPage + index + 1}
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">{name}</td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">{mobile}</td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">{email}</td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap max-w-[200px] truncate">{subject}</td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
+                          <button className="bg-white text-slate-700 border border-slate-300 px-4 py-1.5 rounded-full text-xs font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                            View
+                          </button>
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">
+                          {dateStr}
+                        </td>
+                        <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
+                          <button 
+                            onClick={() => handleToggleStatus(row._id || row.id, status)}
+                            className={`text-white px-4 py-1.5 rounded-full text-xs font-medium transition-colors shadow-sm ${status.toLowerCase() === 'active' || status === '1' || status.toLowerCase() === 'new' ? 'bg-[#144f36] hover:bg-[#0f3d2a]' : 'bg-red-500 hover:bg-red-600'}`}
+                          >
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </button>
+                        </td>
+                        <td className="px-4 py-4 align-middle text-center">
+                          <button 
+                            onClick={() => handleDelete(row._id || row.id)}
+                            className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 transition-colors shadow-sm inline-flex items-center justify-center"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
               </tbody>
             </table>
           </div>
 
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
             <div className="mb-4 md:mb-0">
-              Showing {indexOfFirstEntry + 1} to {Math.min(indexOfLastEntry, TOTAL_ENTRIES)} of {TOTAL_ENTRIES} entries
+              Showing {data.length > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, data.length)} of {data.length} entries
             </div>
             <div className="flex items-center space-x-1">
-              {[...Array(Math.min(5, totalPages))].map((_, index) => (
-                <button 
-                  key={index + 1}
-                  onClick={() => setCurrentPage(index + 1)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-full ${currentPage === index + 1 ? 'bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800' : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-slate-400'}`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-              {totalPages > 5 && <span className="px-2">...</span>}
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded bg-slate-50 dark:bg-[#13111c] disabled:opacity-50 border border-slate-200 dark:border-slate-700"
+              >
+                Prev
+              </button>
+              <button className="w-8 h-8 flex items-center justify-center rounded bg-[#144f36] text-white shadow-sm">
+                {currentPage}
+              </button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded bg-slate-50 dark:bg-[#13111c] disabled:opacity-50 border border-slate-200 dark:border-slate-700"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

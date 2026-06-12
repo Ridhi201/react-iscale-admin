@@ -81,14 +81,21 @@ import ContactQueriesList from '../pages/misc/ContactQueriesList'
 import HireWithUsList from '../pages/jobs-careers/HireWithUsList'
 import CouponsList from '../pages/marketing/CouponsList'
 import AddCoupon from '../pages/marketing/AddCoupon'
+import EditCoupon from '../pages/marketing/EditCoupon'
 import ModuleSubModuleList from '../pages/settings/ModuleSubModuleList'
 import BrandVideoList from '../pages/cms-content/BrandVideoList'
+import AddBrandVideo from '../pages/cms-content/AddBrandVideo'
+import EditBrandVideo from '../pages/cms-content/EditBrandVideo'
 import StudentNewsList from '../pages/cms-content/StudentNewsList'
 import StudentTestimonialList from '../pages/cms-content/StudentTestimonialList'
+import AddStudentTestimonial from '../pages/cms-content/AddStudentTestimonial'
+import EditStudentTestimonial from '../pages/cms-content/EditStudentTestimonial'
 import EventCategoryList from '../pages/events-webinars/EventCategoryList'
 import AddEventCategory from '../pages/events-webinars/AddEventCategory'
+import EditEventCategory from '../pages/events-webinars/EditEventCategory'
 import EventList from '../pages/events-webinars/EventList'
 import AddEvent from '../pages/events-webinars/AddEvent'
+import EditEvent from '../pages/events-webinars/EditEvent'
 import UserRoleList from '../pages/users-teams/UserRoleList'
 import AddUser from '../pages/users-teams/AddUser'
 import MyProfile from '../pages/settings/MyProfile'
@@ -204,7 +211,7 @@ export default function AppRoutes() {
 //         <Route path="/partners/add" element={<AddPartner />} />
 //         <Route path="/ratings/course" element={<CourseRatings />} />
 //         <Route path="/ratings/subject" element={<SubjectRatings />} />
-//         <Route path="/ratings/home-page" element={<HomePageReviews />} />
+        <Route path="/ratings/home-page" element={<HomePageReviews />} />
         <Route path="/subject-ratings/add" element={<AddSubjectRating />} />
         <Route path="/home-page-reviews/add" element={<AddUserReview />} />
         <Route path="/banners" element={<BannersList />} />
@@ -239,16 +246,24 @@ export default function AppRoutes() {
         <Route path="/forms/hire-with-us" element={<HireWithUsList />} />
         <Route path="/events/category" element={<EventCategoryList />} />
         <Route path="/events/category/add" element={<AddEventCategory />} />
+        <Route path="/events/category/edit/:id" element={<EditEventCategory />} />
         <Route path="/events/list" element={<EventList />} />
         <Route path="/events/list/add" element={<AddEvent />} />
+        <Route path="/events/list/edit/:id" element={<EditEvent />} />
         <Route path="/master/coupons" element={<CouponsList />} />
         <Route path="/master/coupons/add" element={<AddCoupon />} />
+        <Route path="/master/coupons/edit/:id" element={<EditCoupon />} />
         <Route path="/master/module-sub-module" element={<ModuleSubModuleList />} />
         <Route path="/master/brand-video" element={<BrandVideoList />} />
+        <Route path="/master/brand-video/add" element={<AddBrandVideo />} />
+        <Route path="/master/brand-video/edit/:id" element={<EditBrandVideo />} />
         <Route path="/master/student-news" element={<StudentNewsList />} />
         <Route path="/master/student-testimonial" element={<StudentTestimonialList />} />
+        <Route path="/master/student-testimonial/add" element={<AddStudentTestimonial />} />
+        <Route path="/master/student-testimonial/edit/:id" element={<EditStudentTestimonial />} />
         <Route path="/user-role" element={<UserRoleList />} />
         <Route path="/user-role/add" element={<AddUser />} />
+        <Route path="/user-role/edit/:id" element={<AddUser />} />
         <Route path="/general-setting/my-profile" element={<MyProfile />} />
         <Route path="/general-setting/application" element={<ApplicationSetting />} />
         <Route path="/general-setting/send-notification" element={<SendNotification />} />

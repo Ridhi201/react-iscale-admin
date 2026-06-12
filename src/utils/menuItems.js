@@ -142,17 +142,17 @@ export const menuItems = [
 //       { id: 'partner-all', label: 'All Partners', path: '/partners/all' },
 //     ],
 //   },
-//   {
-//     id: 'ratings',
-//     label: 'Ratings',
-//     icon: 'Star',
-//     path: '/ratings',
-//     children: [
-//       { id: 'ratings-course', label: 'All Testimonials/Course Ratings', path: '/ratings/course' },
-//       { id: 'ratings-subject', label: 'Subject Ratings', path: '/ratings/subject' },
-//       { id: 'ratings-home', label: 'All Home Page Reviews', path: '/ratings/home-page' },
-//     ],
-//   },
+  {
+    id: 'ratings',
+    label: 'Ratings',
+    icon: 'Star',
+    path: '/ratings',
+    children: [
+      { id: 'ratings-course', label: 'All Testimonials/Course Ratings', path: '/ratings/course' },
+      { id: 'ratings-subject', label: 'Subject Ratings', path: '/ratings/subject' },
+      { id: 'ratings-home', label: 'All Home Page Reviews', path: '/ratings/home-page' },
+    ],
+  },
   {
     id: 'banners',
     label: 'Banners',
@@ -189,7 +189,7 @@ export const menuItems = [
     id: 'news',
     label: 'News & Updates',
     icon: 'Newspaper',
-    path: '/news',
+    path: '/news-updates',
   },
   {
     id: 'forms',

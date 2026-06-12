@@ -1,33 +1,37 @@
 import Button from '../../components/common/Button'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { Camera } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
-export default function AddEvent() {
+export default function EditEvent() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { id } = useParams()
+  const eventData = location.state?.eventData || {}
+  
   const [categories, setCategories] = useState([])
   
   const [formData, setFormData] = useState({
-    m_event_category: '',
-    m_event_title: '',
-    m_event_start_date: '',
-    m_event_end_date: '',
-    m_event_start_time: '',
-    m_event_end_time: '',
-    m_event_skill_level: '',
-    m_event_certificate: '',
-    m_event_language: '',
-    m_event_enrolled: '',
-    m_event_youtube: '',
-    m_event_meeting_link: '',
-    m_event_host_name: '',
-    m_event_contact: '',
-    m_event_whatsapp: '',
-    m_event_order: '',
-    m_event_status: 'Active',
-    m_event_description: ''
+    m_event_category: eventData.m_event_category || eventData.category || '',
+    m_event_title: eventData.m_event_title || eventData.title || eventData.eventTitle || '',
+    m_event_start_date: eventData.m_event_start_date || '',
+    m_event_end_date: eventData.m_event_end_date || '',
+    m_event_start_time: eventData.m_event_start_time || '',
+    m_event_end_time: eventData.m_event_end_time || '',
+    m_event_skill_level: eventData.m_event_skill_level || '',
+    m_event_certificate: eventData.m_event_certificate || '',
+    m_event_language: eventData.m_event_language || '',
+    m_event_enrolled: eventData.m_event_enrolled || '',
+    m_event_youtube: eventData.m_event_youtube || '',
+    m_event_meeting_link: eventData.m_event_meeting_link || '',
+    m_event_host_name: eventData.m_event_host_name || '',
+    m_event_contact: eventData.m_event_contact || '',
+    m_event_whatsapp: eventData.m_event_whatsapp || '',
+    m_event_order: eventData.m_event_order || eventData.order || '',
+    m_event_status: eventData.m_event_status || eventData.status || 'Active',
+    m_event_description: eventData.m_event_description || ''
   })
   
   const [file, setFile] = useState(null)
@@ -77,21 +81,34 @@ export default function AddEvent() {
         data.append('m_event_pdf', pdfFile);
       }
 
-      const res = await axios.post(`${BASE_URL}/myadmin/event/add-event`, data, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      let res;
+      try {
+        res = await axios.put(`${BASE_URL}/myadmin/event/update-event/${id}`, data, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      } catch (err) {
+        if (err.response?.status === 404) {
+          res = await axios.post(`${BASE_URL}/myadmin/event/update-event/${id}`, data, {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+        } else throw err;
+      }
+      
       if (res.data?.status || res.data?.success || res.data?.msg) {
-        alert(res.data?.message || res.data?.msg || 'Added successfully');
+        alert(res.data?.message || res.data?.msg || 'Updated successfully');
         navigate('/events/list');
       } else {
-        alert(res.data?.message || res.data?.msg || 'Failed to add');
+        alert(res.data?.message || res.data?.msg || 'Failed to update');
       }
     } catch (err) {
       console.error('Submit error:', err);
-      alert(err.response?.data?.message || err.response?.data?.msg || 'Failed to add');
+      alert(err.response?.data?.message || err.response?.data?.msg || 'Failed to update');
     } finally {
       setLoading(false);
     }
@@ -101,7 +118,7 @@ export default function AddEvent() {
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden max-w-[1200px]">
         <div className="p-4 border-b border-slate-200 dark:border-gray-800/50 bg-[#f6f6ff] dark:bg-[#1f1b2e] flex justify-between items-center">
-          <h2 className="text-xl font-medium text-indigo-900 dark:text-indigo-300 font-bold tracking-tight">Add New Event</h2>
+          <h2 className="text-xl font-medium text-indigo-900 dark:text-indigo-300 font-bold tracking-tight">Edit Event</h2>
           <button 
             onClick={() => navigate('/events/list')}
             className="bg-[#428bca] text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium hover:bg-[#3071a9] transition-colors"

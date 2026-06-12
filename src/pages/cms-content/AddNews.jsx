@@ -138,13 +138,19 @@ export default function AddNews() {
             </div>
           </div>
 
-          <div className="mt-8">
-            <button
-              onClick={handleSubmit}
+          <div className="flex gap-4 mt-8">
+            <button 
+              onClick={handleSubmit} 
               disabled={loading}
-              className="bg-[#144f36] text-white px-8 py-2.5 rounded shadow hover:bg-[#0f3d2a] transition-colors disabled:opacity-50 font-bold"
+              className="bg-[#144f36] text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-[#0f3d2a] transition-colors flex-1 shadow-sm disabled:opacity-50"
             >
               {loading ? 'Submitting...' : 'Submit News'}
+            </button>
+            <button 
+              onClick={() => navigate('/news-updates')}
+              className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#152a4a] transition-colors flex-1"
+            >
+              Cancel
             </button>
           </div>
         </div>

@@ -1,24 +1,36 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
-export default function AddCoupon() {
+export default function EditCoupon() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { id } = useParams()
   const [loading, setLoading] = useState(false)
+  
+  const couponData = location.state?.couponData || {}
+
   const [formData, setFormData] = useState({
-    m_coupon_code: '',
-    m_coupon_title: '',
-    m_coupon_type: 'Course',
-    m_coupon_discount_type: 'Flat',
-    m_coupon_discount: '',
-    m_coupon_start_date: '',
-    m_coupon_end_date: '',
-    m_coupon_details: '',
-    m_coupon_total: '',
-    m_coupon_is_visible: '1',
-    m_coupon_status: '1'
+    m_coupon_code: couponData.coupon_code || '',
+    m_coupon_title: couponData.coupon_title || '',
+    m_coupon_type: couponData.coupon_type || '',
+    m_coupon_discount_type: couponData.coupon_discount_type || 'flat',
+    m_coupon_discount: couponData.coupon_discount || '',
+    m_coupon_start_date: couponData.coupon_start_date ? new Date(couponData.coupon_start_date).toISOString().split('T')[0] : '',
+    m_coupon_end_date: couponData.coupon_end_date ? new Date(couponData.coupon_end_date).toISOString().split('T')[0] : '',
+    m_coupon_details: couponData.coupon_details || '',
+    m_coupon_total: couponData.total_coupon || '',
+    m_coupon_is_visible: (String(couponData.coupon_visible).toLowerCase() === 'yes' || couponData.coupon_visible === 1) ? '1' : '0',
+    m_coupon_status: (String(couponData.coupon_status).toLowerCase() === 'active' || couponData.coupon_status === 1) ? '1' : '0'
   })
+
+  useEffect(() => {
+    if (!couponData || !couponData._id) {
+      // If no data passed via state, we could fetch it here
+      // fetchCouponDetails()
+    }
+  }, [id])
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,25 +60,24 @@ export default function AddCoupon() {
         coupon_status: formData.m_coupon_status === '1' ? 'active' : 'inactive'
       };
 
-      const res = await axios.post(`${BASE_URL}/myadmin/coupons/add`, payload, {
+      const res = await axios.put(`${BASE_URL}/myadmin/coupons/update/${id}`, payload, {
         headers: { 
           Authorization: `Bearer ${token}`
         }
       });
       
       if (res.data?.status || res.data?.success || res.data?.message) {
-        alert(res.data?.message || 'Added successfully');
+        alert(res.data?.message || 'Updated successfully');
         navigate('/master/coupons');
       } else {
-        alert(res.data?.message || 'Failed to add');
+        alert(res.data?.message || 'Failed to update');
       }
     } catch (err) {
       console.error('Submit error:', err);
-      // Extract specific mongoose validation error if present
       if (err.response?.data?.message && err.response.data.message.includes('validation failed')) {
-        alert(`Backend Error: ${err.response.data.message}\n\nThis usually means a required field name doesn't match the backend schema. Please take a screenshot of this error.`);
+        alert(`Backend Error: ${err.response.data.message}\n\nPlease take a screenshot of this error.`);
       } else {
-        alert(err.response?.data?.message || err.response?.data?.error || 'Failed to add coupon');
+        alert(err.response?.data?.message || err.response?.data?.error || 'Failed to update coupon');
       }
     } finally {
       setLoading(false);
@@ -80,7 +91,7 @@ export default function AddCoupon() {
         <div className="p-4 flex justify-between items-center bg-gradient-to-r from-[#144f36] to-[#1a6545] rounded-t-2xl">
           <div className="flex items-center">
             <div className="w-1.5 h-6 bg-white rounded-full mr-3"></div>
-            <h2 className="text-xl font-bold text-white tracking-tight">Add New Coupon</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">Edit Coupon</h2>
           </div>
           <button 
             onClick={() => navigate('/master/coupons')}
@@ -219,7 +230,7 @@ export default function AddCoupon() {
               disabled={loading}
               className="bg-[#144f36] text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-[#0f3d2a] transition-colors flex-1 shadow-sm disabled:opacity-50"
             >
-              {loading ? 'Submitting...' : 'Submit'}
+              {loading ? 'Updating...' : 'Update'}
             </button>
             <button 
               onClick={() => navigate('/master/coupons')}
