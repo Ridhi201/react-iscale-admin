@@ -69,33 +69,42 @@ export default function AddUser() {
     try {
       const token = localStorage.getItem('token')
       
-      const formPayload = new FormData()
-
-      formPayload.append('admin_name', formData.name)
-      formPayload.append('user_name', formData.name)
-      formPayload.append('email', formData.email)
-      formPayload.append('login_id', formData.login_id || formData.email)
-      formPayload.append('contact_no', formData.phone)
-      formPayload.append('permission', formData.role)
-      formPayload.append('status', formData.status)
-      formPayload.append('password', formData.password || '123456')
-      
-      if (fileInputRef.current?.files?.[0]) {
-        formPayload.append('profile_pic', fileInputRef.current.files[0])
-      }
-
-      console.log("FORM DATA")
-      for (let pair of formPayload.entries()) {
-        console.log(pair[0], pair[1])
-      }
-
       if (isEditing) {
+        const formPayload = new FormData()
+
+        formPayload.append('kh_admin_name', formData.name)
+        formPayload.append('kh_admin_phone', String(formData.phone))
+        formPayload.append('kh_admin_email', formData.email)
+        formPayload.append('kh_role', formData.role)
+        formPayload.append('kh_status', formData.status)
+
+        console.log("EDIT FORM DATA")
+        for (let pair of formPayload.entries()) {
+          console.log(pair[0], pair[1])
+        }
+
         await axios.put(`${BASE_URL}/myadmin/auth/update/${id}`, formPayload, {
           headers: { 
             Authorization: `Bearer ${token}`
           }
         })
       } else {
+        const formPayload = new FormData()
+
+        formPayload.append("admin_name", formData.name);
+        formPayload.append("username", formData.login_id);
+        formPayload.append("email", formData.email);
+        formPayload.append("phone", formData.phone);
+        formPayload.append("password", formData.password);
+        formPayload.append("role", 1);
+        formPayload.append("status", "active");
+        formPayload.append("kh_pic", "");
+
+        console.log("ADD FORM DATA")
+        for (let pair of formPayload.entries()) {
+          console.log(pair[0], pair[1])
+        }
+
         await axios.post(`${BASE_URL}/myadmin/auth/add`, formPayload, {
           headers: { 
             Authorization: `Bearer ${token}`
@@ -105,10 +114,18 @@ export default function AddUser() {
       
       navigate('/user-role')
     } catch (error) {
-      console.error('Submit error:', error)
-      const msg = error.response?.data?.message || error.response?.data?.error || error.message
-      setErrorMessage(`Backend Validation Error: ${msg}`)
-      alert(`Backend Validation Error: ${msg}\n\nPlease check your inputs carefully!`)
+      console.log("FULL ERROR", error)
+
+      if (error.response) {
+        console.log("BACKEND RESPONSE", error.response.data)
+        console.log("STATUS", error.response.status)
+      }
+
+      setErrorMessage(
+        error.response?.data?.message ||
+        (error.response?.data ? JSON.stringify(error.response.data) : null) ||
+        error.message
+      )
     } finally {
       setIsSubmitting(false)
     }

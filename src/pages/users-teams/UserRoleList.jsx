@@ -28,13 +28,27 @@ export default function UserRoleList() {
       const response = await axios.get(`${BASE_URL}/myadmin/auth/all`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      if (response.data && response.data.data) {
-        setData(response.data.data)
-      } else {
-        setData([])
+      
+      let resData = response.data?.data || response.data;
+      let finalData = [];
+      
+      if (Array.isArray(resData)) {
+        finalData = resData;
+      } else if (resData && typeof resData === 'object') {
+        const possibleArray = Object.values(resData).find(val => Array.isArray(val));
+        if (possibleArray) {
+          finalData = possibleArray;
+        } else if (resData._id || resData.id) {
+          finalData = [resData];
+        } else {
+          finalData = [];
+        }
       }
+      
+      setData(finalData)
     } catch (error) {
       console.error('Failed to fetch users:', error)
+      setData([])
     } finally {
       setLoading(false)
     }
@@ -57,16 +71,45 @@ export default function UserRoleList() {
     }
   }
 
-  const handleToggleStatus = async (id) => {
+  const handleToggleStatus = async (row, currentIsActive) => {
     try {
+      const id = row._id || row.id;
       const token = localStorage.getItem('token')
-      await axios.put(`${BASE_URL}/myadmin/auth/status/${id}`, {}, {
+      const newStatus = currentIsActive ? 'inactive' : 'active'
+      
+      const formPayload = new FormData()
+      formPayload.append('kh_status', newStatus)
+      formPayload.append('status', newStatus) // Send both just in case!
+      
+      // Pass existing fields just in case update API requires them to commit
+      const adminName = getField(row, ['kh_admin_name', 'm_admin_name', 'admin_name', 'user_name', 'name'], 'Unknown User');
+      const phone = getField(row, ['kh_admin_phone', 'm_contact_no', 'contact_no', 'phone', 'contact', 'mobile'], '-');
+      const email = getField(row, ['kh_admin_email', 'm_email', 'email', 'login_id'], '');
+      const role = getField(row, ['kh_role', 'm_role', 'role', 'permission'], 1);
+      
+      formPayload.append('kh_admin_name', adminName)
+      formPayload.append('kh_admin_phone', String(phone))
+      formPayload.append('kh_admin_email', email)
+      formPayload.append('kh_role', role)
+      
+      formPayload.append('admin_name', adminName) // Fallbacks
+      formPayload.append('phone', String(phone)) 
+
+      const res = await axios.put(`${BASE_URL}/myadmin/auth/update/${id}`, formPayload, {
         headers: { Authorization: `Bearer ${token}` }
       })
+      
+      console.log("TOGGLE SUCCESS", res.data)
+      alert(`Backend Success: ${res.data.message || 'Status Updated'}\nWait for refresh...`)
+      
       fetchUsers()
     } catch (error) {
-      console.error('Status toggle failed:', error)
-      alert(error.response?.data?.message || 'Failed to update status')
+      console.log("TOGGLE ERROR", error)
+      if (error.response) {
+         console.log("TOGGLE BACKEND ERROR", error.response.data)
+      }
+      const msg = error.response?.data?.message || 'Failed to update status'
+      alert(`Toggle Error: ${msg}\nCheck F12 Console for details.`)
     }
   }
 
@@ -109,20 +152,7 @@ export default function UserRoleList() {
 
   return (
     <div className="h-full animate-fade-in-up flex flex-col">
-      {/* DEBUG BANNER FOR THE DEVELOPER */}
-      <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-4 rounded shadow-sm text-sm font-mono flex flex-col gap-2">
-        <div className="flex justify-between items-center">
-          <p><strong>DEBUG DATA (Copy this for AI if backend fails):</strong></p>
-          <button onClick={() => setShowDebug(!showDebug)} className="underline font-bold text-blue-600">
-            {showDebug ? 'Hide JSON' : 'Show JSON'}
-          </button>
-        </div>
-        {showDebug && data.length > 0 && (
-          <pre className="bg-yellow-50 p-2 overflow-x-auto border border-yellow-200">
-            {JSON.stringify(data[0], null, 2)}
-          </pre>
-        )}
-      </div>
+
 
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 flex flex-col h-full w-full overflow-hidden">
         {/* Header - Success Story Theme */}
@@ -167,7 +197,7 @@ export default function UserRoleList() {
               </div>
             </div>
 
-            <div className="overflow-x-auto flex-1">
+            <div className="overflow-x-auto flex-1 min-h-[400px]">
               <table className="w-full text-left text-sm text-slate-800">
                 <thead className="bg-[#1b3d58] text-white">
                   <tr>
@@ -185,48 +215,54 @@ export default function UserRoleList() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan="8" className="text-center py-8">Loading users...</td>
+                      <td colSpan="9" className="text-center py-8">Loading users...</td>
                     </tr>
                   ) : data.length === 0 ? (
                     <tr>
-                      <td colSpan="8" className="text-center py-8">No users found</td>
+                      <td colSpan="9" className="text-center py-8">No users found</td>
+                    </tr>
+                  ) : currentEntries.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" className="text-center py-8">No valid entries for this page</td>
                     </tr>
                   ) : (
                     currentEntries.map((row, index) => {
-                      const id = row._id || row.id;
+                      if (!row || typeof row !== 'object') return null;
+                      
+                      const id = row._id || row.id || `fallback-${index}`;
                       const sno = indexOfFirstEntry + index + 1;
-                      const adminName = getField(row, ['m_admin_name', 'admin_name', 'user_name', 'name']);
-                      const email = getField(row, ['m_email', 'email', 'login_id', 'email_address']);
-                      const loginId = getField(row, ['login_id', 'email']);
-                      const phone = getField(row, ['m_contact_no', 'contact_no', 'phone', 'contact', 'mobile']);
-                      const role = getField(row, ['m_role', 'role', 'permission'], 'Permission');
-                      const addedOn = getField(row, ['added_on', 'createdAt', 'addedOn']);
-                      const statusStr = getField(row, ['m_status', 'status', 'is_active']);
+                      const adminName = getField(row, ['kh_admin_name', 'm_admin_name', 'admin_name', 'user_name', 'name'], 'Unknown User');
+                      const email = getField(row, ['kh_admin_email', 'm_email', 'email', 'login_id', 'email_address'], '-');
+                      const loginId = getField(row, ['kh_username', 'kh_login_id', 'login_id', 'email'], '-');
+                      const phone = getField(row, ['kh_admin_phone', 'm_contact_no', 'contact_no', 'phone', 'contact', 'mobile'], '-');
+                      const role = getField(row, ['kh_role', 'm_role', 'role', 'permission'], 'Permission');
+                      const addedOn = getField(row, ['kh_added_on', 'added_on', 'createdAt', 'addedOn'], '-');
+                      const statusStr = row.kh_status || row.status || 'inactive';
                       
                       const isActive = String(statusStr).toLowerCase() === 'active' || String(statusStr).toLowerCase() === 'true' || String(statusStr) === '1';
 
                       return (
-                        <tr key={id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                          <td className="px-4 py-4 border-r border-slate-200 align-middle">{sno}</td>
-                          <td className="px-4 py-4 border-r border-slate-200 align-middle font-medium whitespace-nowrap">{adminName || '-'}</td>
-                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap">
+                        <tr key={`${id}-${index}`} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle text-slate-800">{sno}</td>
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle font-medium whitespace-nowrap text-slate-800">{adminName}</td>
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap text-slate-800">
                             <span className="bg-[#5cb85c] text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">
-                              {role || 'Permission'}
+                              {role}
                             </span>
                           </td>
-                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap">{loginId || '-'}</td>
-                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap">{phone || '-'}</td>
-                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap">{email || '-'}</td>
-                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap">{formatDate(addedOn)}</td>
-                          <td className="px-4 py-4 border-r border-slate-200 align-middle">
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap text-slate-800">{loginId}</td>
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap text-slate-800">{phone}</td>
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap text-slate-800">{email}</td>
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle whitespace-nowrap text-slate-800">{formatDate(addedOn)}</td>
+                          <td className="px-4 py-4 border-r border-slate-200 align-middle text-slate-800">
                             <button 
-                              onClick={() => handleToggleStatus(id)}
+                              onClick={() => handleToggleStatus(row, isActive)}
                               className={`text-white px-3 py-1.5 rounded-full text-[11px] font-medium transition-colors ${isActive ? 'bg-[#144f36] hover:bg-[#0f3d2a]' : 'bg-red-500 hover:bg-red-600'}`}
                             >
                               {isActive ? 'Active' : 'Inactive'}
                             </button>
                           </td>
-                          <td className="px-4 py-4 align-middle">
+                          <td className="px-4 py-4 align-middle text-slate-800">
                             <div className="flex gap-2 justify-center">
                               <button 
                                 onClick={() => handleEditClick(row)}
