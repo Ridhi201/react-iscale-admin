@@ -10,6 +10,7 @@ export default function CouponsList() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetchCoupons()
@@ -124,10 +125,26 @@ export default function CouponsList() {
     return '-'
   }
 
+  const filteredData = data.filter((row) => {
+    if (!searchTerm) return true;
+    
+    const code = row.coupon_code || '';
+    const title = row.coupon_title || '';
+    const type = row.coupon_type || '';
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      String(code).toLowerCase().includes(searchLower) ||
+      String(title).toLowerCase().includes(searchLower) ||
+      String(type).toLowerCase().includes(searchLower)
+    );
+  });
+
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
-  const TOTAL_ENTRIES = data.length
+  const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const TOTAL_ENTRIES = filteredData.length
 
   return (
     <div className="h-full animate-fade-in-up">
@@ -168,6 +185,11 @@ export default function CouponsList() {
               <input 
                 type="text" 
                 placeholder="Search coupons..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] text-slate-700 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-64"
               />
             </div>
@@ -197,6 +219,10 @@ export default function CouponsList() {
                 ) : data.length === 0 ? (
                   <tr>
                     <td colSpan="10" className="text-center py-8">No coupons found</td>
+                  </tr>
+                ) : currentEntries.length === 0 && searchTerm ? (
+                  <tr>
+                    <td colSpan="10" className="text-center py-8">No matching coupons found</td>
                   </tr>
                 ) : (
                   currentEntries.map((row, index) => {

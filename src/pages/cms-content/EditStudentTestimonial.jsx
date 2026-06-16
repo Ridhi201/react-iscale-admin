@@ -50,7 +50,7 @@ export default function EditStudentTestimonial() {
       
       const payload = new FormData()
       payload.append('m_st_url', formData.m_st_url)
-      payload.append('m_st_status', formData.m_st_status === '1' ? 'active' : 'inactive')
+      payload.append('m_st_status', formData.m_st_status)
       
       if (videoFile) {
         payload.append('m_st_video', videoFile)

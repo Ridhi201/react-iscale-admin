@@ -4,7 +4,7 @@ import { moduleData } from '../../utils/mockData'
 export default function ModuleSubModuleList() {
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
-  const TOTAL_ENTRIES = 60
+  const [searchTerm, setSearchTerm] = useState('')
 
   const currentData = moduleData
 
@@ -13,9 +13,21 @@ export default function ModuleSubModuleList() {
     setCurrentPage(1)
   }
 
+  const filteredData = currentData.filter((row) => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      String(row.subModule).toLowerCase().includes(searchLower) ||
+      String(row.key).toLowerCase().includes(searchLower) ||
+      String(row.module).toLowerCase().includes(searchLower) ||
+      String(row.moduleKey).toLowerCase().includes(searchLower)
+    );
+  });
+
+  const TOTAL_ENTRIES = filteredData.length
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = currentData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry)
   const totalPages = Math.ceil(TOTAL_ENTRIES / entriesPerPage)
 
   return (
@@ -28,7 +40,7 @@ export default function ModuleSubModuleList() {
             <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
             <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Permission</h2>
           </div>
-          <button className="bg-[#428bca] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#3071a9] transition-colors flex items-center gap-2">
+          <button className="bg-white text-[#144f36] px-4 py-2 rounded-full text-sm font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm">
             <span>+ Back</span>
           </button>
         </div>
@@ -58,7 +70,36 @@ export default function ModuleSubModuleList() {
                   { label: 'PDF', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg> },
                   { label: 'Print', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> }
                 ].map(btn => (
-                  <button key={btn.label} title={btn.label} className="px-3 py-1.5 bg-[#f6f6ff] dark:bg-[#1f1b2e] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 border-r border-slate-300 dark:border-slate-600 last:border-r-0 flex items-center justify-center">
+                  <button 
+                    key={btn.label} 
+                    title={btn.label} 
+                    onClick={() => {
+                      if (btn.label === 'Print') {
+                        window.print();
+                      } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
+                        const table = document.querySelector('table');
+                        if (!table) return;
+                        let csv = '';
+                        const rows = table.querySelectorAll('tr');
+                        rows.forEach(row => {
+                          const cols = row.querySelectorAll('td, th');
+                          const rowData = Array.from(cols).map(c => '"' + c.innerText.replace(/"/g, '""') + '"');
+                          csv += rowData.join(',') + '\n';
+                        });
+                        if (btn.label === 'Copy') {
+                          navigator.clipboard.writeText(csv);
+                          alert('Table data copied to clipboard!');
+                        } else {
+                          const blob = new Blob([csv], { type: 'text/csv' });
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = 'export.csv';
+                          a.click();
+                        }
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-[#f6f6ff] dark:bg-[#1f1b2e] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 border-r border-slate-300 dark:border-slate-600 last:border-r-0 flex items-center justify-center">
                     {btn.icon}
                   </button>
                 ))}
@@ -68,6 +109,11 @@ export default function ModuleSubModuleList() {
                 <input 
                   type="text" 
                   placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-64"
                 />
               </div>
@@ -91,7 +137,11 @@ export default function ModuleSubModuleList() {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentEntries.map((row) => (
+                  {currentEntries.length === 0 && searchTerm ? (
+                    <tr>
+                      <td colSpan="6" className="text-center py-8">No matching permissions found</td>
+                    </tr>
+                  ) : currentEntries.map((row) => (
                     <tr key={row.id} className={`border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50 ${row.sno === 2 ? 'bg-[#fdf2e9]' : 'bg-[#f6f6ff] dark:bg-[#111827] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 dark:hover:bg-[#1f2937] transition-colors'}`}>
                       <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">
                         <div className="flex items-center gap-2">

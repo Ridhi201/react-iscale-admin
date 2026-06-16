@@ -27,6 +27,7 @@ import CourseCategories from '../pages/courses/CourseCategories'
 import AllCourses from '../pages/courses/AllCourses'
 import PopularCourses from '../pages/courses/PopularCourses'
 import RecommendedCourses from '../pages/courses/RecommendedCourses'
+import CourseView from '../pages/courses/CourseView'
 import CourseFaq from '../pages/courses/CourseFaq'
 import CourseFeatures from '../pages/courses/CourseFeatures'
 import CourseTools from '../pages/courses/CourseTools'
@@ -113,7 +114,7 @@ import AddCourse from '../pages/courses/AddCourse'
 import EditCourse from '../pages/courses/EditCourse'
 import AddTestSeriesCategory from '../pages/test-series/AddTestSeriesCategory'
 import AddTestSeriesPackage from '../pages/test-series/AddTestSeriesPackage'
-import AddNotesCategory from '../pages/notes/AddNotesCategory'
+import PackageView from '../pages/test-series/PackageView'
 import AddNotesSubCategory from '../pages/notes/AddNotesSubCategory'
 import AddNotes from '../pages/notes/AddNotes'
 import AddClass from '../pages/live-classes/AddClass'
@@ -137,10 +138,7 @@ export default function AppRoutes() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/registrations" element={<Registrations />} />
         <Route path="/registrations/course" element={<Registrations />} />
-        <Route path="/registrations/certificate" element={<CertificateRequests />} />
-//         <Route path="/registrations/test-series" element={<TestSeriesRegistrations />} />
-//         <Route path="/registrations/notes" element={<NotesRegistrations />} />
-//         <Route path="/registrations/webinar" element={<WebinarRegistrations />} />
+        <Route path="/registrations/certificate" element={<CertificateRequests />} />
         <Route path="/registrations/job" element={<JobRegistrations />} />
         <Route path="/registrations/event" element={<EventRegistrations />} />
         <Route path="/wishlist/course" element={<CourseWishlist />} />
@@ -149,20 +147,20 @@ export default function AppRoutes() {
         <Route path="/wishlist/webinar" element={<WebinarWishlist />} />
         <Route path="/settings" element={<Settings />} />
 
-        <Route path="/leaderboard" element={<LeaderBoard />} />
+        <Route path="/leaderboard" element={<PlaceholderPage title="Test Series Leaderboard" subtitle="Coming Soon" icon="🏆" />} />
         <Route path="/wishlist" element={<PlaceholderPage title="User Wishlist" subtitle="Courses saved by students" icon="❤️" />} />
         <Route path="/batch" element={<BatchManagement />} />
         <Route path="/batch/list" element={<BatchManagement />} />
         <Route path="/batch/create" element={<BatchManagement />} />
         <Route path="/live-classes" element={<LiveClasses />} />
         <Route path="/live-classes/add" element={<AddLiveClass />} />
-        <Route path="/live-classes/edit/:id" element={<EditLiveClass />} />
-//         <Route path="/webinar" element={<PlaceholderPage title="Webinar" subtitle="Manage webinar events" icon="🎤" />} />
+        <Route path="/live-classes/edit/:id" element={<EditLiveClass />} />
         <Route path="/test-series" element={<TestSeriesCategory />} />
         <Route path="/test-series/category" element={<TestSeriesCategory />} />
         <Route path="/test-series/category/add" element={<AddTestSeriesCategory />} />
         <Route path="/test-series/packages" element={<TestSeriesPackages />} />
         <Route path="/test-series/packages/add" element={<AddTestSeriesPackage />} />
+        <Route path="/test-series/packages/view/:id" element={<PackageView />} />
         <Route path="/courses" element={<AllCourses />} />
         <Route path="/courses/categories" element={<CourseCategories />} />
         <Route path="/courses/categories/add" element={<AddCourseCategory />} />
@@ -170,6 +168,7 @@ export default function AppRoutes() {
         <Route path="/courses/all" element={<AllCourses />} />
         <Route path="/courses/all/add" element={<AddCourse />} />
         <Route path="/courses/all/edit/:id" element={<EditCourse />} />
+        <Route path="/courses/view/:id" element={<CourseView />} />
         <Route path="/courses/popular" element={<PopularCourses />} />
         <Route path="/courses/recommended" element={<RecommendedCourses />} />
         <Route path="/courses/faq/:id" element={<CourseFaq />} />
@@ -183,16 +182,7 @@ export default function AppRoutes() {
         <Route path="/courses/test-series/add/:id" element={<AddCourseTestSeries />} />
         <Route path="/courses/training-highlights/:id" element={<CourseTrainingHighlights />} />
         <Route path="/quiz/list/:packageId" element={<QuizList />} />
-        <Route path="/quiz/add/:packageId" element={<AddQuiz />} />
-//         <Route path="/notes" element={<AllNotes />} />
-//         <Route path="/notes/category" element={<NotesCategory />} />
-//         <Route path="/notes/category/add" element={<AddNotesCategory />} />
-//         <Route path="/notes/sub-category" element={<NotesSubCategory />} />
-//         <Route path="/notes/sub-category/add" element={<AddNotesSubCategory />} />
-//         <Route path="/notes/all" element={<AllNotes />} />
-//         <Route path="/notes/all/add" element={<AddNotes />} />
-//         <Route path="/classes" element={<ClassesList />} />
-//         <Route path="/classes/add" element={<AddClass />} />
+        <Route path="/quiz/add/:packageId" element={<AddQuiz />} />
         <Route path="/app-users" element={<AppUsers />} />
         <Route path="/app-users/details/:id" element={<AppUserDetails />} />
         <Route path="/app-users/edit/:id" element={<EditAppUser />} />
@@ -205,12 +195,7 @@ export default function AppRoutes() {
         <Route path="/instructors" element={<InstructorList />} />
         <Route path="/instructors/all" element={<InstructorList />} />
         <Route path="/instructors/add" element={<AddInstructor />} />
-        <Route path="/instructors/edit/:id" element={<EditInstructor />} />
-//         <Route path="/partners" element={<PartnersList />} />
-//         <Route path="/partners/all" element={<PartnersList />} />
-//         <Route path="/partners/add" element={<AddPartner />} />
-//         <Route path="/ratings/course" element={<CourseRatings />} />
-//         <Route path="/ratings/subject" element={<SubjectRatings />} />
+        <Route path="/instructors/edit/:id" element={<EditInstructor />} />
         <Route path="/ratings/home-page" element={<HomePageReviews />} />
         <Route path="/subject-ratings/add" element={<AddSubjectRating />} />
         <Route path="/home-page-reviews/add" element={<AddUserReview />} />

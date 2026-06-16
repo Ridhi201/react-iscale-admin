@@ -185,7 +185,7 @@ export default function CourseTestSeries() {
                     </td>
                     <td className="px-4 py-3 align-middle text-center">
                       <div className="flex justify-center gap-2">
-                        <button className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors shadow-sm" title="View">
+                        <button onClick={() => navigate(`/test-series/packages/view/${row._id}`, { state: { packageData: row } })} className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors shadow-sm" title="View">
                           <Eye size={14} />
                         </button>
                         <button onClick={() => navigate(`/courses/test-series/add/${id}`, { state: { editPackage: row, courseTitle } })} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f] transition-colors shadow-sm" title="Edit">

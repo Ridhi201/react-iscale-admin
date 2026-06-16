@@ -10,6 +10,7 @@ export default function BrandVideoList() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [searchTerm, setSearchTerm] = useState('')
   
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentVideoUrl, setCurrentVideoUrl] = useState('')
@@ -125,10 +126,23 @@ export default function BrandVideoList() {
     return `${baseUrlStripped}/${normalized}`;
   };
 
+  const filteredData = data.filter((row) => {
+    if (!searchTerm) return true;
+    const name = getField(row, ['name', 'title', 'brand_video_name', 'bv_name', 'm_bv_name']);
+    const url = getField(row, ['url', 'video_url', 'link', 'm_bv_url', 'bv_url']);
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      String(name).toLowerCase().includes(searchLower) ||
+      String(url).toLowerCase().includes(searchLower)
+    );
+  });
+
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
-  const TOTAL_ENTRIES = data.length
+  const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const TOTAL_ENTRIES = filteredData.length
 
   const handleViewClick = (url) => {
     setCurrentVideoUrl(url)
@@ -174,6 +188,11 @@ export default function BrandVideoList() {
               <input 
                 type="text" 
                 placeholder="Search videos..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="border border-slate-300 bg-[#f6f6ff] text-slate-700 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-64"
               />
             </div>
@@ -199,6 +218,10 @@ export default function BrandVideoList() {
                 ) : data.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="text-center py-8">No brand videos found</td>
+                  </tr>
+                ) : currentEntries.length === 0 && searchTerm ? (
+                  <tr>
+                    <td colSpan="7" className="text-center py-8">No matching brand videos found</td>
                   </tr>
                 ) : (
                   currentEntries.map((row, index) => {

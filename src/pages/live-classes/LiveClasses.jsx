@@ -139,37 +139,37 @@ export default function LiveClasses() {
       <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group mb-5">
         <h2 className="text-white font-bold tracking-tight text-xl font-medium">Live Classes</h2>
         <div className="flex gap-2">
-          <button className="px-5 py-2 bg-stone-700 text-white border-none hover:bg-stone-800 text-sm rounded-full transition-colors" onClick={() => navigate('/live-classes/add')}>Create Live Class</button>
+          <button className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 hover:-translate-y-0.5" onClick={() => navigate('/live-classes/add')}>Create Live Class</button>
         </div>
       </div>
 
       {/* Filters Card */}
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 p-5 mb-5">
-        <div className="flex flex-wrap items-end gap-5 w-full">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 w-full items-end">
+          <div className="w-full">
             <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">From Date</label>
             <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" />
           </div>
-          <div>
+          <div className="w-full">
             <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">To Date</label>
             <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" />
           </div>
-          <div>
+          <div className="w-full">
             <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Batch</label>
             <select value={batchId} onChange={e => setBatchId(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
               <option value="">Select Batch</option>
               {batches.map(b => <option key={b._id} value={b._id}>{b.batch_name}</option>)}
             </select>
           </div>
-          <div>
+          <div className="w-full">
             <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Teacher</label>
             <select value={teacherId} onChange={e => setTeacherId(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
               <option value="">Select Teacher</option>
               {teachers.map(t => <option key={t._id} value={t._id}>{t.member_name}</option>)}
             </select>
           </div>
-          <div className="flex gap-2">
-            <button onClick={handleReset} className="px-4 py-1.5 bg-slate-200 text-slate-700 text-xs rounded hover:bg-slate-300 transition-colors font-bold">Reset</button>
+          <div className="w-full flex gap-2 h-[32px]">
+            <button onClick={handleReset} className="w-full px-4 py-1.5 bg-[#144f36] text-white text-xs rounded hover:bg-[#0f3d2a] transition-colors font-bold shadow-sm">Reset</button>
           </div>
         </div>
       </div>

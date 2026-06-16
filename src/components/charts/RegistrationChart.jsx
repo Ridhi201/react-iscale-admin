@@ -120,7 +120,7 @@ export default function RegistrationChart({ apiData }) {
       
       <div className="flex-1 min-h-[300px] -ml-4 relative z-10">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+          <AreaChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 20 }}>
             <defs>
               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4}/>

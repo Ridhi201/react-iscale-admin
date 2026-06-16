@@ -7,10 +7,28 @@ export const menuItems = [
     path: '/',
   },
   {
-    id: 'leaderboard',
-    label: 'Test Series Leaderboard',
-    icon: 'Trophy',
-    path: '/leaderboard',
+    id: 'analytics',
+    label: 'Data Analytics',
+    icon: 'LineChart',
+    path: '/analytics',
+  },
+  {
+    id: 'leads',
+    label: 'Lead Generate',
+    icon: 'TrendingUp',
+    path: '/leads',
+  },
+  {
+    id: 'courses',
+    label: 'Courses',
+    icon: 'BookOpen',
+    path: '/courses',
+    children: [
+      { id: 'courses-categories', label: 'Categories', path: '/courses/categories' },
+      { id: 'courses-all', label: 'All Courses', path: '/courses/all' },
+      { id: 'courses-popular', label: 'Popular Courses', path: '/courses/popular' },
+      { id: 'courses-recommended', label: 'Recommended Courses', path: '/courses/recommended' },
+    ],
   },
   {
     id: 'registrations',
@@ -28,26 +46,10 @@ export const menuItems = [
     ],
   },
   {
-    id: 'wishlist',
-    label: 'User Wishlist',
-    icon: 'Heart',
-    path: '/wishlist',
-    children: [
-      { id: 'wl-course', label: 'Course Wishlist', path: '/wishlist/course' },
-      { id: 'wl-test', label: 'Test Series Wishlist', path: '/wishlist/test-series' },
-      { id: 'wl-notes', label: 'Notes Wishlist', path: '/wishlist/notes' },
-//       { id: 'wl-webinar', label: 'Webinar Wishlist', path: '/wishlist/webinar' },
-    ],
-  },
-  {
-    id: 'batch',
-    label: 'Batch Management',
-    icon: 'Layers',
-    path: '/batch',
-    children: [
-      { id: 'batch-list', label: 'All Batches', path: '/batch/list' },
-      { id: 'batch-create', label: 'Create Batch', path: '/batch/create' },
-    ],
+    id: 'app-users',
+    label: 'App Users',
+    icon: 'Smartphone',
+    path: '/app-users',
   },
   {
     id: 'live',
@@ -55,12 +57,12 @@ export const menuItems = [
     icon: 'Video',
     path: '/live-classes',
   },
-//   {
-//     id: 'webinar',
-//     label: 'Webinar',
-//     icon: 'Mic2',
-//     path: '/webinar',
-//   },
+  {
+    id: 'batch',
+    label: 'Batch Management',
+    icon: 'Layers',
+    path: '/batch',
+  },
   {
     id: 'test-series',
     label: 'Test Series',
@@ -72,17 +74,29 @@ export const menuItems = [
     ],
   },
   {
-    id: 'courses',
-    label: 'Courses',
-    icon: 'BookOpen',
-    path: '/courses',
+    id: 'leaderboard',
+    label: 'Test Series Leaderboard',
+    icon: 'Trophy',
+    path: '/leaderboard',
+  },
+  {
+    id: 'wishlist',
+    label: 'User Wishlist',
+    icon: 'Heart',
+    path: '/wishlist',
     children: [
-      { id: 'courses-categories', label: 'Categories', path: '/courses/categories' },
-      { id: 'courses-all', label: 'All Courses', path: '/courses/all' },
-      { id: 'courses-popular', label: 'Popular Courses', path: '/courses/popular' },
-      { id: 'courses-recommended', label: 'Recommended Courses', path: '/courses/recommended' },
+      { id: 'wl-course', label: 'Course Wishlist', path: '/wishlist/course' },
+      { id: 'wl-test', label: 'Test Series Wishlist', path: '/wishlist/test-series' },
+      { id: 'wl-notes', label: 'Notes Wishlist', path: '/wishlist/notes' },
+//       { id: 'wl-webinar', label: 'Webinar Wishlist', path: '/wishlist/webinar' },
     ],
   },
+//   {
+//     id: 'webinar',
+//     label: 'Webinar',
+//     icon: 'Mic2',
+//     path: '/webinar',
+//   },
 //   {
 //     id: 'notes',
 //     label: 'Notes',
@@ -101,16 +115,26 @@ export const menuItems = [
 //     path: '/classes',
 //   },
   {
-    id: 'app-users',
-    label: 'App Users',
-    icon: 'Smartphone',
-    path: '/app-users',
-  },
-  {
     id: 'offers',
     label: 'Offers',
     icon: 'Tag',
     path: '/offers',
+  },
+  {
+    id: 'banners',
+    label: 'Banners',
+    icon: 'Image',
+    path: '/banners',
+  },
+  {
+    id: 'events',
+    label: 'Events',
+    icon: 'Calendar',
+    path: '/events',
+    children: [
+      { id: 'event-category', label: 'Event Category', path: '/events/category' },
+      { id: 'events-list', label: 'Events', path: '/events/list' }
+    ]
   },
   {
     id: 'instructors',
@@ -142,34 +166,22 @@ export const menuItems = [
 //       { id: 'partner-all', label: 'All Partners', path: '/partners/all' },
 //     ],
 //   },
+//   {
+//     id: 'ratings',
+//     label: 'Ratings',
+//     icon: 'Star',
+//     path: '/ratings',
+//     children: [
+//       { id: 'ratings-course', label: 'All Testimonials/Course Ratings', path: '/ratings/course' },
+//       { id: 'ratings-subject', label: 'Subject Ratings', path: '/ratings/subject' },
+//       { id: 'ratings-home', label: 'All Home Page Reviews', path: '/ratings/home-page' },
+//     ],
+//   },
   {
-    id: 'ratings',
-    label: 'Ratings',
-    icon: 'Star',
-    path: '/ratings',
-    children: [
-      { id: 'ratings-course', label: 'All Testimonials/Course Ratings', path: '/ratings/course' },
-      { id: 'ratings-subject', label: 'Subject Ratings', path: '/ratings/subject' },
-      { id: 'ratings-home', label: 'All Home Page Reviews', path: '/ratings/home-page' },
-    ],
-  },
-  {
-    id: 'banners',
-    label: 'Banners',
-    icon: 'Image',
-    path: '/banners',
-  },
-  {
-    id: 'leads',
-    label: 'Lead Generate',
-    icon: 'TrendingUp',
-    path: '/leads',
-  },
-  {
-    id: 'analytics',
-    label: 'Data Analytics',
-    icon: 'LineChart',
-    path: '/analytics',
+    id: 'news',
+    label: 'News & Updates',
+    icon: 'Newspaper',
+    path: '/news-updates',
   },
   {
     id: 'more',
@@ -186,12 +198,6 @@ export const menuItems = [
     ]
   },
   {
-    id: 'news',
-    label: 'News & Updates',
-    icon: 'Newspaper',
-    path: '/news-updates',
-  },
-  {
     id: 'forms',
     label: 'Form & Queries',
     icon: 'FileText',
@@ -199,16 +205,6 @@ export const menuItems = [
     children: [
       { id: 'contact-query', label: 'Contact Query', path: '/forms/contact-query' },
       { id: 'hire-with-us', label: 'Hire With Us Form', path: '/forms/hire-with-us' }
-    ]
-  },
-  {
-    id: 'events',
-    label: 'Events',
-    icon: 'Calendar',
-    path: '/events',
-    children: [
-      { id: 'event-category', label: 'Event Category', path: '/events/category' },
-      { id: 'events-list', label: 'Events', path: '/events/list' }
     ]
   },
   {

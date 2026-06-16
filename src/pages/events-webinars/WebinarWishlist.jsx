@@ -107,7 +107,36 @@ export default function WebinarWishlist() {
                   { label: 'PDF', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg> },
                   { label: 'Print', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> }
                 ].map(btn => (
-                  <button key={btn.label} title={btn.label} className="px-3 py-1.5 bg-[#f6f6ff] dark:bg-[#1f1b2e] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 border-r border-slate-300 dark:border-slate-600 last:border-r-0 flex items-center justify-center">
+                  <button 
+                    key={btn.label} 
+                    title={btn.label} 
+                    onClick={() => {
+                      if (btn.label === 'Print') {
+                        window.print();
+                      } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
+                        const table = document.querySelector('table');
+                        if (!table) return;
+                        let csv = '';
+                        const rows = table.querySelectorAll('tr');
+                        rows.forEach(row => {
+                          const cols = row.querySelectorAll('td, th');
+                          const rowData = Array.from(cols).map(c => '"' + c.innerText.replace(/"/g, '""') + '"');
+                          csv += rowData.join(',') + '\n';
+                        });
+                        if (btn.label === 'Copy') {
+                          navigator.clipboard.writeText(csv);
+                          alert('Table data copied to clipboard!');
+                        } else {
+                          const blob = new Blob([csv], { type: 'text/csv' });
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = 'export.csv';
+                          a.click();
+                        }
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-[#f6f6ff] dark:bg-[#1f1b2e] hover:bg-slate-50 dark:bg-[#1f1b2e]/50 border-r border-slate-300 dark:border-slate-600 last:border-r-0 flex items-center justify-center">
                     {btn.icon}
                   </button>
                 ))}

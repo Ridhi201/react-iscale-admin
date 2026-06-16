@@ -233,7 +233,7 @@ export default function TestSeriesPackages() {
                     </td>
                     <td className="px-4 py-4 align-middle">
                       <div className="flex gap-1.5">
-                        <button className="bg-[#144f36] text-white p-1.5 rounded-full hover:bg-[#0f3d2a] transition-colors">
+                        <button onClick={() => navigate(`/test-series/packages/view/${row._id}`, { state: { packageData: row } })} className="bg-[#144f36] text-white p-1.5 rounded-full hover:bg-[#0f3d2a] transition-colors">
                           <Eye size={14} />
                         </button>
                         <button onClick={() => navigate(`/test-series/packages/add`, { state: { editPackage: row } })} className="bg-[#28a745] text-white p-1.5 rounded-full hover:bg-[#218838] transition-colors">

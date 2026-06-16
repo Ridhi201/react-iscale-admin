@@ -8,7 +8,7 @@ export default function AddStudentTestimonial() {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     m_st_url: '',
-    m_st_status: '1'
+    m_st_status: "active"
   })
   const [videoFile, setVideoFile] = useState(null)
 
@@ -29,7 +29,7 @@ export default function AddStudentTestimonial() {
       
       const payload = new FormData()
       payload.append('m_st_url', formData.m_st_url)
-      payload.append('m_st_status', formData.m_st_status === '1' ? 'active' : 'inactive')
+      payload.append('m_st_status', formData.m_st_status === "active" ? 'active' : 'inactive')
       
       if (videoFile) {
         payload.append('m_st_video', videoFile)

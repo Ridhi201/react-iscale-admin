@@ -8,6 +8,7 @@ export default function StudentNewsList() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalContent, setModalContent] = useState(null)
@@ -196,10 +197,25 @@ export default function StudentNewsList() {
     setCurrentPage(1)
   }
 
+  const filteredData = data.filter((row) => {
+    if (!searchTerm) return true;
+    const title = getField(row, ['m_snews_title', 'title', 'news_title']);
+    const des = getField(row, ['m_snews_des', 'description', 'des']);
+    const url = getField(row, ['m_snews_url', 'url', 'link']);
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      String(title).toLowerCase().includes(searchLower) ||
+      String(des).toLowerCase().includes(searchLower) ||
+      String(url).toLowerCase().includes(searchLower)
+    );
+  });
+
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
-  const TOTAL_ENTRIES = data.length
+  const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const TOTAL_ENTRIES = filteredData.length
 
   const handleViewClick = (content, type) => {
     setModalContent(content)
@@ -249,6 +265,11 @@ export default function StudentNewsList() {
                 <input 
                   type="text" 
                   placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="border border-slate-300 bg-white text-slate-700 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-full sm:w-64 shadow-inner"
                 />
               </div>
@@ -275,6 +296,10 @@ export default function StudentNewsList() {
                   ) : data.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="text-center py-8">No student news found</td>
+                    </tr>
+                  ) : currentEntries.length === 0 && searchTerm ? (
+                    <tr>
+                      <td colSpan="7" className="text-center py-8">No matching student news found</td>
                     </tr>
                   ) : (
                     currentEntries.map((row, index) => {

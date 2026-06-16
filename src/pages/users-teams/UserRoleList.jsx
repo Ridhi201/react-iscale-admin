@@ -11,6 +11,7 @@ export default function UserRoleList() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [searchTerm, setSearchTerm] = useState('')
 
   // Debug banner toggle
   const [showDebug, setShowDebug] = useState(false)
@@ -134,10 +135,30 @@ export default function UserRoleList() {
     setCurrentPage(1)
   }
 
+  const filteredData = data.filter((row) => {
+    if (!searchTerm) return true;
+    
+    const adminName = getField(row, ['kh_admin_name', 'm_admin_name', 'admin_name', 'user_name', 'name'], 'Unknown User');
+    const email = getField(row, ['kh_admin_email', 'm_email', 'email', 'login_id', 'email_address'], '-');
+    const loginId = getField(row, ['kh_username', 'kh_login_id', 'login_id', 'email'], '-');
+    const phone = getField(row, ['kh_admin_phone', 'm_contact_no', 'contact_no', 'phone', 'contact', 'mobile'], '-');
+    const role = getField(row, ['kh_role', 'm_role', 'role', 'permission'], 'Permission');
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      String(adminName).toLowerCase().includes(searchLower) ||
+      String(email).toLowerCase().includes(searchLower) ||
+      String(loginId).toLowerCase().includes(searchLower) ||
+      String(phone).toLowerCase().includes(searchLower) ||
+      String(role).toLowerCase().includes(searchLower)
+    );
+  });
+
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
-  const TOTAL_ENTRIES = data.length
+  const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const TOTAL_ENTRIES = filteredData.length
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '-'
@@ -192,6 +213,11 @@ export default function UserRoleList() {
                 <input 
                   type="text" 
                   placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="border border-slate-300 bg-white text-slate-700 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-full sm:w-64 shadow-inner"
                 />
               </div>
@@ -220,6 +246,10 @@ export default function UserRoleList() {
                   ) : data.length === 0 ? (
                     <tr>
                       <td colSpan="9" className="text-center py-8">No users found</td>
+                    </tr>
+                  ) : filteredData.length === 0 && searchTerm ? (
+                    <tr>
+                      <td colSpan="9" className="text-center py-8">No matching users found</td>
                     </tr>
                   ) : currentEntries.length === 0 ? (
                     <tr>
