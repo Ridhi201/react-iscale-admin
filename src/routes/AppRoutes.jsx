@@ -59,6 +59,7 @@ import BannersList from '../pages/marketing/BannersList'
 import AddBanner from '../pages/marketing/AddBanner'
 import LeadGenerateList from '../pages/marketing/LeadGenerateList'
 import AddLeadGenerate from '../pages/marketing/AddLeadGenerate'
+import LeadGeneratePreview from '../pages/marketing/LeadGeneratePreview'
 import AnalyticsList from '../pages/dashboard/AnalyticsList'
 import JobUpdatesList from '../pages/jobs-careers/JobUpdatesList'
 import AddJobUpdate from '../pages/jobs-careers/AddJobUpdate'
@@ -146,7 +147,6 @@ export default function AppRoutes() {
         <Route path="/wishlist/test-series" element={<TestSeriesWishlist />} />
         <Route path="/wishlist/notes" element={<NotesWishlist />} />
         <Route path="/wishlist/webinar" element={<WebinarWishlist />} />
-        <Route path="/analytics" element={<Analytics />} />
         <Route path="/settings" element={<Settings />} />
 
         <Route path="/leaderboard" element={<LeaderBoard />} />
@@ -220,6 +220,7 @@ export default function AppRoutes() {
         <Route path="/leads" element={<LeadGenerateList />} />
         <Route path="/leads/add" element={<AddLeadGenerate />} />
         <Route path="/leads/edit/:id" element={<AddLeadGenerate />} />
+        <Route path="/leads/preview/:id" element={<LeadGeneratePreview />} />
         <Route path="/analytics" element={<AnalyticsList />} />
         <Route path="/job-updates" element={<JobUpdatesList />} />
         <Route path="/job-updates/add" element={<AddJobUpdate />} />

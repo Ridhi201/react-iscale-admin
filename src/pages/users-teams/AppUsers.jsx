@@ -95,6 +95,59 @@ export default function AppUsers() {
     alert("Delete API not provided for App User. Please provide DELETE API.")
   }
 
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const params = new URLSearchParams({
+        page: 1,
+        limit: totalEntries > 0 ? totalEntries : 10000,
+        search,
+        from_date: fromDate,
+        to_date: toDate,
+        user_status: userStatus
+      })
+      const res = await axios.get(`${BASE_URL}/myadmin/app-users/all?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      if (res.data?.status) {
+        const exportData = res.data.data || []
+        const headers = ['S.No.', 'User Name', 'Contact No.', 'Email', 'Joined On', 'Status']
+        const csvRows = [headers.join(',')]
+        
+        exportData.forEach((row, index) => {
+          const userName = (row.c_display_name || `${row.c_first_name || ''} ${row.c_last_name || ''}`).trim()
+          const contact = row.c_contact || ''
+          const email = row.c_email || ''
+          const joinedOn = row.c_register_date ? new Date(row.c_register_date).toLocaleDateString() : 'N/A'
+          const status = row.c_user_status === 1 ? 'Verified' : 'Unverified'
+          
+          csvRows.push([
+            index + 1,
+            `"${userName}"`,
+            `"${contact}"`,
+            `"${email}"`,
+            `"${joinedOn}"`,
+            `"${status}"`
+          ].join(','))
+        })
+        
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'app_users.csv'
+        a.click()
+        window.URL.revokeObjectURL(url)
+      } else {
+        alert("Failed to fetch data for export.")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Error exporting data.")
+    }
+  }
+
   const startIndex = (currentPage - 1) * entriesPerPage
 
   return (
@@ -109,7 +162,7 @@ export default function AppUsers() {
           <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">App Users List</h2>
         </div>
         
-        <button className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
+        <button onClick={handleExport} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
           Export
         </button>
       </div>
@@ -142,13 +195,13 @@ export default function AppUsers() {
             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
           </div>
           <div className="flex gap-2">
-            <button onClick={handleFilter} className="btn-glossy-teal">Filter</button>
-            <button onClick={handleReset} className="btn-glossy-purple">Reset</button>
+            <button onClick={handleFilter} className="bg-[#144f36] text-white px-5 py-2 rounded text-sm shadow hover:bg-[#0f3d2a] transition-colors">Filter</button>
+            <button onClick={handleReset} className="bg-[#144f36] text-white px-5 py-2 rounded text-sm shadow hover:bg-[#0f3d2a] transition-colors">Reset</button>
           </div>
         </div>
 
         <div className="p-4 flex-1 flex flex-col">
-          <div className="overflow-x-auto border border-slate-200 dark:border-[#1f1b2e] rounded-t-lg flex-1">
+          <div className="overflow-auto border border-slate-200 dark:border-[#1f1b2e] rounded-t-lg flex-1">
             <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
               <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">
                 <tr>
@@ -177,7 +230,7 @@ export default function AppUsers() {
                         {row.c_register_date ? new Date(row.c_register_date).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                        <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.c_user_status === 1 ? 'bg-[#428bca]' : 'bg-[#6366f1]'}`}>
+                        <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.c_user_status === 1 ? 'bg-[#144f36]' : 'bg-red-500'}`}>
                           {row.c_user_status === 1 ? 'Verified' : 'Unverified'}
                         </span>
                       </td>

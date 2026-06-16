@@ -113,8 +113,8 @@ export default function AddJobUpdate() {
         company_social_links: {
           linkedin: formData.linkedin
         },
-        status: 'active',
-        job_status: '1'
+        status: 1,
+        job_status: 1
       }
 
       const url = id 
@@ -291,10 +291,9 @@ export default function AddJobUpdate() {
                 value={formData.salary_type}
                 onChange={handleChange}
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]">
-                <option value="PM">PM (Per Month)</option>
-                <option value="PA">PA (Per Annum)</option>
-                <option value="Monthly">Monthly</option>
-                <option value="Yearly">Yearly</option>
+               <option value="PM">PM (Per Month)</option>
+               <option value="per_annum">Per Annum</option>
+               <option value="per_month">Per Month</option>
               </select>
             </div>
           </div>
@@ -305,8 +304,7 @@ export default function AddJobUpdate() {
               <input
                 type="text"
                 name="apply_link"
-                value={formData.apply_link}
-                onChange={handleChange}
+                value={formData.apply_link}                onChange={handleChange}
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>

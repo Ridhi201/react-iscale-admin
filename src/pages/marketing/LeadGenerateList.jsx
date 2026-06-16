@@ -150,7 +150,7 @@ export default function LeadGenerateList() {
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-200 dark:border-[#1f1b2e] flex-1 rounded-lg">
+          <div className="overflow-auto border border-slate-200 dark:border-[#1f1b2e] flex-1 rounded-lg">
             <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
               <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">
                 <tr>
@@ -185,25 +185,19 @@ export default function LeadGenerateList() {
                         {new Date(row.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                        {row.m_lg_redirect_link ? (
-                          <a 
-                            href={row.m_lg_redirect_link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-block"
-                          >
-                            Go To Link
-                          </a>
-                        ) : (
-                          <span className="text-xs text-slate-500">N/A</span>
-                        )}
+                        <button 
+                          onClick={() => navigate(`/leads/preview/${row._id}`)}
+                          className="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-block"
+                        >
+                          Go To Link
+                        </button>
                       </td>
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
                         <button 
                           onClick={() => handleStatusChange(row._id)}
-                          className={`px-4 py-1.5 rounded-full text-white text-xs font-bold transition-opacity hover:opacity-80 shadow-sm ${row.m_lg_status === 'active' ? 'bg-[#144f36]' : 'bg-slate-500'}`}
+                          className={`px-4 py-1.5 rounded-full text-white text-xs font-bold transition-opacity hover:opacity-80 shadow-sm ${(row.m_lg_status === 1 || row.m_lg_status === 'active') ? 'bg-[#144f36]' : 'bg-slate-500'}`}
                         >
-                          {row.m_lg_status ? row.m_lg_status.charAt(0).toUpperCase() + row.m_lg_status.slice(1) : 'Unknown'}
+                          {(row.m_lg_status === 1 || row.m_lg_status === 'active') ? 'Active' : 'Inactive'}
                         </button>
                       </td>
                       <td className="px-4 py-3 align-middle text-center">

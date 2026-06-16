@@ -100,13 +100,18 @@ export default function AddEvent() {
   return (
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden max-w-[1200px]">
-        <div className="p-4 border-b border-slate-200 dark:border-gray-800/50 bg-[#f6f6ff] dark:bg-[#1f1b2e] flex justify-between items-center">
-          <h2 className="text-xl font-medium text-indigo-900 dark:text-indigo-300 font-bold tracking-tight">Add New Event</h2>
+        <div className="bg-[#144f36] rounded-t p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
+          <div className="flex items-center relative z-10">
+            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Add New Event</h2>
+          </div>
           <button 
             onClick={() => navigate('/events/list')}
-            className="bg-[#428bca] text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium hover:bg-[#3071a9] transition-colors"
+            className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5"
           >
-            📄 List
+            <span>↩ Back</span>
           </button>
         </div>
 
@@ -119,7 +124,9 @@ export default function AddEvent() {
               <select name="m_event_category" value={formData.m_event_category} onChange={handleChange} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 border-slate-300 dark:border-gray-700">
                 <option value="">--Select Category--</option>
                 {categories.map((c, i) => (
-                  <option key={i} value={c._id || c.id || c.name || c}>{c.name || c.title || c.m_event_category || c}</option>
+                  <option key={i} value={c?._id || c?.id || c?.name || (typeof c === 'string' ? c : JSON.stringify(c))}>
+                    {c?.name || c?.title || c?.m_event_category || (typeof c === 'string' ? c : 'Unknown Category')}
+                  </option>
                 ))}
               </select>
             </div>
@@ -405,7 +412,6 @@ export default function AddEvent() {
                 <button className="p-1 hover:bg-slate-200 rounded underline">U</button>
                 <button className="p-1 hover:bg-slate-200 rounded line-through">S</button>
                 <div className="w-px h-4 bg-slate-300 mx-1"></div>
-                {/* Random editor icons mock */}
                 <button className="p-1 hover:bg-slate-200 rounded">🔗</button>
                 <button className="p-1 hover:bg-slate-200 rounded">🖼️</button>
                 <button className="p-1 hover:bg-slate-200 rounded">▶️</button>
@@ -430,12 +436,18 @@ export default function AddEvent() {
           </div>
 
           <div className="flex gap-4">
-            <Button fullWidth className="py-2" onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Submitting...' : 'Submit'}
-            </Button>
             <button 
+              type="submit"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="flex-1 bg-[#144f36] text-white px-8 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#0f3d2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Submitting...' : 'Submit'}
+            </button>
+            <button 
+              type="button"
               onClick={() => navigate('/events/list')}
-              className="bg-[#d35400] text-white px-6 py-2.5 rounded text-sm font-medium hover:bg-[#b04500] transition-colors flex-1 shadow-sm"
+              className="flex-1 bg-[#d87025] text-white px-8 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#b55d1f] transition-colors"
             >
               Cancel
             </button>

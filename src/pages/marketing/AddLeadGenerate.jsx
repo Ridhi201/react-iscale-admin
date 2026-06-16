@@ -21,7 +21,7 @@ export default function AddLeadGenerate() {
     m_lg_gender: false,
     m_lg_laptop_desktop: false,
     m_lg_working_professional: false,
-    m_lg_status: 'active'
+    m_lg_status: 1
   })
   
   const [loading, setLoading] = useState(isEdit)
@@ -53,7 +53,7 @@ export default function AddLeadGenerate() {
           m_lg_gender: d.m_lg_gender || false,
           m_lg_laptop_desktop: d.m_lg_laptop_desktop || false,
           m_lg_working_professional: d.m_lg_working_professional || false,
-          m_lg_status: d.m_lg_status || 'active'
+          m_lg_status: d.m_lg_status !== undefined ? d.m_lg_status : 1
         })
       }
     } catch (err) {
@@ -179,6 +179,19 @@ export default function AddLeadGenerate() {
               rows={6}
               className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] resize-none"
             />
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Status</label>
+            <select 
+              name="m_lg_status"
+              value={formData.m_lg_status}
+              onChange={(e) => setFormData({ ...formData, m_lg_status: Number(e.target.value) })}
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+            >
+              <option value={1}>Active</option>
+              <option value={0}>Inactive</option>
+            </select>
           </div>
 
           <div className="flex gap-4 pt-4 border-t border-slate-100">

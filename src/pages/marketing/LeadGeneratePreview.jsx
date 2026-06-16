@@ -1,0 +1,217 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
+
+export default function LeadGeneratePreview() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  const [form, setForm] = useState({
+    fullName: '',
+    mobile: '',
+    email: '',
+    alternate: '',
+    sameAsMobile: false
+  })
+
+  useEffect(() => {
+    fetchLead()
+  }, [id])
+
+  const fetchLead = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.get(`${BASE_URL}/myadmin/lead-generate/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status && res.data.data) {
+        setData(res.data.data)
+      }
+    } catch (err) {
+      alert('Failed to load lead details')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target
+    if (name === 'sameAsMobile') {
+      setForm({ ...form, sameAsMobile: checked, alternate: checked ? form.mobile : '' })
+    } else {
+      setForm({ ...form, [name]: value })
+    }
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    
+    // Redirect to analytics directly as requested instead of the external redirect link
+    navigate('/analytics')
+  }
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#f4ebd0]"><div className="text-xl">Loading...</div></div>
+  if (!data) return <div className="min-h-screen flex items-center justify-center bg-[#f4ebd0]"><div className="text-xl">Lead not found</div></div>
+
+  return (
+    <div className="min-h-screen bg-[#f4ebd0] py-10 px-4 flex justify-center font-sans">
+      <div className="w-full max-w-4xl bg-[#2e2b2c] rounded-2xl overflow-hidden shadow-2xl relative">
+        
+        {/* Header */}
+        <div className="bg-[#facc15] py-6 px-8 text-center border-b-[6px] border-black/10">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            {data.m_lg_title || 'A.I. Full Course (Free) | Master AI Tools & Core Concepts Notes'}
+          </h1>
+        </div>
+
+        <div className="p-8">
+          
+          {/* Media / Download Area */}
+          <div className="bg-white rounded-xl p-6 mb-10 text-center max-w-2xl mx-auto shadow-inner">
+            <div className="relative w-full max-w-xs mx-auto mb-4 rounded-lg overflow-hidden shadow-md group cursor-pointer">
+              {/* Dummy Thumbnail */}
+              <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=400&q=80" alt="Thumbnail" className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <div className="w-14 h-10 bg-red-600 rounded-lg flex items-center justify-center">
+                  <div className="w-0 h-0 border-t-8 border-t-transparent border-l-[14px] border-l-white border-b-8 border-b-transparent ml-1"></div>
+                </div>
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Download Notes</h3>
+            <p className="text-sm text-slate-600">
+              Click on the Submit button after filling your details to download the PDF.
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            
+            {/* Full Name */}
+            <div>
+              <label className="block text-white font-bold text-sm mb-2">Full Name<span className="text-red-500">*</span></label>
+              <input 
+                type="text" 
+                name="fullName"
+                required
+                value={form.fullName}
+                onChange={handleChange}
+                className="w-full rounded-full border-none py-3 px-4 outline-none focus:ring-2 focus:ring-[#facc15] text-slate-900 font-medium"
+              />
+            </div>
+
+            {/* Mobile Number */}
+            <div>
+              <label className="block text-white font-bold text-sm mb-2">Mobile Number<span className="text-red-500">*</span></label>
+              <input 
+                type="tel" 
+                name="mobile"
+                required
+                value={form.mobile}
+                onChange={(e) => {
+                  handleChange(e);
+                  if (form.sameAsMobile) {
+                    setForm(prev => ({ ...prev, alternate: e.target.value }))
+                  }
+                }}
+                className="w-full rounded-full border-none py-3 px-4 outline-none focus:ring-2 focus:ring-[#facc15] text-slate-900 font-medium mb-1"
+              />
+              <p className="text-[#facc15] text-xs leading-tight opacity-90">
+                No Duplicate Mobile Number Allowed, kindly Contact/WhatsApp- 7880-113-112
+              </p>
+            </div>
+
+            {/* Alternate Number */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <input 
+                  type="checkbox" 
+                  id="sameAsMobile"
+                  name="sameAsMobile"
+                  checked={form.sameAsMobile}
+                  onChange={handleChange}
+                  className="w-4 h-4 rounded text-[#facc15] focus:ring-[#facc15] border-gray-300"
+                />
+                <label htmlFor="sameAsMobile" className="text-white text-sm">Same as Mobile Number</label>
+              </div>
+              <label className="block text-white font-bold text-sm mb-2">Alternate Number (WhatsApp)<span className="text-red-500">*</span></label>
+              <input 
+                type="tel" 
+                name="alternate"
+                required
+                value={form.alternate}
+                onChange={handleChange}
+                disabled={form.sameAsMobile}
+                className="w-full rounded-full border-none py-3 px-4 outline-none focus:ring-2 focus:ring-[#facc15] text-slate-900 font-medium disabled:opacity-70 disabled:bg-gray-200 mb-1"
+              />
+              <p className="text-[#facc15] text-xs leading-tight opacity-90">
+                Kindly give WhatsApp Number below, if above mobile number has no WhatsApp.
+              </p>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-white font-bold text-sm mb-2">Email<span className="text-red-500">*</span></label>
+              <input 
+                type="email" 
+                name="email"
+                required
+                value={form.email}
+                onChange={handleChange}
+                className="w-full rounded-full border-none py-3 px-4 outline-none focus:ring-2 focus:ring-[#facc15] text-slate-900 font-medium mb-1"
+              />
+              <p className="text-[#facc15] text-xs leading-tight opacity-90">
+                If you have already Filled this form Previously kindly Contact/WhatsApp- 7880-113-112
+              </p>
+            </div>
+
+            {/* Optional Fields Based on Settings */}
+            {data.m_lg_college && (
+              <div className="md:col-span-2">
+                <label className="block text-white font-bold text-sm mb-2">College/Institute Name<span className="text-red-500">*</span></label>
+                <input type="text" required className="w-full rounded-full border-none py-3 px-4 outline-none focus:ring-2 focus:ring-[#facc15] text-slate-900 font-medium" />
+              </div>
+            )}
+            
+            {data.m_lg_education && (
+              <div>
+                <label className="block text-white font-bold text-sm mb-2">Education Qualification<span className="text-red-500">*</span></label>
+                <input type="text" required className="w-full rounded-full border-none py-3 px-4 outline-none focus:ring-2 focus:ring-[#facc15] text-slate-900 font-medium" />
+              </div>
+            )}
+            {data.m_lg_passing_year && (
+              <div>
+                <label className="block text-white font-bold text-sm mb-2">Passing Year<span className="text-red-500">*</span></label>
+                <input type="number" required className="w-full rounded-full border-none py-3 px-4 outline-none focus:ring-2 focus:ring-[#facc15] text-slate-900 font-medium" />
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="md:col-span-2 flex justify-center mt-6">
+              <button 
+                type="submit"
+                className="bg-[#facc15] hover:bg-[#eab308] text-slate-900 text-lg font-bold py-3 px-24 rounded-full transition-transform hover:scale-105 shadow-lg"
+              >
+                Submit
+              </button>
+            </div>
+            
+          </form>
+
+        </div>
+        
+        {/* Return to Admin Button (for preview convenience) */}
+        <button 
+          onClick={() => navigate('/leads')} 
+          className="absolute top-4 left-4 bg-white/20 hover:bg-white/40 text-black px-4 py-1.5 rounded-full text-xs font-bold transition-colors"
+        >
+          ← Back to Admin
+        </button>
+        
+      </div>
+    </div>
+  )
+}

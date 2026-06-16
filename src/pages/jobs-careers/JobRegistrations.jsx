@@ -144,6 +144,40 @@ export default function JobRegistrations() {
     setCurrentPage(1)
   }
 
+  const handleExport = () => {
+    if (!data || data.length === 0) {
+      alert("No data to export");
+      return;
+    }
+    
+    const headers = ['S.No.', 'Candidate Name', 'Mobile', 'Email', 'Job Title', 'Company Name', 'Location', 'Salary Range', 'Applied Date'];
+    const csvRows = [headers.join(',')];
+    
+    data.forEach((row, index) => {
+      const values = [
+        startIndex + index + 1,
+        `"${row.user_id?.c_first_name || ''} ${row.user_id?.c_last_name || ''}"`,
+        `"${row.user_id?.c_contact || ''}"`,
+        `"${row.user_id?.c_email || ''}"`,
+        `"${row.job_id?.job_title || ''}"`,
+        `"${row.job_id?.company_name || ''}"`,
+        `"${row.job_id?.job_locations?.join('; ') || 'N/A'}"`,
+        `"${row.job_id?.salary?.min || ''} - ${row.job_id?.salary?.max || ''}"`,
+        `"${new Date(row.applied_at).toLocaleDateString()}"`
+      ];
+      csvRows.push(values.join(','));
+    });
+    
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "job_applications.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <div className="h-full animate-fade-in-up">
       {/* Title Card */}
@@ -206,7 +240,7 @@ export default function JobRegistrations() {
 
             <button onClick={handleSearchClick} className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Search / Filter</button>
             <button onClick={handleReset} className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Reset</button>
-            <button className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Export</button>
+            <button onClick={handleExport} className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Export</button>
 
           </div>
         </div>

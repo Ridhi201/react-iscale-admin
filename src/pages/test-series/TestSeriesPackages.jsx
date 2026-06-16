@@ -10,6 +10,7 @@ export default function TestSeriesPackages() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetchPackages()
@@ -55,11 +56,47 @@ export default function TestSeriesPackages() {
     }
   }
 
-  const TOTAL_ENTRIES = packages.length
+  const filteredPackages = packages.filter(pkg => {
+    return (pkg.m_package_title || '').toLowerCase().includes(searchTerm.toLowerCase())
+  })
+
+  const TOTAL_ENTRIES = filteredPackages.length
   const TOTAL_PAGES = Math.ceil(TOTAL_ENTRIES / entriesPerPage)
   const startIndex = (currentPage - 1) * entriesPerPage
   const endIndex = Math.min(startIndex + entriesPerPage, TOTAL_ENTRIES)
-  const currentData = packages.slice(startIndex, endIndex)
+  const currentData = filteredPackages.slice(startIndex, endIndex)
+
+  const handleExport = () => {
+    if (!filteredPackages || filteredPackages.length === 0) {
+      alert("No data to export");
+      return;
+    }
+    
+    const headers = ['S.No.', 'Title', 'Status'];
+    const csvRows = [headers.join(',')];
+    
+    filteredPackages.forEach((row, index) => {
+      const values = [
+        index + 1,
+        `"${row.m_package_title || ''}"`,
+        `"${row.m_package_status === 1 ? 'Active' : 'In-Active'}"`
+      ];
+      csvRows.push(values.join(','));
+    });
+    
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "test_packages.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  const handlePrint = () => {
+    window.print();
+  }
 
   const handlePrev = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1)
@@ -90,10 +127,10 @@ export default function TestSeriesPackages() {
 
   return (
     <div className="min-h-screen bg-[#eaf3f8] p-4 font-sans animate-fade-in-up">
-      {/* Top Header like Screenshot 2 but Green Theme */}
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 mb-5 flex justify-between items-center">
-        <h2 className="text-slate-800 font-bold text-xl">Packages - Course</h2>
-        <button onClick={() => navigate('/test-series/packages/add')} className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-4 py-2 rounded text-sm font-semibold shadow-sm transition-colors flex items-center gap-1">
+      {/* Title Card */}
+      <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group mb-5">
+        <h2 className="text-white font-bold tracking-tight text-xl relative z-10">Packages - Course</h2>
+        <button onClick={() => navigate('/test-series/packages/add')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2">
           <span>+ Add New Package</span>
         </button>
       </div>
@@ -120,7 +157,12 @@ export default function TestSeriesPackages() {
                   { label: 'PDF', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg> },
                   { label: 'Print', icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg> }
                 ].map(btn => (
-                  <button key={btn.label} title={btn.label} className="px-3 py-1.5 bg-white hover:bg-slate-50 border-r border-slate-300 last:border-r-0 flex items-center justify-center">
+                  <button 
+                    key={btn.label} 
+                    title={btn.label} 
+                    onClick={btn.label === 'Print' ? handlePrint : handleExport}
+                    className="px-3 py-1.5 bg-white hover:bg-slate-50 border-r border-slate-300 last:border-r-0 flex items-center justify-center"
+                  >
                     <span className="text-xs font-medium text-slate-600 mr-1 hidden sm:block">{btn.label}</span>
                   </button>
                 ))}
@@ -130,12 +172,17 @@ export default function TestSeriesPackages() {
             <input 
               type="text" 
               placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setCurrentPage(1)
+              }}
               className="border border-slate-300 bg-white text-slate-700 rounded px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] min-w-[200px]"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto border border-slate-200 rounded">
+        <div className="overflow-auto border border-slate-200 rounded">
           <table className="w-full text-left text-sm text-slate-700">
             <thead className="bg-[#144f36] text-white">
               <tr>

@@ -226,7 +226,7 @@ const handleDeleteFaq = async (faqId) => {
               <input type="text" placeholder="Search..." className="border border-slate-300 dark:border-gray-700 bg-transparent rounded-full px-4 py-1.5 text-sm outline-none w-48" />
             </div>
 
-            <div className="overflow-x-auto border border-slate-200 dark:border-[#1f1b2e]">
+            <div className="overflow-auto border border-slate-200 dark:border-[#1f1b2e]">
               <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
                 <thead className="bg-[#144f36] text-white">
                   <tr>

@@ -20,20 +20,66 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
-export default function RegistrationChart() {
+export default function RegistrationChart({ apiData }) {
   const [filter, setFilter] = useState('30D')
   
-  // Fake data to match the screenshot's shape
-  const data = [
-    { name: '01 Apr', value: 20000 },
-    { name: '05 Apr', value: 55000 },
-    { name: '09 Apr', value: 35000 },
-    { name: '13 Apr', value: 45000 },
-    { name: '17 Apr', value: 64450 }, // Peak
-    { name: '21 Apr', value: 40000 },
-    { name: '25 Apr', value: 75000 },
-    { name: '30 Apr', value: 45000 },
-  ]
+  // Fake data to match the screenshot's shape, varying by filter
+  const getMockData = (currentFilter) => {
+    if (currentFilter === '7D') {
+      return [
+        { name: 'Mon', value: 12000 },
+        { name: 'Tue', value: 15000 },
+        { name: 'Wed', value: 10000 },
+        { name: 'Thu', value: 22000 },
+        { name: 'Fri', value: 35000 },
+        { name: 'Sat', value: 45000 },
+        { name: 'Sun', value: 30000 },
+      ];
+    }
+    if (currentFilter === '90D') {
+      return [
+        { name: 'Jan', value: 40000 },
+        { name: 'Feb', value: 65000 },
+        { name: 'Mar', value: 85000 },
+        { name: 'Apr', value: 55000 },
+        { name: 'May', value: 95000 },
+        { name: 'Jun', value: 110000 },
+      ];
+    }
+    if (currentFilter === '1Y') {
+      return [
+        { name: 'Q1', value: 120000 },
+        { name: 'Q2', value: 250000 },
+        { name: 'Q3', value: 180000 },
+        { name: 'Q4', value: 350000 },
+      ];
+    }
+    // Default 30D
+    return [
+      { name: '01 Apr', value: 20000 },
+      { name: '05 Apr', value: 55000 },
+      { name: '09 Apr', value: 35000 },
+      { name: '13 Apr', value: 45000 },
+      { name: '17 Apr', value: 64450 }, // Peak
+      { name: '21 Apr', value: 40000 },
+      { name: '25 Apr', value: 75000 },
+      { name: '30 Apr', value: 45000 },
+    ];
+  };
+
+  let data = getMockData(filter);
+  if (apiData && Array.isArray(apiData) && apiData.length > 0) {
+    const defaultData = getMockData('30D');
+    data = apiData.map((item, i) => ({
+      name: item.name || item.month || item.date || item.label || defaultData[i]?.name || 'Unknown',
+      value: item.value || item.count || item.total || item.amount || defaultData[i]?.value || 0
+    }));
+  } else if (apiData && typeof apiData === 'object') {
+    const keys = Object.keys(apiData);
+    if (keys.length > 0) {
+      data = keys.map(k => ({ name: k, value: apiData[k] }));
+    }
+  }
 
   const filters = ['7D', '30D', '90D', '1Y']
 

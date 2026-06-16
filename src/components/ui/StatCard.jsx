@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import * as Icons from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 function AnimatedCounter({ value, duration = 1500 }) {
   const [count, setCount] = useState(0)
@@ -41,7 +42,19 @@ function AnimatedCounter({ value, duration = 1500 }) {
 }
 
 export default function StatCard({ card, index }) {
-  const LucideIcon = Icons[card.icon] || Icons.Activity
+  const navigate = useNavigate();
+  const LucideIcon = Icons[card?.icon] || Icons.Activity
+  
+  const handleCardClick = () => {
+    if (!card?.key) return;
+    if (['totalRegistration', 'totalNotesSale', 'totalPackageSale', 'totalCourseSale', 'totalEarnings'].includes(card.key)) {
+      navigate('/registrations');
+    } else if (card.key === 'totalCourses') {
+      navigate('/courses/all');
+    } else if (card.key === 'totalQuizs') {
+      navigate('/quiz/list/all');
+    }
+  };
   
   // Generating a simple random looking SVG line based on index
   const paths = [
@@ -55,35 +68,36 @@ export default function StatCard({ card, index }) {
 
   return (
     <motion.div
+      onClick={handleCardClick}
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -8, scale: 1.02 }}
       transition={{ duration: 0.4, delay: index * 0.08, type: 'spring', stiffness: 300 }}
-      className="bg-gradient-to-b from-white to-[#fcfcfd] rounded-2xl p-5 border-t-[6px] border-t-[#22c55e] border-x border-b border-slate-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)] hover:shadow-[0_15px_50px_-12px_rgba(0,0,0,0.12)] transition-all duration-300 relative overflow-hidden"
+      className="cursor-pointer bg-gradient-to-b from-white to-[#fcfcfd] rounded-2xl p-4 border-t-4 border-t-[#22c55e] border-x border-b border-slate-100 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_-12px_rgba(0,0,0,0.12)] transition-all duration-300 relative overflow-hidden"
     >
-      <div className="flex justify-between items-start mb-4 relative z-10">
+      <div className="flex justify-between items-start mb-3 relative z-10">
         <div className="flex flex-col">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center mb-3 shadow-inner">
-            <LucideIcon size={20} className="text-[#144f36]" strokeWidth={2.5} />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center mb-2 shadow-inner">
+            <LucideIcon size={18} className="text-[#144f36]" strokeWidth={2.5} />
           </div>
-          <span className="text-[13px] font-bold text-slate-400 uppercase tracking-wider">{card.title}</span>
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{String(card?.title || 'Stat')}</span>
         </div>
-        <h3 className="text-3xl font-black text-slate-800 tracking-tight mt-1">
-          <AnimatedCounter value={card.value} />
+        <h3 className="text-2xl font-black text-slate-800 tracking-tight mt-1">
+          <AnimatedCounter value={card?.value || 0} />
         </h3>
       </div>
 
-      <div className="flex items-end justify-between mt-2 relative z-10">
-        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-md">
+      <div className="flex items-end justify-between mt-1 relative z-10">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-md">
           <span className="text-[#22c55e] flex items-center">
-            <Icons.TrendingUp size={12} strokeWidth={3} className="mr-1" />
-            {card.trend}
+            <Icons.TrendingUp size={10} strokeWidth={3} className="mr-1" />
+            {String(card?.trend || '+0%')}
           </span>
           vs last month
         </div>
         
         {/* Mini Graph */}
-        <div className="w-14 h-8 opacity-80">
+        <div className="w-12 h-6 opacity-80">
           <svg viewBox="0 0 50 30" preserveAspectRatio="none" className="w-full h-full drop-shadow-[0_2px_4px_rgba(34,197,94,0.3)]">
             <path d={path} fill="none" stroke="url(#greenGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
             <defs>

@@ -173,7 +173,7 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-200 rounded">
+          <div className="overflow-auto border border-slate-200 rounded">
             <table className="w-full text-left text-sm text-slate-700">
               <thead className="bg-[#144f36] text-white">
                 <tr>

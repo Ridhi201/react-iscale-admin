@@ -239,7 +239,7 @@ export default function CourseFeatures() {
           <div className="bg-white dark:bg-[#13111c] rounded-lg border border-slate-200 dark:border-gray-700 p-4">
             <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-4">Features List</h3>
 
-            <div className="overflow-x-auto border border-slate-200 dark:border-[#1f1b2e] rounded-lg">
+            <div className="overflow-auto border border-slate-200 dark:border-[#1f1b2e] rounded-lg">
               <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
                 <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 sticky top-0 z-10">
                   <tr>

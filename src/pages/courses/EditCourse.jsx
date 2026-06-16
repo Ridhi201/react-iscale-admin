@@ -44,6 +44,7 @@ export default function EditCourse() {
   });
 
   const [bannerFile, setBannerFile] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
 
   // Generic change handler for text/number inputs
   const handleChange = (e) => {
@@ -164,6 +165,7 @@ export default function EditCourse() {
         payload.append(key, val);
       });
       if (bannerFile) payload.append('m_course_banner', bannerFile);
+      if (pdfFile) payload.append('m_course_pdf', pdfFile);
       const response = await axios.put(`${BASE_URL}/myadmin/course/update-course/${id}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -333,7 +335,7 @@ export default function EditCourse() {
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course PDF</label>
-              <button className="bg-[#144f36] text-white px-4 py-2 rounded text-sm w-full flex items-center justify-center gap-2 hover:bg-[#0f3d2a]">📷 Course PDF</button>
+              <input type="file" accept=".pdf" onChange={(e) => setPdfFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Instructor</label>

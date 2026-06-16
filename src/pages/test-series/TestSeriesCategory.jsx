@@ -11,6 +11,7 @@ export default function TestSeriesCategory() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetchCategories()
@@ -56,11 +57,49 @@ export default function TestSeriesCategory() {
     }
   }
 
-  const TOTAL_ENTRIES = categories.length
+  const filteredCategories = categories.filter(cat => {
+    return (cat.test_categoryName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (cat.test_category_description || '').toLowerCase().includes(searchTerm.toLowerCase())
+  })
+
+  const TOTAL_ENTRIES = filteredCategories.length
   const TOTAL_PAGES = Math.ceil(TOTAL_ENTRIES / entriesPerPage)
   const startIndex = (currentPage - 1) * entriesPerPage
   const endIndex = Math.min(startIndex + entriesPerPage, TOTAL_ENTRIES)
-  const currentData = categories.slice(startIndex, endIndex)
+  const currentData = filteredCategories.slice(startIndex, endIndex)
+
+  const handleExport = () => {
+    if (!filteredCategories || filteredCategories.length === 0) {
+      alert("No data to export");
+      return;
+    }
+    
+    const headers = ['S.No.', 'Category Name', 'Description', 'Status'];
+    const csvRows = [headers.join(',')];
+    
+    filteredCategories.forEach((row, index) => {
+      const values = [
+        index + 1,
+        `"${row.test_categoryName || ''}"`,
+        `"${row.test_category_description || ''}"`,
+        `"${row.test_category_status === 1 ? 'Active' : 'In-Active'}"`
+      ];
+      csvRows.push(values.join(','));
+    });
+    
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "test_categories.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  const handlePrint = () => {
+    window.print();
+  }
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
@@ -91,9 +130,10 @@ export default function TestSeriesCategory() {
 
   return (
     <div className="h-full animate-fade-in-up">
-      <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 p-4 mb-5 flex justify-between items-center">
-        <h2 className="text-indigo-900 font-bold tracking-tight text-xl">Test Series Category List</h2>
-        <button onClick={() => navigate('/test-series/category/add')} className="px-4 py-2 bg-[#144f36] text-white text-sm font-medium rounded-md hover:bg-[#0f3d2a] transition-colors flex items-center gap-2">
+      {/* Title Card */}
+      <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group mb-5">
+        <h2 className="text-white font-bold tracking-tight text-xl relative z-10">Test Series Category List</h2>
+        <button onClick={() => navigate('/test-series/category/add')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2">
           <span>+ Add New</span>
         </button>
       </div>
@@ -115,7 +155,11 @@ export default function TestSeriesCategory() {
             <span className="text-sm text-slate-800 mr-2">Entries</span>
             <div className="flex gap-0 border border-slate-300 rounded overflow-hidden flex-wrap">
                {['Copy', 'Excel', 'PDF', 'Print'].map(label => (
-                <button key={label} className="px-3 py-1.5 bg-white hover:bg-slate-50 border-r border-slate-300 last:border-r-0 text-xs font-medium text-slate-600">
+                <button 
+                  key={label} 
+                  onClick={label === 'Print' ? handlePrint : handleExport}
+                  className="px-3 py-1.5 bg-white hover:bg-slate-50 border-r border-slate-300 last:border-r-0 text-xs font-medium text-slate-600"
+                >
                   {label}
                 </button>
               ))}
@@ -125,12 +169,17 @@ export default function TestSeriesCategory() {
             <input 
               type="text" 
               placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setCurrentPage(1)
+              }}
               className="border border-slate-300 bg-white text-slate-700 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] min-w-[200px]"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto border border-slate-200 rounded-lg">
+        <div className="overflow-auto border border-slate-200 rounded-lg">
           <table className="w-full text-left text-sm text-slate-800">
             <thead className="bg-[#144f36] text-white border-b border-slate-200">
               <tr>

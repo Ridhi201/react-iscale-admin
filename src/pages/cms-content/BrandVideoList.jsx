@@ -179,7 +179,7 @@ export default function BrandVideoList() {
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-200 rounded-lg flex-1">
+          <div className="overflow-auto border border-slate-200 rounded-lg flex-1">
             <table className="w-full text-left text-sm text-slate-800">
               <thead className="bg-slate-50 text-slate-700 border-b border-slate-200">
                 <tr>

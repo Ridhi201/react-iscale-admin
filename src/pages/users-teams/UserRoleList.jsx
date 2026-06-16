@@ -75,7 +75,7 @@ export default function UserRoleList() {
     try {
       const id = row._id || row.id;
       const token = localStorage.getItem('token')
-      const newStatus = currentIsActive ? 'inactive' : 'active'
+      const newStatus = currentIsActive ? 0 : 1
       
       const formPayload = new FormData()
       formPayload.append('kh_status', newStatus)
@@ -88,12 +88,12 @@ export default function UserRoleList() {
       const role = getField(row, ['kh_role', 'm_role', 'role', 'permission'], 1);
       
       formPayload.append('kh_admin_name', adminName)
-      formPayload.append('kh_admin_phone', String(phone))
+      formPayload.append('kh_admin_phone', Number(phone))
       formPayload.append('kh_admin_email', email)
       formPayload.append('kh_role', role)
       
       formPayload.append('admin_name', adminName) // Fallbacks
-      formPayload.append('phone', String(phone)) 
+      formPayload.append('phone', Number(phone)) 
 
       const res = await axios.put(`${BASE_URL}/myadmin/auth/update/${id}`, formPayload, {
         headers: { Authorization: `Bearer ${token}` }
@@ -226,7 +226,7 @@ export default function UserRoleList() {
                       <td colSpan="9" className="text-center py-8">No valid entries for this page</td>
                     </tr>
                   ) : (
-                    currentEntries.map((row, index) => {
+                    currentEntries.map((row, index) => {3
                       if (!row || typeof row !== 'object') return null;
                       
                       const id = row._id || row.id || `fallback-${index}`;
@@ -237,7 +237,7 @@ export default function UserRoleList() {
                       const phone = getField(row, ['kh_admin_phone', 'm_contact_no', 'contact_no', 'phone', 'contact', 'mobile'], '-');
                       const role = getField(row, ['kh_role', 'm_role', 'role', 'permission'], 'Permission');
                       const addedOn = getField(row, ['kh_added_on', 'added_on', 'createdAt', 'addedOn'], '-');
-                      const statusStr = row.kh_status || row.status || 'inactive';
+                      const statusStr = row.kh_status || row.status || 0;
                       
                       const isActive = String(statusStr).toLowerCase() === 'active' || String(statusStr).toLowerCase() === 'true' || String(statusStr) === '1';
 

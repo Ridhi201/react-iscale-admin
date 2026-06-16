@@ -41,17 +41,8 @@ export default function Navbar() {
         <Icons.Menu size={22} strokeWidth={2} />
       </button>
 
-      {/* Center Search Bar */}
-      <div className="flex-1 flex justify-center">
-        <div className="hidden md:flex items-center bg-slate-50 dark:bg-[#13111c] rounded-full border border-slate-200 dark:border-white/5 px-4 py-2 w-full max-w-[500px] focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 transition-all duration-300">
-          <Icons.Search size={18} className="text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Search for courses, students, webinars..." 
-            className="bg-transparent border-none outline-none text-sm ml-3 w-full text-slate-700 dark:text-slate-200 placeholder-slate-400"
-          />
-        </div>
-      </div>
+      {/* Spacer to push icons to the right */}
+      <div className="flex-1"></div>
 
       {/* Action Icons */}
       <div className="flex items-center gap-1 md:gap-3 ml-4">

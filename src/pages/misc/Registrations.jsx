@@ -16,13 +16,33 @@ export default function Registrations() {
   const [selectedReg, setSelectedReg] = useState(null)
   const [loadingModal, setLoadingModal] = useState(false)
 
+  const [searchInput, setSearchInput] = useState('')
+  const [fromDateInput, setFromDateInput] = useState('')
+  const [toDateInput, setToDateInput] = useState('')
+  const [courseInput, setCourseInput] = useState('')
+  const [sourceInput, setSourceInput] = useState('')
+  const [statusInput, setStatusInput] = useState('')
+  const [fetchTrigger, setFetchTrigger] = useState(0)
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
         const token = localStorage.getItem('token')
+        
+        const queryParams = new URLSearchParams({
+          page: currentPage,
+          limit: entriesPerPage,
+          ...(fromDateInput && { fromDate: fromDateInput }),
+          ...(toDateInput && { toDate: toDateInput }),
+          ...(courseInput && courseInput !== 'Select Value' && { course: courseInput }),
+          ...(sourceInput && sourceInput !== 'Select Value' && { source: sourceInput }),
+          ...(statusInput && statusInput !== 'Select Value' && { status: statusInput }),
+          ...(searchInput && { search: searchInput }),
+        }).toString();
+
         const response = await axios.get(
-          `${BASE_URL}/myadmin/registrations/course-registrations?page=${currentPage}&limit=${entriesPerPage}`,
+          `${BASE_URL}/myadmin/registrations/course-registrations?${queryParams}`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }
@@ -39,7 +59,7 @@ export default function Registrations() {
       }
     }
     fetchData()
-  }, [currentPage, entriesPerPage])
+  }, [currentPage, entriesPerPage, fetchTrigger])
 
   const handleView = async (id) => {
     setIsModalOpen(true)
@@ -89,14 +109,57 @@ export default function Registrations() {
 
   
   const handleSearchClick = () => {
-    // Implement search logic if needed
     setCurrentPage(1)
+    setFetchTrigger(prev => prev + 1)
   }
 
   
   const handleReset = () => {
-    // Implement reset logic if needed
+    setSearchInput('')
+    setFromDateInput('')
+    setToDateInput('')
+    setCourseInput('')
+    setSourceInput('')
+    setStatusInput('')
     setCurrentPage(1)
+    setFetchTrigger(prev => prev + 1)
+  }
+
+  const handleExport = () => {
+    if (!data || data.length === 0) {
+      alert("No data to export");
+      return;
+    }
+    
+    const headers = ['S.No.', 'Student', 'Phone Number', 'Email', 'Course', 'Regn. Date', 'Amount', 'Payable', 'Discount', 'Coupon', 'App Duration', 'Web Duration'];
+    const csvRows = [headers.join(',')];
+    
+    data.forEach((row, index) => {
+      const values = [
+        startIndex + index + 1,
+        `"${row.student_name || ''}"`,
+        `"${row.student_phone || ''}"`,
+        `"${row.student_email || ''}"`,
+        `"${row.course_name || ''}"`,
+        `"${new Date(row.registration_date).toLocaleDateString()}"`,
+        row.course_amount || 0,
+        row.payable_amount || 0,
+        row.discount_amount || 0,
+        row.offer_amount || 'N/A',
+        `${row.days_left || 0} Days`,
+        `${row.days_left || 0} Days`
+      ];
+      csvRows.push(values.join(','));
+    });
+    
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "purchased_courses.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   const handleEntriesChange = (e) => {
@@ -117,50 +180,50 @@ export default function Registrations() {
           {/* From Date */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">From Date</label>
-            <input type="date" className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
+            <input type="date" value={fromDateInput} onChange={(e) => setFromDateInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
           </div>
           {/* To Date */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">To Date</label>
-            <input type="date" className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
+            <input type="date" value={toDateInput} onChange={(e) => setToDateInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
           </div>
           {/* Course */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Course</label>
-            <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
-              <option>Select Value</option>
+            <select value={courseInput} onChange={(e) => setCourseInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+              <option value="">Select Value</option>
+              <option value="data_science">Data Science Course</option>
+              <option value="master_data_analytics">Master of Data Analytics</option>
             </select>
           </div>
           {/* Registration From */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Registration From</label>
-            <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
-              <option>Select Value</option>
-              <option>App</option>
-              <option>Web</option>
+            <select value={sourceInput} onChange={(e) => setSourceInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+              <option value="">Select Value</option>
+              <option value="App">App</option>
+              <option value="Web">Web</option>
             </select>
           </div>
           {/* Status */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Status</label>
-            <select className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
-              <option>Select Value</option>
-              <option>Active</option>
-              <option>Inactive</option>
+            <select value={statusInput} onChange={(e) => setStatusInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+              <option value="">Select Value</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
             </select>
           </div>
           {/* Search */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Search</label>
-            <input type="text" placeholder="Search..." className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" />
+            <input type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search..." className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" />
           </div>
           {/* Buttons */}
           <div className="flex gap-2 w-full">
-
             <button onClick={handleSearchClick} className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Search / Filter</button>
             <button onClick={handleReset} className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Reset</button>
-            <button className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Export</button>
-
+            <button onClick={handleExport} className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Export</button>
           </div>
         </div>
       </div>

@@ -1,7 +1,20 @@
 import { motion } from 'framer-motion'
 import * as Icons from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
-export default function HeroBanner() {
+export default function HeroBanner({ cardsData = [] }) {
+  const navigate = useNavigate();
+
+  const handleCardClick = (card) => {
+    if (!card?.key) return;
+    if (['totalRegistration', 'totalNotesSale', 'totalPackageSale', 'totalCourseSale', 'totalEarnings'].includes(card.key)) {
+      navigate('/registrations');
+    } else if (card.key === 'totalCourses') {
+      navigate('/courses/all');
+    } else if (card.key === 'totalQuizs') {
+      navigate('/quiz/list/all');
+    }
+  };
   return (
     <motion.div 
       initial={{ opacity: 0, y: -10 }}
@@ -36,47 +49,25 @@ export default function HeroBanner() {
       
       {/* Right side floating mini cards */}
       <div className="relative z-10 flex flex-col sm:flex-row gap-4 w-full xl:w-auto xl:-mr-4">
-        {/* Card 1 */}
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="flex-1 xl:w-48 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)]"
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-              <Icons.Banknote size={14} className="text-white" />
-            </div>
-            <span className="text-white/80 text-[11px] font-bold uppercase tracking-wider">Today's Revenue</span>
-          </div>
-          <h3 className="text-white text-2xl font-black tracking-tight">$1,240</h3>
-        </motion.div>
-
-        {/* Card 2 */}
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="flex-1 xl:w-48 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] xl:-mt-6 xl:mb-6"
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-              <Icons.Users size={14} className="text-white" />
-            </div>
-            <span className="text-white/80 text-[11px] font-bold uppercase tracking-wider">Today's Reg.</span>
-          </div>
-          <h3 className="text-white text-2xl font-black tracking-tight">145</h3>
-        </motion.div>
-
-        {/* Card 3 */}
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="flex-1 xl:w-48 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)]"
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-              <Icons.Video size={14} className="text-white" />
-            </div>
-            <span className="text-white/80 text-[11px] font-bold uppercase tracking-wider">Active Live</span>
-          </div>
-          <h3 className="text-white text-2xl font-black tracking-tight">12</h3>
-        </motion.div>
+        {cardsData.map((card, i) => {
+          const Icon = Icons[card?.icon] || Icons.Activity;
+          return (
+            <motion.div 
+              key={card?.id || i}
+              onClick={() => handleCardClick(card)}
+              whileHover={{ y: -5 }}
+              className={`cursor-pointer flex-1 xl:w-48 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] ${i === 1 ? 'xl:-mt-6 xl:mb-6' : ''}`}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <Icon size={14} className="text-white" />
+                </div>
+                <span className="text-white/80 text-[11px] font-bold uppercase tracking-wider">{String(card?.title || 'Stat')}</span>
+              </div>
+              <h3 className="text-white text-2xl font-black tracking-tight">{String(card?.value || '0')}</h3>
+            </motion.div>
+          );
+        })}
       </div>
     </motion.div>
   )

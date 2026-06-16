@@ -205,7 +205,7 @@ export default function HomePageReviews() {
           </button>
         </div>
         {showDebug && data.length > 0 && (
-          <pre className="bg-yellow-50 p-2 overflow-x-auto border border-yellow-200">
+          <pre className="bg-yellow-50 p-2 overflow-auto border border-yellow-200">
             {JSON.stringify(data[0], null, 2)}
           </pre>
         )}

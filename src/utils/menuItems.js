@@ -36,7 +36,7 @@ export const menuItems = [
       { id: 'wl-course', label: 'Course Wishlist', path: '/wishlist/course' },
       { id: 'wl-test', label: 'Test Series Wishlist', path: '/wishlist/test-series' },
       { id: 'wl-notes', label: 'Notes Wishlist', path: '/wishlist/notes' },
-      { id: 'wl-webinar', label: 'Webinar Wishlist', path: '/wishlist/webinar' },
+//       { id: 'wl-webinar', label: 'Webinar Wishlist', path: '/wishlist/webinar' },
     ],
   },
   {

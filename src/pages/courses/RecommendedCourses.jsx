@@ -186,7 +186,7 @@ const handleDelete = async (id) => {
               />
           </div>
 
-          <div className="overflow-x-auto border border-slate-200 dark:border-[#1f1b2e] flex-1">
+          <div className="overflow-auto border border-slate-200 dark:border-[#1f1b2e] flex-1">
             <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
               <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">
                 <tr>

@@ -9,14 +9,67 @@ import ActivityFeed from '../../components/ui/ActivityFeed'
 import QuickActions from '../../components/ui/QuickActions'
 import { topStats } from '../../utils/mockData'
 import { DashboardSkeleton } from '../../components/ui/Skeleton'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
+  const [apiData, setApiData] = useState({ cards: null, graph: null, topCourses: null })
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800)
-    return () => clearTimeout(timer)
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const headers = { Authorization: `Bearer ${token}` }
+        
+        const [cardsRes, graphRes, coursesRes, activitiesRes] = await Promise.allSettled([
+          axios.get(`${BASE_URL}/myadmin/dashboard/cards`, { headers }),
+          axios.get(`${BASE_URL}/myadmin/dashboard/graph`, { headers }),
+          axios.get(`${BASE_URL}/myadmin/dashboard/top-courses`, { headers }),
+          axios.get(`${BASE_URL}/myadmin/dashboard/activities`, { headers })
+        ])
+
+        setApiData({
+          cards: cardsRes.status === 'fulfilled' ? (cardsRes.value?.data?.data || cardsRes.value?.data || null) : null,
+          graph: graphRes.status === 'fulfilled' ? (graphRes.value?.data?.data || graphRes.value?.data || null) : null,
+          topCourses: coursesRes.status === 'fulfilled' ? (coursesRes.value?.data?.data || coursesRes.value?.data || null) : null,
+          activities: activitiesRes.status === 'fulfilled' ? (activitiesRes.value?.data?.data || activitiesRes.value?.data || null) : null
+        })
+      } catch (error) {
+        console.error("Error fetching dashboard data", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchData()
   }, [])
+
+  const getDisplayCards = () => {
+    let displayCards = topStats;
+    if (apiData.cards) {
+      if (Array.isArray(apiData.cards) && apiData.cards.length > 0) {
+        displayCards = apiData.cards.map((c, i) => {
+          const val = c.value ?? c.count ?? c.total ?? c.amount ?? c[Object.keys(c).find(k => typeof c[k] === 'number')] ?? 0;
+          return { ...topStats[i], ...c, title: topStats[i]?.title || c?.title, value: val };
+        });
+      } else if (typeof apiData.cards === 'object') {
+        displayCards = topStats.map(stat => {
+          const snakeKey = stat.key.replace(/([A-Z])/g, "_$1").toLowerCase();
+          const val = apiData.cards[stat.key] ?? apiData.cards[snakeKey] ?? apiData.cards[stat.title] ?? apiData.cards[stat.title.toLowerCase()] ?? stat.value;
+          return {
+            ...stat,
+            value: val
+          };
+        });
+      }
+    }
+    return displayCards;
+  };
+
+  const displayCards = getDisplayCards();
+  const bannerCards = displayCards.slice(4, 7);
+  const mainCards = displayCards.slice(0, 4);
 
   return (
     <div className="relative min-h-screen bg-[#f5f7fa] dark:bg-[#0b0914] p-4 md:p-6 overflow-hidden">
@@ -40,14 +93,14 @@ export default function Dashboard() {
               transition={{ duration: 0.4 }}
             >
               
-              <HeroBanner />
+              <HeroBanner cardsData={bannerCards} />
               
               <QuickActions />
 
-              {/* Top Stats Grid - 5 columns */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
-                {topStats.map((card, i) => (
-                  <StatCard key={card.id} card={card} index={i} />
+              {/* Top Stats Grid - 4 columns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {mainCards.map((card, i) => (
+                  <StatCard key={card?.id || i} card={card} index={i} />
                 ))}
               </div>
 
@@ -60,13 +113,13 @@ export default function Dashboard() {
                 
                 {/* Activity Feed */}
                 <div className="xl:col-span-1 h-[400px]">
-                  <ActivityFeed />
+                  <ActivityFeed apiData={apiData.activities} />
                 </div>
               </div>
 
               {/* Bottom Widgets Row */}
               <div className="mb-8 h-full">
-                <TopCourses />
+                <TopCourses apiData={apiData.topCourses} />
               </div>
 
             </motion.div>
