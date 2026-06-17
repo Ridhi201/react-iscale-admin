@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
-export default function LeadGeneratePreview() {
+export default function PublicLeadForm() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
@@ -26,14 +26,11 @@ export default function LeadGeneratePreview() {
 
   const fetchLead = async () => {
     try {
-      console.log("URL Slug =", slug)
-      const res = await axios.get(`${BASE_URL}/DataAnalytics/${slug}`)
-
+      const res = await axios.get(`${BASE_URL}/myadmin/lead-generate/form/${slug}`)
       if (res.data?.status && res.data.data) {
         setData(res.data.data)
       }
     } catch (err) {
-      console.error(err)
       alert('Failed to load lead details')
     } finally {
       setLoading(false)
@@ -51,28 +48,16 @@ export default function LeadGeneratePreview() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log("Current Data =", data)
-    console.log("Current ID =", data?._id)
-    console.log("Current Slug =", data?.m_lg_slug)
     
     try {
-      const payload = { 
-        data_name: form.fullName,
-        data_mobile: form.mobile,
-        data_email: form.email,
-        data_whatsapp: form.alternate,
-        data_college_name: form.college,
-        data_qualification: form.education,
-        data_passing_year: form.passing_year
-      };
+      const payload = { ...form };
       
-      const res = await axios.post(`${BASE_URL}/DataAnalytics/${slug}`, payload);
+      const res = await axios.post(`${BASE_URL}/myadmin/lead-generate/form/${slug}`, payload);
       
       if (res.data?.status || res.status === 200 || res.status === 201) {
         alert(res.data?.message || 'Form submitted successfully');
-        if (res.data?.redirect_url || data?.m_lg_redirect_link) {
-          window.open(res.data.redirect_url || data.m_lg_redirect_link, '_blank')
-        }
+        // Redirect to analytics directly as requested instead of the external redirect link
+        navigate('/analytics');
       } else {
         alert(res.data?.message || 'Failed to submit form');
       }
@@ -230,14 +215,6 @@ export default function LeadGeneratePreview() {
           </form>
 
         </div>
-        
-        {/* Return to Admin Button (for preview convenience) */}
-        <button 
-          onClick={() => navigate('/leads')} 
-          className="absolute top-4 left-4 bg-white/20 hover:bg-white/40 text-black px-4 py-1.5 rounded-full text-xs font-bold transition-colors"
-        >
-          ← Back to Admin
-        </button>
         
       </div>
     </div>

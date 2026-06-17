@@ -232,6 +232,7 @@ export default function AddJobUpdate() {
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
+{/* 
             <div>
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Experience (Max Years) <span className="text-red-500">*</span></label>
               <input 
@@ -243,6 +244,7 @@ export default function AddJobUpdate() {
                 className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
             </div>
+*/}
             <div>
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Location <span className="text-red-500">*</span></label>
               <input 

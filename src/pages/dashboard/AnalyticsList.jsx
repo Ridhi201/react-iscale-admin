@@ -1,5 +1,8 @@
 import IconButton from '../../components/common/IconButton'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import axios from 'axios'
+import { BASE_URL } from '../../config/api'
+import { useNavigate } from 'react-router-dom'
 import { Eye, Trash2, Search, Download, Copy, FileSpreadsheet, FileText, Printer } from 'lucide-react'
 
 const TOTAL_ENTRIES_MOCK = 53547
@@ -21,28 +24,54 @@ export default function AnalyticsList() {
     searchName: ''
   })
   
-  const templates = useMemo(() => [
-    { lead: 'Prompt Engineering Full Course | Beginner To Pro', name: 'Muhammad Zain', mobile: '3024856365', email: 'F25-Phar-300013@Rlku.Edu.Pk', gender: 'Other', date: '23-05-2026' },
-    { lead: 'Prompt Engineering Full Course | Beginner To Pro', name: 'Armaan Ahmed', mobile: '8448503528', email: 'Armaanahmed205@Gmail.com', gender: 'Other', date: '23-05-2026' },
-    { lead: 'Machine Learning Full Course | Beginner To Advance', name: 'Khushi Butani', mobile: '9313492111', email: 'Butanikhushi49@Gmail.Com', gender: 'Other', date: '23-05-2026' },
-    { lead: 'Prompt Engineering Full Course | Beginner To Pro', name: 'Yashi', mobile: '9205668860', email: 'Galaxyofsketchesyashi@Email.com', gender: 'Other', date: '23-05-2026' },
-    { lead: 'Prompt Engineering Full Course | Beginner To Pro', name: 'Prakriti', mobile: '7531900597', email: 'Ina.Praki@Gmail.Com', gender: 'Other', date: '23-05-2026' },
-    { lead: 'Data Analyst Course Form', name: 'Aman Singh', mobile: '9876543210', email: 'Amansingh@Gmail.Com', gender: 'Male', date: '21-11-2023' },
-    { lead: 'Data Analyst Course Form', name: 'Kratika', mobile: '7898033009', email: 'Jainkratika027@Gmail.Com', gender: 'Female', date: '21-11-2023' },
-    { lead: 'Data Analyst Course Form', name: 'Alok Kumar', mobile: '8577909760', email: 'Alokkushwahaknj@Gmail.Com', gender: 'Male', date: '21-11-2023' },
-    { lead: 'Data Analyst Course Form', name: 'Vishal Ashok Jagtap', mobile: '8805683349', email: 'Jagtapvishal262@Gmail.Com', gender: 'Male', date: '21-11-2023' },
-    { lead: 'Data Analyst Course Form', name: 'Akanksha', mobile: '9039195377', email: 'Ayushdew@Gmail.Com', gender: 'Female', date: '02-11-2023' },
-    { lead: '', name: 'Ashish', mobile: '9329091092', email: 'Ashish1.Contact@Gmail.Com', gender: 'Male', date: '02-11-2023' },
-    { lead: '', name: 'Test ABC', mobile: '9926173400', email: 'Sdewa@Yahoo.Com', gender: 'Female', date: '30-10-2023' },
-  ], [])
+  const [templates, setTemplates] = useState([])
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await axios.get(`${BASE_URL}/myadmin/data-analytics/all`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.data?.status && res.data.data) {
+          const formattedData = res.data.data.map(item => ({
+            _id: item._id,
+            lead: item.m_lg_title || 'Lead Data',
+            name: item.data_name || 'N/A',
+            mobile: item.data_mobile || 'N/A',
+            email: item.data_email || 'N/A',
+            gender: item.data_gender || 'N/A',
+            date: new Date(item.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-'),
+            originalDate: item.createdAt
+          }))
+          setTemplates(formattedData)
+        }
+      } catch (err) {
+        console.error("Failed to load analytics", err)
+      }
+    }
+    fetchData()
+  }, [])
 
   const filteredTemplates = useMemo(() => {
     return templates.filter(t => {
       let match = true
       if (appliedFilters.searchName && !t.name.toLowerCase().includes(appliedFilters.searchName.toLowerCase())) match = false
       if (appliedFilters.leadGenerate !== '--Select Lead Generate--' && t.lead !== appliedFilters.leadGenerate) match = false
-      if (appliedFilters.fromDate && t.date !== appliedFilters.fromDate) match = false
-      if (appliedFilters.toDate && t.date !== appliedFilters.toDate) match = false
+      
+      if (appliedFilters.fromDate) {
+        const fromTime = new Date(`${appliedFilters.fromDate}T00:00:00`).getTime();
+        const itemTime = new Date(t.originalDate).getTime();
+        if (itemTime < fromTime) match = false;
+      }
+      
+      if (appliedFilters.toDate) {
+        const toTime = new Date(`${appliedFilters.toDate}T23:59:59`).getTime();
+        const itemTime = new Date(t.originalDate).getTime();
+        if (itemTime > toTime) match = false;
+      }
+
       return match
     })
   }, [templates, appliedFilters])
@@ -62,6 +91,7 @@ export default function AnalyticsList() {
     return Array.from({ length: numItems }, (_, i) => {
       const template = filteredTemplates[i % filteredTemplates.length]
       return {
+        _id: template._id,
         id: startIndex + i + 1,
         sno: startIndex + i + 1,
         leadName: template.lead,
@@ -109,15 +139,15 @@ export default function AnalyticsList() {
   const handleExport = () => {
     const headers = ['S.No.', 'Lead Name', 'Full Name', 'Mobile', 'Email', 'Gender', 'CreatedAt']
     const csvRows = [headers.join(',')]
-    currentData.forEach(row => {
+    filteredTemplates.forEach((template, i) => {
       const values = [
-        row.sno,
-        `"${row.leadName}"`,
-        `"${row.fullName}"`,
-        `"${row.mobile}"`,
-        `"${row.email}"`,
-        row.gender,
-        row.createdAt
+        i + 1,
+        `"${template.lead}"`,
+        `"${template.name}"`,
+        `"${template.mobile}"`,
+        `"${template.email}"`,
+        template.gender,
+        template.date
       ]
       csvRows.push(values.join(','))
     })
@@ -133,6 +163,22 @@ export default function AnalyticsList() {
     document.body.removeChild(link)
   }
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this record?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.delete(`${BASE_URL}/myadmin/data-analytics/delete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data?.status || res.status === 200 || res.status === 204) {
+        setTemplates(prev => prev.filter(t => t._id !== id));
+      }
+    } catch (err) {
+      console.error("Failed to delete record", err);
+      alert("Failed to delete record");
+    }
+  };
+
   return (
     <div className="h-full animate-fade-in-up flex flex-col gap-4">
       {/* Top Header */}
@@ -147,26 +193,22 @@ export default function AnalyticsList() {
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">From Date</label>
             <div className="relative">
               <input 
-                type="text" 
-                placeholder="dd-mm-yyyy"
+                type="date" 
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="w-full border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] pr-10"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
-              <div className="absolute right-3 top-2.5 text-slate-600 dark:text-slate-400">📅</div>
             </div>
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">To Date</label>
             <div className="relative">
               <input 
-                type="text" 
-                placeholder="dd-mm-yyyy"
+                type="date" 
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="w-full border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] pr-10"
+                className="w-full border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
               />
-              <div className="absolute right-3 top-2.5 text-slate-600 dark:text-slate-400">📅</div>
             </div>
           </div>
           <div className="md:col-span-2">
@@ -275,10 +317,18 @@ export default function AnalyticsList() {
                     <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.createdAt}</td>
                     <td className="px-4 py-3 align-middle">
                       <div className="flex gap-2">
-                        <button className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors shadow-sm" title="View">
+                        <button 
+                          onClick={() => navigate(`/analytics/details/${row._id}`)}
+                          className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors shadow-sm" 
+                          title="View"
+                        >
                           <Eye size={14} />
                         </button>
-                        <button className="bg-red-600 text-white p-1.5 rounded hover:bg-red-700 transition-colors shadow-sm" title="Delete">
+                        <button 
+                          onClick={() => handleDelete(row._id)}
+                          className="bg-red-600 text-white p-1.5 rounded hover:bg-red-700 transition-colors shadow-sm" 
+                          title="Delete"
+                        >
                           <Trash2 size={14} />
                         </button>
                       </div>

@@ -18,8 +18,8 @@ export default function EditCourse() {
     m_course_title: '',
     m_course_category: '',
     m_course_type: '',
-    m_course_status: 'active',
-    m_course_status_web: 'active',
+    m_course_status: 1,
+    m_course_status_web: 1,
     m_course_popular: 0,
     m_course_recomended: 0,
     m_course_description: '',
@@ -107,10 +107,11 @@ export default function EditCourse() {
 
     const populateForm = (course, categoriesList) => {
       const normStatus = (val) => {
-        if (!val) return 'active';
-        const s = String(val).toLowerCase();
-        return s === 'inactive' || s === '0' ? 'inactive' : 'active';
-      };
+     if (val === 0 || val === "0" || val === "inactive") {
+     return "0";
+     }
+     return "1";
+     };
 
       let categoryId = course.category || course.m_course_category || '';
       if (categoryId && !categoriesList.find(c => c._id === categoryId)) {
@@ -162,7 +163,13 @@ export default function EditCourse() {
       const token = localStorage.getItem('token');
       const payload = new FormData();
       Object.entries(courseData).forEach(([key, val]) => {
-        payload.append(key, val);
+        if (key === "m_course_status") {
+          payload.append(key, Number(val));
+        } else if (key === "m_course_status_web") {
+          payload.append(key, Number(val));
+        } else {
+          payload.append(key, val);
+        }
       });
       if (bannerFile) payload.append('m_course_banner', bannerFile);
       if (pdfFile) payload.append('m_course_pdf', pdfFile);
@@ -278,15 +285,15 @@ export default function EditCourse() {
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Status (App)</label>
               <select id="m_course_status" value={courseData.m_course_status} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value= "1">Active</option>
+                <option value= "0">Inactive</option>
               </select>
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Status (Web)</label>
               <select id="m_course_status_web" value={courseData.m_course_status_web} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value= "1">Active</option>
+                <option value="0">Inactive</option>
               </select>
             </div>
             <div>

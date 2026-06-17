@@ -65,7 +65,7 @@ export default function LeadGenerateList() {
   const handleStatusChange = async (id) => {
     try {
       const token = localStorage.getItem('token')
-      const res = await axios.patch(`${BASE_URL}/myadmin/lead-generate/status/${id}`, {}, {
+      const res = await axios.put(`${BASE_URL}/myadmin/lead-generate/status/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
@@ -186,7 +186,7 @@ export default function LeadGenerateList() {
                       </td>
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
                         <button 
-                          onClick={() => navigate(`/leads/preview/${row._id}`)}
+                          onClick={() => window.open(`/leads/preview/${row.m_lg_slug}`, '_blank')}
                           className="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-block"
                         >
                           Go To Link

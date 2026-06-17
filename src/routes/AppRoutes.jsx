@@ -4,6 +4,8 @@ import MainLayout from '../layouts/MainLayout'
 import Dashboard from '../pages/dashboard/Dashboard'
 import Registrations from '../pages/misc/Registrations'
 import Analytics from '../pages/dashboard/Analytics'
+import AnalyticsList from '../pages/dashboard/AnalyticsList'
+import AnalyticsDetails from '../pages/dashboard/AnalyticsDetails'
 import Settings from '../pages/settings/Settings'
 import PlaceholderPage from '../pages/misc/PlaceholderPage'
 import Login from '../pages/auth/Login'
@@ -61,7 +63,7 @@ import AddBanner from '../pages/marketing/AddBanner'
 import LeadGenerateList from '../pages/marketing/LeadGenerateList'
 import AddLeadGenerate from '../pages/marketing/AddLeadGenerate'
 import LeadGeneratePreview from '../pages/marketing/LeadGeneratePreview'
-import AnalyticsList from '../pages/dashboard/AnalyticsList'
+import PublicLeadForm from '../pages/marketing/PublicLeadForm'
 import JobUpdatesList from '../pages/jobs-careers/JobUpdatesList'
 import AddJobUpdate from '../pages/jobs-careers/AddJobUpdate'
 import SuccessStoryList from '../pages/cms-content/SuccessStoryList'
@@ -128,6 +130,8 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/form/:slug" element={<PublicLeadForm />} />
+      <Route path="/leads/preview/:slug" element={<LeadGeneratePreview />} />
       <Route
         element={
           <ProtectedRoute>
@@ -205,8 +209,8 @@ export default function AppRoutes() {
         <Route path="/leads" element={<LeadGenerateList />} />
         <Route path="/leads/add" element={<AddLeadGenerate />} />
         <Route path="/leads/edit/:id" element={<AddLeadGenerate />} />
-        <Route path="/leads/preview/:id" element={<LeadGeneratePreview />} />
         <Route path="/analytics" element={<AnalyticsList />} />
+        <Route path="/analytics/details/:id" element={<AnalyticsDetails />} />
         <Route path="/job-updates" element={<JobUpdatesList />} />
         <Route path="/job-updates/add" element={<AddJobUpdate />} />
         <Route path="/job-updates/edit/:id" element={<AddJobUpdate />} />
