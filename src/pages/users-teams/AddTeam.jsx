@@ -51,7 +51,7 @@ export default function AddTeam() {
         })
       }
     } catch (err) {
-      alert('Failed to fetch team details')
+      await window.customAlert('Failed to fetch team details')
     } finally {
       setLoading(false)
     }
@@ -70,7 +70,7 @@ export default function AddTeam() {
   const handleSubmit = async () => {
     try {
       if (!formData.member_name || !formData.member_position) {
-        return alert('Please fill the required fields')
+        return await window.customAlert('Please fill the required fields')
       }
 
       const token = localStorage.getItem('token')
@@ -91,11 +91,11 @@ export default function AddTeam() {
       })
 
       if (res.data?.status) {
-        alert(res.data.message || 'Success')
+        await window.customAlert(res.data.message || 'Success')
         navigate('/teams/all')
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save team member')
+      await window.customAlert(err.response?.data?.message || 'Failed to save team member')
     }
   }
 

@@ -74,7 +74,7 @@ export default function TestSeriesRegistrations() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this test package enrollment?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this test package enrollment?')) return
     
     try {
       const token = localStorage.getItem('token')
@@ -83,14 +83,14 @@ export default function TestSeriesRegistrations() {
       })
 
       if (response.data.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchData(filters, currentPage)
       } else {
-        alert(response.data.message || 'Failed to delete')
+        await window.customAlert(response.data.message || 'Failed to delete')
       }
     } catch (err) {
       console.error('Error deleting:', err)
-      alert(err.response?.data?.message || 'Error deleting enrollment')
+      await window.customAlert(err.response?.data?.message || 'Error deleting enrollment')
     }
   }
 
@@ -104,11 +104,11 @@ export default function TestSeriesRegistrations() {
       if (response.data.status) {
         fetchData(filters, currentPage)
       } else {
-        alert(response.data.message || 'Failed to update status')
+        await window.customAlert(response.data.message || 'Failed to update status')
       }
     } catch (err) {
       console.error('Error changing status:', err)
-      alert(err.response?.data?.message || 'Error changing status')
+      await window.customAlert(err.response?.data?.message || 'Error changing status')
     }
   }
 
@@ -126,7 +126,7 @@ export default function TestSeriesRegistrations() {
       }
     } catch (err) {
       console.error('Error fetching single test package details:', err)
-      alert('Failed to load details')
+      await window.customAlert('Failed to load details')
       setIsModalOpen(false)
     } finally {
       setLoadingModal(false)

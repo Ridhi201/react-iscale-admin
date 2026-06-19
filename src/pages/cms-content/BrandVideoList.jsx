@@ -39,7 +39,7 @@ export default function BrandVideoList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this brand video?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this brand video?')) return
     try {
       const token = localStorage.getItem('token')
       let url = `${BASE_URL}/myadmin/brand-video/delete/${id}`
@@ -55,7 +55,7 @@ export default function BrandVideoList() {
       fetchVideos()
     } catch (error) {
       console.error('Delete failed:', error)
-      alert(error.response?.data?.message || 'Failed to delete')
+      await window.customAlert(error.response?.data?.message || 'Failed to delete')
     }
   }
 
@@ -81,9 +81,9 @@ export default function BrandVideoList() {
     } catch (error) {
       console.error('Status toggle failed:', error)
       if (error.response?.status === 404) {
-        alert("Status API Endpoint Not Found (404). Please ask your backend developer to verify the route for toggling status.")
+        await window.customAlert("Status API Endpoint Not Found (404). Please ask your backend developer to verify the route for toggling status.")
       } else {
-        alert(error.response?.data?.message || 'Failed to update status')
+        await window.customAlert(error.response?.data?.message || 'Failed to update status')
       }
     }
   }
@@ -189,7 +189,7 @@ export default function BrandVideoList() {
                 type="text" 
                 placeholder="Search videos..."
                 value={searchTerm}
-                onChange={(e) => {
+                onChange={async (e) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}

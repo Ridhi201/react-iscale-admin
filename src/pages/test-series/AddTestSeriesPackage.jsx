@@ -128,17 +128,17 @@ export default function AddTestSeriesPackage() {
       console.log('API RESPONSE:', response.data)
 
       if (response.data?.status) {
-        alert(response.data.message || (isEditing ? 'Updated successfully!' : 'Package added successfully!'))
+        await window.customAlert(response.data.message || (isEditing ? 'Updated successfully!' : 'Package added successfully!'))
         navigate('/test-series/packages')
       } else {
-        alert(response.data.message || 'Operation failed')
+        await window.customAlert(response.data.message || 'Operation failed')
       }
     } catch (error) {
       console.error('Error saving package:', error)
       if (error.response) {
         console.log('BACKEND ERROR:', JSON.stringify(error.response.data, null, 2))
       }
-      alert(error.response?.data?.message || 'Save failed. Please try again.')
+      await window.customAlert(error.response?.data?.message || 'Save failed. Please try again.')
     } finally {
       setLoading(false)
     }

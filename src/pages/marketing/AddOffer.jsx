@@ -45,7 +45,7 @@ export default function AddOffer() {
         })
       }
     } catch (err) {
-      alert('Failed to fetch offer details')
+      await window.customAlert('Failed to fetch offer details')
     } finally {
       setLoading(false)
     }
@@ -64,7 +64,7 @@ export default function AddOffer() {
   const handleSubmit = async () => {
     try {
       if (!formData.m_offer_title || !formData.m_offer_des || !formData.m_offer_url) {
-        return alert('Please fill the required fields')
+        return await window.customAlert('Please fill the required fields')
       }
 
       const token = localStorage.getItem('token')
@@ -85,11 +85,11 @@ export default function AddOffer() {
       })
 
       if (res.data?.status) {
-        alert(res.data.message || 'Success')
+        await window.customAlert(res.data.message || 'Success')
         navigate('/offers')
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save offer')
+      await window.customAlert(err.response?.data?.message || 'Failed to save offer')
     }
   }
 

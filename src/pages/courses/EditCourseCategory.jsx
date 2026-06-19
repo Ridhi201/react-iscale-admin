@@ -113,10 +113,10 @@ export default function EditCourseCategory() {
     console.log("Update Response:", response.data)
 
     if (response.data?.status) {
-      alert(response.data.message || "Category updated successfully")
+      await window.customAlert(response.data.message || "Category updated successfully")
       navigate('/courses/categories')
     } else {
-      alert("Update failed")
+      await window.customAlert("Update failed")
     }
 
   } catch (error) {
@@ -124,9 +124,9 @@ export default function EditCourseCategory() {
 
     if (error.response) {
       console.log("Backend Response:", error.response.data)
-      alert(error.response.data?.message || "Update failed")
+      await window.customAlert(error.response.data?.message || "Update failed")
     } else {
-      alert("Network error")
+      await window.customAlert("Network error")
     }
   } finally {
     setLoading(false)

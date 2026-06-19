@@ -65,7 +65,7 @@ export default function CourseTools() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title) {
-      alert('Title is required')
+      await window.customAlert('Title is required')
       return
     }
 
@@ -98,15 +98,15 @@ export default function CourseTools() {
       }
 
       if (response.data?.status) {
-        alert(response.data.message || 'Saved successfully')
+        await window.customAlert(response.data.message || 'Saved successfully')
         resetForm()
         fetchTools()
       } else {
-        alert(response.data.message || 'Operation failed')
+        await window.customAlert(response.data.message || 'Operation failed')
       }
     } catch (error) {
       console.error('Error saving tool:', error)
-      alert(error.response?.data?.message || 'Something went wrong')
+      await window.customAlert(error.response?.data?.message || 'Something went wrong')
     }
   }
 
@@ -124,7 +124,7 @@ export default function CourseTools() {
   }
 
   const handleDelete = async (toolId) => {
-    if (!window.confirm('Are you sure you want to delete this tool?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this tool?')) return
 
     try {
       const token = localStorage.getItem('token')
@@ -132,14 +132,14 @@ export default function CourseTools() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchTools()
       } else {
-        alert(response.data.message || 'Delete failed')
+        await window.customAlert(response.data.message || 'Delete failed')
       }
     } catch (error) {
       console.error('Error deleting tool:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 

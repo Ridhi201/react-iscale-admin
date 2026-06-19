@@ -14,9 +14,9 @@ export default function TopCourses({ apiData }) {
 
   const courses = apiData && Array.isArray(apiData) && apiData.length > 0 
     ? apiData.map((c, i) => ({
-        name: c.name || c.course_name || c.title || defaultCourses[i]?.name || 'Unknown',
-        category: c.category || c.course_category || defaultCourses[i]?.category || 'Category',
-        sales: c.sales || c.total_sales || c.count || c.value || defaultCourses[i]?.sales || 0,
+        name: c.courseName || c.name || c.course_name || c.title || defaultCourses[i]?.name || 'Unknown',
+        category: c.courseCategory || c.category || c.course_category || defaultCourses[i]?.category || 'Category',
+        sales: c.totalSales || c.sales || c.total_sales || c.count || c.value || defaultCourses[i]?.sales || 0,
         progress: c.progress || c.completion || defaultCourses[i]?.progress || 0,
         color: c.color || defaultCourses[i]?.color || 'bg-blue-500',
         icon: c.icon || defaultCourses[i]?.icon || 'BookOpen'

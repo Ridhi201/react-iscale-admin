@@ -25,7 +25,7 @@ export default function EditAllied() {
 
   const handleSubmit = async () => {
     if (!formData.m_allied_title) {
-      alert('Title is required')
+      await window.customAlert('Title is required')
       return
     }
 
@@ -48,14 +48,14 @@ export default function EditAllied() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert('Updated successfully')
+        await window.customAlert('Updated successfully')
         navigate('/our-allied')
       } else {
-        alert(response.data?.message || 'Failed to update')
+        await window.customAlert(response.data?.message || 'Failed to update')
       }
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.message || 'Error updating allied college')
+      await window.customAlert(err.response?.data?.message || 'Error updating allied college')
     } finally {
       setLoading(false)
     }

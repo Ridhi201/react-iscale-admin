@@ -48,21 +48,21 @@ export default function SuccessStoryList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this success story?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this success story?')) return
     try {
       const token = localStorage.getItem('token')
       const response = await axios.delete(`${BASE_URL}/myadmin/success-story/delete-ss/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchData()
       } else {
-        alert(response.data.message || 'Delete failed')
+        await window.customAlert(response.data.message || 'Delete failed')
       }
     } catch (error) {
       console.error('Error deleting success story:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 

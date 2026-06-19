@@ -78,14 +78,14 @@ export default function AddCourseTestSeries() {
       }
 
       if (response.data?.status) {
-        alert(response.data.message || (isEditing ? 'Updated successfully!' : 'Package added successfully!'))
+        await window.customAlert(response.data.message || (isEditing ? 'Updated successfully!' : 'Package added successfully!'))
         navigate(`/courses/test-series/${id}`)
       } else {
-        alert(response.data.message || 'Operation failed')
+        await window.customAlert(response.data.message || 'Operation failed')
       }
     } catch (error) {
       console.error('Error saving package:', error)
-      alert(error.response?.data?.message || 'Save failed. Please try again.')
+      await window.customAlert(error.response?.data?.message || 'Save failed. Please try again.')
     } finally {
       setLoading(false)
     }

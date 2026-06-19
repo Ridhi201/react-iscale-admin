@@ -92,18 +92,18 @@ export default function TeamsList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this team member?")) return;
+    if (!await window.customConfirm("Are you sure you want to delete this team member?")) return;
     try {
       const token = localStorage.getItem('token');
       const res = await axios.delete(`${BASE_URL}/myadmin/team/delete/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data?.status) {
-        alert(res.data.message || "Team deleted successfully");
+        await window.customAlert(res.data.message || "Team deleted successfully");
         fetchTeams();
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete team member");
+      await window.customAlert(err.response?.data?.message || "Failed to delete team member");
     }
   }
 
@@ -172,7 +172,7 @@ export default function TeamsList() {
               <input 
                 type="text" 
                 value={search}
-                onChange={(e) => {
+                onChange={async (e) => {
                   setSearch(e.target.value)
                   setCurrentPage(1)
                 }}

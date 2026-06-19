@@ -92,11 +92,11 @@ export default function EditLiveClass() {
       if (response.data.status) {
         navigate('/live-classes')
       } else {
-        alert(response.data.message || 'Failed to update live class')
+        await window.customAlert(response.data.message || 'Failed to update live class')
       }
     } catch (error) {
       console.error('Error updating live class:', error)
-      alert(error.response?.data?.message || 'Error updating live class')
+      await window.customAlert(error.response?.data?.message || 'Error updating live class')
     } finally {
       setLoading(false)
     }

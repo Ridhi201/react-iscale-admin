@@ -30,7 +30,7 @@ export default function EditEventCategory() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.m_event_category_name) {
-      alert("Category Name is required");
+      await window.customAlert("Category Name is required");
       return;
     }
     setLoading(true);
@@ -77,14 +77,14 @@ export default function EditEventCategory() {
       }
       
       if (res.data?.status || res.data?.success || res.data?.msg) {
-        alert(res.data?.message || res.data?.msg || 'Updated successfully');
+        await window.customAlert(res.data?.message || res.data?.msg || 'Updated successfully');
         navigate('/events/category');
       } else {
-        alert(res.data?.message || res.data?.msg || 'Failed to update');
+        await window.customAlert(res.data?.message || res.data?.msg || 'Failed to update');
       }
     } catch (err) {
       console.error('Submit error:', err);
-      alert(err.response?.data?.message || err.response?.data?.msg || 'Failed to update');
+      await window.customAlert(err.response?.data?.message || err.response?.data?.msg || 'Failed to update');
     } finally {
       setLoading(false);
     }

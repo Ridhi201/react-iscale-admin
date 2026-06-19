@@ -66,7 +66,7 @@ export default function EditStudentTestimonial() {
     } catch (error) {
       console.error('Submit error:', error)
       const errorMsg = error.response?.data?.message || error.message
-      alert(`Failed to update testimonial.\n\nBackend Error: ${errorMsg}`)
+      await window.customAlert(`Failed to update testimonial.\n\nBackend Error: ${errorMsg}`)
     } finally {
       setLoading(false)
     }

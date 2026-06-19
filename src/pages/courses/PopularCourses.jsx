@@ -77,7 +77,7 @@ export default function PopularCourses() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this course?')) {
+    if (!await window.customConfirm('Are you sure you want to delete this course?')) {
       return
     }
 
@@ -96,19 +96,19 @@ export default function PopularCourses() {
       console.log('DELETE COURSE RESPONSE:', response.data)
 
       if (response.data?.status) {
-        alert(response.data.message || 'Course deleted successfully')
+        await window.customAlert(response.data.message || 'Course deleted successfully')
         fetchCourses()
       } else {
-        alert('Delete failed')
+        await window.customAlert('Delete failed')
       }
     } catch (error) {
       console.error('DELETE COURSE ERROR:', error)
 
       if (error.response) {
         console.log(error.response.data)
-        alert(error.response.data?.message || 'Delete failed')
+        await window.customAlert(error.response.data?.message || 'Delete failed')
       } else {
-        alert('Network Error')
+        await window.customAlert('Network Error')
       }
     }
   }
@@ -191,7 +191,7 @@ export default function PopularCourses() {
                   <button 
                     key={btn.label} 
                     title={btn.label} 
-                    onClick={() => {
+                    onClick={async () => {
                       if (btn.label === 'Print') {
                         window.print();
                       } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
@@ -206,7 +206,7 @@ export default function PopularCourses() {
                         });
                         if (btn.label === 'Copy') {
                           navigator.clipboard.writeText(csv);
-                          alert('Table data copied to clipboard!');
+                          await window.customAlert('Table data copied to clipboard!');
                         } else {
                           const blob = new Blob([csv], { type: 'text/csv' });
                           const url = window.URL.createObjectURL(blob);

@@ -36,7 +36,7 @@ export default function AddBanner() {
         })
       }
     } catch (err) {
-      alert('Failed to fetch banner details')
+      await window.customAlert('Failed to fetch banner details')
     } finally {
       setLoading(false)
     }
@@ -55,7 +55,7 @@ export default function AddBanner() {
   const handleSubmit = async () => {
     try {
       if (!formData.m_banner_title) {
-        return alert('Please enter banner title')
+        return await window.customAlert('Please enter banner title')
       }
 
       const token = localStorage.getItem('token')
@@ -77,11 +77,11 @@ export default function AddBanner() {
       })
 
       if (res.data?.status) {
-        alert(res.data.message || 'Success')
+        await window.customAlert(res.data.message || 'Success')
         navigate('/banners')
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save banner')
+      await window.customAlert(err.response?.data?.message || 'Failed to save banner')
     }
   }
 

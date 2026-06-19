@@ -51,7 +51,7 @@ export default function HomePageReviews() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this review?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this review?')) return
     try {
       const token = localStorage.getItem('token')
       await axios.delete(`${BASE_URL}/myadmin/user-reviews/delete/${id}`, {
@@ -63,7 +63,7 @@ export default function HomePageReviews() {
       }
     } catch (error) {
       console.error('Delete failed:', error)
-      alert(error.response?.data?.message || 'Failed to delete')
+      await window.customAlert(error.response?.data?.message || 'Failed to delete')
     }
   }
 
@@ -76,7 +76,7 @@ export default function HomePageReviews() {
       fetchReviews()
     } catch (error) {
       console.error('Status toggle failed:', error)
-      alert(error.response?.data?.message || 'Failed to update status')
+      await window.customAlert(error.response?.data?.message || 'Failed to update status')
     }
   }
 
@@ -168,7 +168,7 @@ export default function HomePageReviews() {
     } catch (error) {
       console.error('Submit error:', error)
       const errorMsg = error.response?.data?.message || error.message
-      alert(`Failed to save review.\n\nBackend Error: ${errorMsg}\n\nNote: If this is an unexpected field error, we may need to adjust the field names. Please look at the debug banner at the top of the page.`)
+      await window.customAlert(`Failed to save review.\n\nBackend Error: ${errorMsg}\n\nNote: If this is an unexpected field error, we may need to adjust the field names. Please look at the debug banner at the top of the page.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -297,7 +297,7 @@ export default function HomePageReviews() {
                           <td className="px-4 py-4 border-r border-slate-200 align-middle text-center">
                             {imageUrl ? (
                               <button 
-                                onClick={() => { setModalContent(imageUrl); setIsModalOpen(true); }}
+                                onClick={async () => { setModalContent(imageUrl); setIsModalOpen(true); }}
                                 className="bg-[#337ab7] text-white px-4 py-1.5 rounded text-xs font-medium hover:bg-[#286090] transition-colors shadow-sm"
                               >
                                 View Image

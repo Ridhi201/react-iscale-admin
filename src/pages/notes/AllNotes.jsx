@@ -38,7 +38,7 @@ export default function AllNotes() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this note?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this note?')) return
 
     try {
       const token = localStorage.getItem('token')
@@ -46,14 +46,14 @@ export default function AllNotes() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchNotes()
       } else {
-        alert(response.data.message || 'Failed to delete')
+        await window.customAlert(response.data.message || 'Failed to delete')
       }
     } catch (error) {
       console.error('Error deleting note:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -66,11 +66,11 @@ export default function AllNotes() {
       if (response.data?.status) {
         fetchNotes()
       } else {
-        alert(response.data.message || 'Failed to change status')
+        await window.customAlert(response.data.message || 'Failed to change status')
       }
     } catch (error) {
       console.error('Error changing status:', error)
-      alert(error.response?.data?.message || 'Status change failed')
+      await window.customAlert(error.response?.data?.message || 'Status change failed')
     }
   }
 

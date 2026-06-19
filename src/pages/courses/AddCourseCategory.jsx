@@ -42,7 +42,7 @@ export default function AddCourseCategory() {
 
     if (!token) {
 
-      alert("Please login again")
+      await window.customAlert("Please login again")
 
       navigate('/login')
 
@@ -122,13 +122,13 @@ export default function AddCourseCategory() {
 
     if (response.data.status) {
 
-      alert("Category Added Successfully")
+      await window.customAlert("Category Added Successfully")
 
       navigate('/courses/categories')
 
     } else {
 
-      alert(response.data.message)
+      await window.customAlert(response.data.message)
     }
 
   } catch (error) {
@@ -141,7 +141,7 @@ export default function AddCourseCategory() {
 
     if (error.response?.status === 401) {
 
-      alert("Session expired. Please login again.")
+      await window.customAlert("Session expired. Please login again.")
 
       localStorage.clear()
 

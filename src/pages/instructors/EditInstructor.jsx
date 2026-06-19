@@ -106,11 +106,11 @@ export default function EditInstructor() {
       if (response.data && response.data.status) {
         navigate('/instructors/all')
       } else {
-        alert(response.data.message || 'Failed to update instructor')
+        await window.customAlert(response.data.message || 'Failed to update instructor')
       }
     } catch (error) {
       console.error('Submit failed:', error)
-      alert('Failed to update instructor. Please check console.')
+      await window.customAlert('Failed to update instructor. Please check console.')
     } finally {
       setLoading(false)
     }

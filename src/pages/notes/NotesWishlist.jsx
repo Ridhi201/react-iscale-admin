@@ -79,7 +79,7 @@ export default function NotesWishlist() {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this wishlist?')) {
+    if (await window.customConfirm('Are you sure you want to delete this wishlist?')) {
       try {
         const token = localStorage.getItem('token')
         const response = await axios.delete(`${BASE_URL}/myadmin/user-wishlist/notes/admin/${id}`, {

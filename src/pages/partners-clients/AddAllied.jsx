@@ -19,7 +19,7 @@ export default function AddAllied() {
 
   const handleSubmit = async () => {
     if (!formData.m_allied_title) {
-      alert('Title is required')
+      await window.customAlert('Title is required')
       return
     }
 
@@ -41,14 +41,14 @@ export default function AddAllied() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert('Added successfully')
+        await window.customAlert('Added successfully')
         navigate('/our-allied')
       } else {
-        alert(response.data?.message || 'Failed to add')
+        await window.customAlert(response.data?.message || 'Failed to add')
       }
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.message || 'Error adding allied college')
+      await window.customAlert(err.response?.data?.message || 'Error adding allied college')
     } finally {
       setLoading(false)
     }

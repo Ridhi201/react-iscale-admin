@@ -63,7 +63,7 @@ export default function EditNews() {
 
   const handleSubmit = async () => {
     if (!formData.m_news_title) {
-      alert('Title is required')
+      await window.customAlert('Title is required')
       return
     }
 
@@ -88,7 +88,7 @@ export default function EditNews() {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.data?.status || response.data?.msg === 'Updated') {
-        alert(response.data.message || response.data.msg || 'News updated successfully')
+        await window.customAlert(response.data.message || response.data.msg || 'News updated successfully')
         navigate('/news-updates')
       } else {
         setBackendError(response.data?.message || response.data?.msg || 'Failed to update News')

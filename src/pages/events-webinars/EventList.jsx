@@ -35,7 +35,7 @@ export default function EventList() {
   }, [])
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return;
+    if (!await window.customConfirm('Are you sure you want to delete this event?')) return;
     try {
       const token = localStorage.getItem('token')
       const response = await axios.delete(`${BASE_URL}/myadmin/event/delete-event/${id}`, {
@@ -44,11 +44,11 @@ export default function EventList() {
       if (response.data?.status || response.data?.success || response.data?.msg) {
         fetchData()
       } else {
-        alert(response.data?.message || response.data?.msg || 'Delete failed')
+        await window.customAlert(response.data?.message || response.data?.msg || 'Delete failed')
       }
     } catch (error) {
       console.error('Error deleting event:', error)
-      alert(error.response?.data?.message || error.response?.data?.msg || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || error.response?.data?.msg || 'Delete failed')
     }
   }
 
@@ -121,7 +121,7 @@ export default function EventList() {
                   <button 
                     key={btn.label} 
                     title={btn.label} 
-                    onClick={() => {
+                    onClick={async () => {
                       if (btn.label === 'Print') {
                         window.print();
                       } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
@@ -136,7 +136,7 @@ export default function EventList() {
                         });
                         if (btn.label === 'Copy') {
                           navigator.clipboard.writeText(csv);
-                          alert('Table data copied to clipboard!');
+                          await window.customAlert('Table data copied to clipboard!');
                         } else {
                           const blob = new Blob([csv], { type: 'text/csv' });
                           const url = window.URL.createObjectURL(blob);

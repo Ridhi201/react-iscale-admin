@@ -68,7 +68,7 @@ export default function AddCourseTopic() {
 
     try {
       if (!isEditing && !formData.ml_subject) {
-        alert("Please select a Topic Subject before submitting")
+        await window.customAlert("Please select a Topic Subject before submitting")
         setLoading(false)
         return
       }
@@ -135,17 +135,17 @@ export default function AddCourseTopic() {
       console.log('TOPIC RESPONSE:', response.data)
 
       if (response.data?.status) {
-        alert(response.data.message || 'Saved successfully')
+        await window.customAlert(response.data.message || 'Saved successfully')
         navigate(-1)
       } else {
-        alert(response.data.message || 'Operation failed')
+        await window.customAlert(response.data.message || 'Operation failed')
       }
     } catch (error) {
       console.error('Error saving topic:', error)
       if (error.response) {
         console.log("BACKEND ERROR:", JSON.stringify(error.response.data, null, 2))
       }
-      alert(error.response?.data?.message || 'Save failed')
+      await window.customAlert(error.response?.data?.message || 'Save failed')
     } finally {
       setLoading(false)
     }

@@ -89,7 +89,7 @@ export default function AddJobUpdate() {
 
   const handleSubmit = async () => {
     if (!formData.job_title) {
-      alert('Job Title is required')
+      await window.customAlert('Job Title is required')
       return
     }
 
@@ -131,7 +131,7 @@ export default function AddJobUpdate() {
       })
 
       if (response.data?.status) {
-        alert(id ? 'Updated successfully' : 'Added successfully')
+        await window.customAlert(id ? 'Updated successfully' : 'Added successfully')
         navigate('/job-updates')
       } else {
         setBackendError(response.data?.message || 'Failed to save: ' + JSON.stringify(response.data))

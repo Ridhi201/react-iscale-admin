@@ -55,7 +55,7 @@ export default function ClientList() {
   }, [currentPage, entriesPerPage, search])
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this client?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this client?')) return
     try {
       const token = localStorage.getItem('token')
       const response = await axios.delete(`${BASE_URL}/myadmin/client/delete-client/${id}`, {
@@ -64,11 +64,11 @@ export default function ClientList() {
       if (response.data?.status) {
         fetchData()
       } else {
-        alert(response.data?.message || 'Delete failed')
+        await window.customAlert(response.data?.message || 'Delete failed')
       }
     } catch (err) {
       console.error(err)
-      alert('Error deleting')
+      await window.customAlert('Error deleting')
     }
   }
 

@@ -38,7 +38,7 @@ export default function LocationCountry() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.countryName) {
-      alert("Country Name is required")
+      await window.customAlert("Country Name is required")
       return
     }
 
@@ -72,16 +72,16 @@ export default function LocationCountry() {
       }
 
       if (res.data?.status || res.data?.success || res.status === 200 || res.status === 201) {
-        alert(`Country ${editingId ? 'updated' : 'added'} successfully!`)
+        await window.customAlert(`Country ${editingId ? 'updated' : 'added'} successfully!`)
         setFormData({ countryName: '' })
         setEditingId(null)
         fetchCountries()
       } else {
-        alert(res.data?.message || 'Failed to save country')
+        await window.customAlert(res.data?.message || 'Failed to save country')
       }
     } catch (error) {
       console.error("Save failed", error)
-      alert(error.response?.data?.message || 'Error saving country')
+      await window.customAlert(error.response?.data?.message || 'Error saving country')
     } finally {
       setLoading(false)
     }
@@ -93,7 +93,7 @@ export default function LocationCountry() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this country?")) return
+    if (!await window.customConfirm("Are you sure you want to delete this country?")) return
 
     try {
       const token = localStorage.getItem('token')
@@ -103,11 +103,11 @@ export default function LocationCountry() {
       if (res.data?.status || res.data?.success || res.status === 200) {
         fetchCountries()
       } else {
-        alert(res.data?.message || 'Failed to delete country')
+        await window.customAlert(res.data?.message || 'Failed to delete country')
       }
     } catch (error) {
       console.error("Delete failed", error)
-      alert(error.response?.data?.message || 'Error deleting country')
+      await window.customAlert(error.response?.data?.message || 'Error deleting country')
     }
   }
 
@@ -178,7 +178,7 @@ export default function LocationCountry() {
             </h2>
             {editingId && (
               <button 
-                onClick={() => { setEditingId(null); setFormData({ countryName: '' }) }}
+                onClick={async () => { setEditingId(null); setFormData({ countryName: '' }) }}
                 className="text-xs font-bold text-[#144f36] hover:underline"
               >
                 + Add New Instead

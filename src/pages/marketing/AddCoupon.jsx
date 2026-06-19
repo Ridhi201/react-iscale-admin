@@ -28,7 +28,7 @@ export default function AddCoupon() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.m_coupon_code || !formData.m_coupon_title) {
-      alert("Coupon Code and Title are required");
+      await window.customAlert("Coupon Code and Title are required");
       return;
     }
     setLoading(true);
@@ -55,18 +55,18 @@ export default function AddCoupon() {
       });
       
       if (res.data?.status || res.data?.success || res.data?.message) {
-        alert(res.data?.message || 'Added successfully');
+        await window.customAlert(res.data?.message || 'Added successfully');
         navigate('/master/coupons');
       } else {
-        alert(res.data?.message || 'Failed to add');
+        await window.customAlert(res.data?.message || 'Failed to add');
       }
     } catch (err) {
       console.error('Submit error:', err);
       // Extract specific mongoose validation error if present
       if (err.response?.data?.message && err.response.data.message.includes('validation failed')) {
-        alert(`Backend Error: ${err.response.data.message}\n\nThis usually means a required field name doesn't match the backend schema. Please take a screenshot of this error.`);
+        await window.customAlert(`Backend Error: ${err.response.data.message}\n\nThis usually means a required field name doesn't match the backend schema. Please take a screenshot of this error.`);
       } else {
-        alert(err.response?.data?.message || err.response?.data?.error || 'Failed to add coupon');
+        await window.customAlert(err.response?.data?.message || err.response?.data?.error || 'Failed to add coupon');
       }
     } finally {
       setLoading(false);

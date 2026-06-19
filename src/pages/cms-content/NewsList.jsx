@@ -37,7 +37,7 @@ export default function NewsList() {
   }, [])
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this News/Update?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this News/Update?')) return
     try {
       const token = localStorage.getItem('token')
       const response = await axios.delete(`${BASE_URL}/myadmin/news&updates/delete-news&updates/${id}`, {
@@ -45,14 +45,14 @@ export default function NewsList() {
         data: {}
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchData()
       } else {
-        alert(response.data.message || 'Delete failed')
+        await window.customAlert(response.data.message || 'Delete failed')
       }
     } catch (error) {
       console.error('Error deleting:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -65,11 +65,11 @@ export default function NewsList() {
       if (response.data?.status) {
         fetchData()
       } else {
-        alert(response.data?.message || 'Failed to update status')
+        await window.customAlert(response.data?.message || 'Failed to update status')
       }
     } catch (error) {
       console.error('Error updating status:', error)
-      alert('Error updating status')
+      await window.customAlert('Error updating status')
     }
   }
 
@@ -139,7 +139,7 @@ export default function NewsList() {
                 type="text" 
                 placeholder="Search..."
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                onChange={async (e) => { setSearch(e.target.value); setCurrentPage(1); }}
                 className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-64"
               />
             </div>

@@ -60,7 +60,7 @@ export default function LocationCity() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.cityName || !formData.stateId || !formData.countryId) {
-      alert("City Name, State, and Country are required")
+      await window.customAlert("City Name, State, and Country are required")
       return
     }
 
@@ -91,16 +91,16 @@ export default function LocationCity() {
       }
 
       if (res.data?.status || res.data?.success || res.status === 200 || res.status === 201) {
-        alert(`City ${editingId ? 'updated' : 'added'} successfully!`)
+        await window.customAlert(`City ${editingId ? 'updated' : 'added'} successfully!`)
         setFormData({ cityName: '', stateId: '', countryId: '' })
         setEditingId(null)
         fetchCities()
       } else {
-        alert(res.data?.message || 'Failed to save city')
+        await window.customAlert(res.data?.message || 'Failed to save city')
       }
     } catch (error) {
       console.error("Save failed", error)
-      alert(error.response?.data?.message || 'Error saving city')
+      await window.customAlert(error.response?.data?.message || 'Error saving city')
     } finally {
       setLoading(false)
     }
@@ -116,7 +116,7 @@ export default function LocationCity() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this city?")) return
+    if (!await window.customConfirm("Are you sure you want to delete this city?")) return
 
     try {
       const token = localStorage.getItem('token')
@@ -126,11 +126,11 @@ export default function LocationCity() {
       if (res.data?.status || res.data?.success || res.status === 200) {
         fetchCities()
       } else {
-        alert(res.data?.message || 'Failed to delete city')
+        await window.customAlert(res.data?.message || 'Failed to delete city')
       }
     } catch (error) {
       console.error("Delete failed", error)
-      alert(error.response?.data?.message || 'Error deleting city')
+      await window.customAlert(error.response?.data?.message || 'Error deleting city')
     }
   }
 
@@ -210,7 +210,7 @@ export default function LocationCity() {
             </h2>
             {editingId && (
               <button 
-                onClick={() => { setEditingId(null); setFormData({ cityName: '', stateId: '', countryId: '' }) }}
+                onClick={async () => { setEditingId(null); setFormData({ cityName: '', stateId: '', countryId: '' }) }}
                 className="text-xs font-bold text-[#144f36] hover:underline"
               >
                 + Add New Instead

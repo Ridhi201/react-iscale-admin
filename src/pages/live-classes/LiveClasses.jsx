@@ -118,7 +118,7 @@ export default function LiveClasses() {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this class?")) {
+    if (await window.customConfirm("Are you sure you want to delete this class?")) {
       try {
         const token = localStorage.getItem('token')
         const response = await axios.delete(`${BASE_URL}/myadmin/live-class/delete/${id}`, {

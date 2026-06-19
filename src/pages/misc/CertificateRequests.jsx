@@ -106,15 +106,15 @@ export default function CertificateRequests() {
       )
 
       if (response.data.status) {
-        alert(response.data.message || 'Status updated successfully')
+        await window.customAlert(response.data.message || 'Status updated successfully')
         setIsModalOpen(false)
         fetchData(filters, currentPage)
       } else {
-        alert(response.data.message || 'Failed to update status')
+        await window.customAlert(response.data.message || 'Failed to update status')
       }
     } catch (err) {
       console.error('Error updating status:', err)
-      alert(err.response?.data?.message || 'Error updating status')
+      await window.customAlert(err.response?.data?.message || 'Error updating status')
     } finally {
       setUpdateLoading(false)
     }
@@ -149,9 +149,9 @@ export default function CertificateRequests() {
     setCurrentPage(1)
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!data || data.length === 0) {
-      alert("No data to export");
+      await window.customAlert("No data to export");
       return;
     }
     

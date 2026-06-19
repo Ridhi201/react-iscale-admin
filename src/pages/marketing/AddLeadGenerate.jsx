@@ -57,7 +57,7 @@ export default function AddLeadGenerate() {
         })
       }
     } catch (err) {
-      alert('Failed to fetch lead generate details')
+      await window.customAlert('Failed to fetch lead generate details')
     } finally {
       setLoading(false)
     }
@@ -74,7 +74,7 @@ export default function AddLeadGenerate() {
   const handleSubmit = async () => {
     try {
       if (!formData.m_lg_title || !formData.m_lg_redirect_link) {
-        return alert('Please fill the required fields')
+        return await window.customAlert('Please fill the required fields')
       }
 
       const token = localStorage.getItem('token')
@@ -86,11 +86,11 @@ export default function AddLeadGenerate() {
       })
 
       if (res.data?.status) {
-        alert(res.data.message || 'Success')
+        await window.customAlert(res.data.message || 'Success')
         navigate('/leads')
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save lead generate form')
+      await window.customAlert(err.response?.data?.message || 'Failed to save lead generate form')
     }
   }
 

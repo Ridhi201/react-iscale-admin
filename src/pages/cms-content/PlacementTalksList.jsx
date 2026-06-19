@@ -61,7 +61,7 @@ export default function PlacementTalksList() {
                   <button 
                     key={btn.label} 
                     title={btn.label} 
-                    onClick={() => {
+                    onClick={async () => {
                       if (btn.label === 'Print') {
                         window.print();
                       } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
@@ -76,7 +76,7 @@ export default function PlacementTalksList() {
                         });
                         if (btn.label === 'Copy') {
                           navigator.clipboard.writeText(csv);
-                          alert('Table data copied to clipboard!');
+                          await window.customAlert('Table data copied to clipboard!');
                         } else {
                           const blob = new Blob([csv], { type: 'text/csv' });
                           const url = window.URL.createObjectURL(blob);

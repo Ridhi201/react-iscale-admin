@@ -104,7 +104,7 @@ const handleSaveFaq = async () => {
     console.log('FAQ RESPONSE:', response.data)
 
     if (response.data?.status) {
-      alert(response.data.message)
+      await window.customAlert(response.data.message)
 
       setTitle('')
       setDescription('')
@@ -121,7 +121,7 @@ const handleSaveFaq = async () => {
 }
 
 const handleDeleteFaq = async (faqId) => {
-  if (!window.confirm('Are you sure you want to delete this FAQ?')) {
+  if (!await window.customConfirm('Are you sure you want to delete this FAQ?')) {
     return
   }
 
@@ -140,7 +140,7 @@ const handleDeleteFaq = async (faqId) => {
     console.log('DELETE FAQ RESPONSE:', response.data)
 
     if (response.data?.status) {
-      alert(response.data.message)
+      await window.customAlert(response.data.message)
       fetchFaqs()
     }
   } catch (error) {
@@ -258,7 +258,7 @@ const handleDeleteFaq = async (faqId) => {
         <td className="px-4 py-3">
           <div className="flex flex-col gap-1">
         <button
-         onClick={() => {
+         onClick={async () => {
          setEditId(faq._id)
          setTitle(faq.title)
          setDescription(faq.description)

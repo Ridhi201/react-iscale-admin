@@ -55,7 +55,7 @@ export default function LocationState() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.stateName || !formData.countryId) {
-      alert("Both State Name and Country are required")
+      await window.customAlert("Both State Name and Country are required")
       return
     }
 
@@ -85,16 +85,16 @@ export default function LocationState() {
       }
 
       if (res.data?.status || res.data?.success || res.status === 200 || res.status === 201) {
-        alert(`State ${editingId ? 'updated' : 'added'} successfully!`)
+        await window.customAlert(`State ${editingId ? 'updated' : 'added'} successfully!`)
         setFormData({ stateName: '', countryId: '' })
         setEditingId(null)
         fetchStates()
       } else {
-        alert(res.data?.message || 'Failed to save state')
+        await window.customAlert(res.data?.message || 'Failed to save state')
       }
     } catch (error) {
       console.error("Save failed", error)
-      alert(error.response?.data?.message || 'Error saving state')
+      await window.customAlert(error.response?.data?.message || 'Error saving state')
     } finally {
       setLoading(false)
     }
@@ -109,7 +109,7 @@ export default function LocationState() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this state?")) return
+    if (!await window.customConfirm("Are you sure you want to delete this state?")) return
 
     try {
       const token = localStorage.getItem('token')
@@ -119,11 +119,11 @@ export default function LocationState() {
       if (res.data?.status || res.data?.success || res.status === 200) {
         fetchStates()
       } else {
-        alert(res.data?.message || 'Failed to delete state')
+        await window.customAlert(res.data?.message || 'Failed to delete state')
       }
     } catch (error) {
       console.error("Delete failed", error)
-      alert(error.response?.data?.message || 'Error deleting state')
+      await window.customAlert(error.response?.data?.message || 'Error deleting state')
     }
   }
 
@@ -196,7 +196,7 @@ export default function LocationState() {
             </h2>
             {editingId && (
               <button 
-                onClick={() => { setEditingId(null); setFormData({ stateName: '', countryId: '' }) }}
+                onClick={async () => { setEditingId(null); setFormData({ stateName: '', countryId: '' }) }}
                 className="text-xs font-bold text-[#144f36] hover:underline"
               >
                 + Add New Instead

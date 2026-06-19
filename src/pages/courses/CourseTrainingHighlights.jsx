@@ -121,25 +121,25 @@ export default function CourseTrainingHighlights() {
       console.log('API RESPONSE:', response.data)
 
       if (response.data?.status) {
-        alert(response.data.message || (editingId ? 'Updated successfully!' : 'Training Highlight added!'))
+        await window.customAlert(response.data.message || (editingId ? 'Updated successfully!' : 'Training Highlight added!'))
         resetForm()
         fetchHighlights()
       } else {
-        alert(response.data.message || 'Operation failed')
+        await window.customAlert(response.data.message || 'Operation failed')
       }
     } catch (error) {
       console.error('Error saving training highlight:', error)
       if (error.response) {
         console.log('BACKEND ERROR:', JSON.stringify(error.response.data, null, 2))
       }
-      alert(error.response?.data?.message || 'Save failed. Please try again.')
+      await window.customAlert(error.response?.data?.message || 'Save failed. Please try again.')
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleDelete = async (thId) => {
-    if (!window.confirm('Are you sure you want to delete this training highlight?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this training highlight?')) return
 
     try {
       const token = localStorage.getItem('token')
@@ -147,14 +147,14 @@ export default function CourseTrainingHighlights() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchHighlights()
       } else {
-        alert(response.data.message || 'Failed to delete')
+        await window.customAlert(response.data.message || 'Failed to delete')
       }
     } catch (error) {
       console.error('Error deleting training highlight:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 

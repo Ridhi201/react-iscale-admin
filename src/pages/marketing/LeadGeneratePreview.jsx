@@ -34,7 +34,7 @@ export default function LeadGeneratePreview() {
       }
     } catch (err) {
       console.error(err)
-      alert('Failed to load lead details')
+      await window.customAlert('Failed to load lead details')
     } finally {
       setLoading(false)
     }
@@ -69,15 +69,15 @@ export default function LeadGeneratePreview() {
       const res = await axios.post(`${BASE_URL}/DataAnalytics/${slug}`, payload);
       
       if (res.data?.status || res.status === 200 || res.status === 201) {
-        alert(res.data?.message || 'Form submitted successfully');
+        await window.customAlert(res.data?.message || 'Form submitted successfully');
         if (res.data?.redirect_url || data?.m_lg_redirect_link) {
           window.open(res.data.redirect_url || data.m_lg_redirect_link, '_blank')
         }
       } else {
-        alert(res.data?.message || 'Failed to submit form');
+        await window.customAlert(res.data?.message || 'Failed to submit form');
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'An error occurred while submitting the form');
+      await window.customAlert(err.response?.data?.message || 'An error occurred while submitting the form');
     }
   }
 
@@ -139,7 +139,7 @@ export default function LeadGeneratePreview() {
                 name="mobile"
                 required
                 value={form.mobile}
-                onChange={(e) => {
+                onChange={async (e) => {
                   handleChange(e);
                   if (form.sameAsMobile) {
                     setForm(prev => ({ ...prev, alternate: e.target.value }))

@@ -56,7 +56,7 @@ export default function UserRoleList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this user?')) return
     try {
       const token = localStorage.getItem('token')
       await axios.delete(`${BASE_URL}/myadmin/auth/delete/${id}`, {
@@ -68,7 +68,7 @@ export default function UserRoleList() {
       }
     } catch (error) {
       console.error('Delete failed:', error)
-      alert(error.response?.data?.message || 'Failed to delete')
+      await window.customAlert(error.response?.data?.message || 'Failed to delete')
     }
   }
 
@@ -101,7 +101,7 @@ export default function UserRoleList() {
       })
       
       console.log("TOGGLE SUCCESS", res.data)
-      alert(`Backend Success: ${res.data.message || 'Status Updated'}\nWait for refresh...`)
+      await window.customAlert(`Backend Success: ${res.data.message || 'Status Updated'}\nWait for refresh...`)
       
       fetchUsers()
     } catch (error) {
@@ -110,7 +110,7 @@ export default function UserRoleList() {
          console.log("TOGGLE BACKEND ERROR", error.response.data)
       }
       const msg = error.response?.data?.message || 'Failed to update status'
-      alert(`Toggle Error: ${msg}\nCheck F12 Console for details.`)
+      await window.customAlert(`Toggle Error: ${msg}\nCheck F12 Console for details.`)
     }
   }
 
@@ -214,7 +214,7 @@ export default function UserRoleList() {
                   type="text" 
                   placeholder="Search..."
                   value={searchTerm}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}

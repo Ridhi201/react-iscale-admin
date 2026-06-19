@@ -47,7 +47,7 @@ export default function AddBrandVideo() {
     } catch (error) {
       console.error('Submit error:', error)
       const errorMsg = error.response?.data?.message || error.message
-      alert(`Failed to add brand video.\n\nBackend Error: ${errorMsg}\n\nIf it says "validation failed" or "required field", please check the exact database field names needed and I will fix the code!`)
+      await window.customAlert(`Failed to add brand video.\n\nBackend Error: ${errorMsg}\n\nIf it says "validation failed" or "required field", please check the exact database field names needed and I will fix the code!`)
     } finally {
       setLoading(false)
     }

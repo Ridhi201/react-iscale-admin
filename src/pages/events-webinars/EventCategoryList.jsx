@@ -36,7 +36,7 @@ export default function EventCategoryList() {
   }, [])
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this category?')) return;
+    if (!await window.customConfirm('Are you sure you want to delete this category?')) return;
     try {
       const token = localStorage.getItem('token')
       const response = await axios.delete(`${BASE_URL}/myadmin/event-category/delete-event-category/${id}`, {
@@ -45,11 +45,11 @@ export default function EventCategoryList() {
       if (response.data?.status || response.data?.success || response.data?.msg) {
         fetchData()
       } else {
-        alert(response.data?.message || response.data?.msg || 'Delete failed')
+        await window.customAlert(response.data?.message || response.data?.msg || 'Delete failed')
       }
     } catch (error) {
       console.error('Error deleting category:', error)
-      alert(error.response?.data?.message || error.response?.data?.msg || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || error.response?.data?.msg || 'Delete failed')
     }
   }
 
@@ -122,7 +122,7 @@ export default function EventCategoryList() {
                   <button 
                     key={btn.label} 
                     title={btn.label} 
-                    onClick={() => {
+                    onClick={async () => {
                       if (btn.label === 'Print') {
                         window.print();
                       } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
@@ -137,7 +137,7 @@ export default function EventCategoryList() {
                         });
                         if (btn.label === 'Copy') {
                           navigator.clipboard.writeText(csv);
-                          alert('Table data copied to clipboard!');
+                          await window.customAlert('Table data copied to clipboard!');
                         } else {
                           const blob = new Blob([csv], { type: 'text/csv' });
                           const url = window.URL.createObjectURL(blob);
@@ -159,7 +159,7 @@ export default function EventCategoryList() {
                 type="text" 
                 placeholder="Search..."
                 value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                onChange={async (e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-64"
               />
             </div>

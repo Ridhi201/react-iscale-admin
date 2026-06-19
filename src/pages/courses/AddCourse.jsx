@@ -61,8 +61,8 @@ export default function AddCourse() {
   const handleSubmit = async () => {
     const titleVal = document.getElementById('course_title')?.value?.trim();
     const categoryVal = document.getElementById('course_category')?.value;
-    if (!titleVal) { alert('❌ Course Title is required!'); return; }
-    if (!categoryVal) { alert('❌ Please select a Course Category!'); return; }
+    if (!titleVal) { await window.customAlert('❌ Course Title is required!'); return; }
+    if (!categoryVal) { await window.customAlert('❌ Please select a Course Category!'); return; }
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -81,8 +81,8 @@ export default function AddCourse() {
         payload.append('m_course_instructor', selectedInstructor);
       }
       // Backend expects inconsistent formats
-      payload.append('m_course_status', statusApp.toLowerCase() === 'active' ? 'Active' : 'Inactive');
-      payload.append('m_course_status_web', statusWeb.toLowerCase() === 'active' ? '1' : '0');
+      payload.append('m_course_status', statusApp.toLowerCase() === '1' ? '1' : '0');
+      payload.append('m_course_status_web', statusWeb.toLowerCase() === '1' ? '1' : '0');
       
       payload.append('m_course_popular', document.getElementById('course_popular')?.checked ? '1' : '0');
       payload.append('m_course_recomended', document.getElementById('course_recommended')?.checked ? '1' : '0');
@@ -124,10 +124,10 @@ export default function AddCourse() {
         },
       });
       if (response.data?.status) {
-        alert(response.data.message || 'Course added successfully');
+        await window.customAlert(response.data.message || 'Course added successfully');
         navigate('/courses/all');
       } else {
-        alert(`Failed: ${response.data?.message || 'Unknown error'}`);
+        await window.customAlert(`Failed: ${response.data?.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('ADD COURSE ERROR:', error)
@@ -147,7 +147,7 @@ export default function AddCourse() {
         JSON.stringify(errData) ||
         error.message
 
-      alert(`❌ Error: ${msg}`)
+      await window.customAlert(`❌ Error: ${msg}`)
     } finally {
       setLoading(false);
     }
@@ -230,15 +230,15 @@ export default function AddCourse() {
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Status (App)</label>
               <select id="course_status_app" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
-                <option>Active</option>
-                <option>Inactive</option>
+                <option>1</option>
+                <option>0</option>
               </select>
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Status (Web)</label>
               <select id="course_status_web" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
-                <option>Active</option>
-                <option>Inactive</option>
+                <option>1</option>
+                <option>0</option>
               </select>
             </div>
             <div>

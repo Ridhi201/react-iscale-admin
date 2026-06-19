@@ -185,11 +185,11 @@ export default function BatchManagement() {
         resetForm()
         fetchBatches()
       } else {
-        alert('Failed to save batch')
+        await window.customAlert('Failed to save batch')
       }
     } catch (error) {
       console.error('Error saving batch:', error)
-      alert('Error saving batch')
+      await window.customAlert('Error saving batch')
     } finally {
       setSubmitting(false)
     }
@@ -229,7 +229,7 @@ export default function BatchManagement() {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this batch?')) {
+    if (await window.customConfirm('Are you sure you want to delete this batch?')) {
       try {
         const token = localStorage.getItem('token')
         const response = await axios.delete(`${BASE_URL}/myadmin/batch/delete/${id}`, {

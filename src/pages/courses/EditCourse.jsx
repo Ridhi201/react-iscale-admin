@@ -177,15 +177,15 @@ export default function EditCourse() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data?.status) {
-        alert(response.data.message || 'Course updated successfully');
+        await window.customAlert(response.data.message || 'Course updated successfully');
         navigate('/courses/all');
       } else {
-        alert('Failed to update course');
+        await window.customAlert('Failed to update course');
       }
     } catch (error) {
       console.error('UPDATE COURSE ERROR:', error);
       const msg = error.response?.data?.message || error.message || 'Unknown error';
-      alert(`❌ Error: ${msg}`);
+      await window.customAlert(`❌ Error: ${msg}`);
     } finally {
       setLoading(false);
     }

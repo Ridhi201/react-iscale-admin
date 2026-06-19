@@ -75,7 +75,7 @@ export default function Registrations() {
       }
     } catch (err) {
       console.error('Error fetching course purchase details:', err)
-      alert('Failed to load details')
+      await window.customAlert('Failed to load details')
       setIsModalOpen(false)
     } finally {
       setLoadingModal(false)
@@ -125,9 +125,9 @@ export default function Registrations() {
     setFetchTrigger(prev => prev + 1)
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!data || data.length === 0) {
-      alert("No data to export");
+      await window.customAlert("No data to export");
       return;
     }
     
@@ -256,7 +256,7 @@ export default function Registrations() {
                   <button 
                     key={btn.label} 
                     title={btn.label} 
-                    onClick={() => {
+                    onClick={async () => {
                       if (btn.label === 'Print') {
                         window.print();
                       } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
@@ -271,7 +271,7 @@ export default function Registrations() {
                         });
                         if (btn.label === 'Copy') {
                           navigator.clipboard.writeText(csv);
-                          alert('Table data copied to clipboard!');
+                          await window.customAlert('Table data copied to clipboard!');
                         } else {
                           const blob = new Blob([csv], { type: 'text/csv' });
                           const url = window.URL.createObjectURL(blob);

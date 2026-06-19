@@ -76,14 +76,14 @@ export default function AddNotesCategory() {
       }
 
       if (response.data?.status) {
-        alert(response.data.message || (isEditing ? 'Updated successfully!' : 'Added successfully!'))
+        await window.customAlert(response.data.message || (isEditing ? 'Updated successfully!' : 'Added successfully!'))
         navigate('/notes/category')
       } else {
-        alert(response.data.message || 'Operation failed')
+        await window.customAlert(response.data.message || 'Operation failed')
       }
     } catch (error) {
       console.error('Error saving notes category:', error)
-      alert(error.response?.data?.message || 'Save failed. Please try again.')
+      await window.customAlert(error.response?.data?.message || 'Save failed. Please try again.')
     } finally {
       setLoading(false)
     }

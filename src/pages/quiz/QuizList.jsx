@@ -40,7 +40,7 @@ export default function QuizList() {
   }
 
   const handleDelete = async (quizId) => {
-    if (!window.confirm('Are you sure you want to delete this quiz?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this quiz?')) return
 
     try {
       const token = localStorage.getItem('token')
@@ -48,14 +48,14 @@ export default function QuizList() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Quiz deleted successfully')
+        await window.customAlert(response.data.message || 'Quiz deleted successfully')
         fetchQuizzes()
       } else {
-        alert(response.data.message || 'Failed to delete')
+        await window.customAlert(response.data.message || 'Failed to delete')
       }
     } catch (error) {
       console.error('Error deleting quiz:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 

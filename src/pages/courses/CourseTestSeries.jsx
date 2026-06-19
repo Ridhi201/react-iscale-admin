@@ -40,7 +40,7 @@ export default function CourseTestSeries() {
   }
 
   const handleDelete = async (packageId) => {
-    if (!window.confirm('Are you sure you want to delete this package?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this package?')) return
 
     try {
       const token = localStorage.getItem('token')
@@ -48,14 +48,14 @@ export default function CourseTestSeries() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchPackages()
       } else {
-        alert(response.data.message || 'Failed to delete')
+        await window.customAlert(response.data.message || 'Failed to delete')
       }
     } catch (error) {
       console.error('Error deleting package:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 

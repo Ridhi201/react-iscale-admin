@@ -47,18 +47,18 @@ export default function LeadGenerateList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this lead?")) return;
+    if (!await window.customConfirm("Are you sure you want to delete this lead?")) return;
     try {
       const token = localStorage.getItem('token');
       const res = await axios.delete(`${BASE_URL}/myadmin/lead-generate/delete/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data?.status) {
-        alert(res.data.message || "Lead deleted successfully");
+        await window.customAlert(res.data.message || "Lead deleted successfully");
         fetchLeads();
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete lead");
+      await window.customAlert(err.response?.data?.message || "Failed to delete lead");
     }
   }
 
@@ -72,7 +72,7 @@ export default function LeadGenerateList() {
         fetchLeads()
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to change status")
+      await window.customAlert(err.response?.data?.message || "Failed to change status")
     }
   }
 
@@ -139,7 +139,7 @@ export default function LeadGenerateList() {
               <input 
                 type="text" 
                 value={search}
-                onChange={(e) => {
+                onChange={async (e) => {
                   setSearch(e.target.value)
                   setCurrentPage(1)
                 }}
@@ -175,7 +175,7 @@ export default function LeadGenerateList() {
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle font-medium">{row.m_lg_title}</td>
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
                         <button 
-                          onClick={() => alert(row.m_lg_desc.replace(/<[^>]+>/g, ''))}
+                          onClick={async () => await window.customAlert(row.m_lg_desc.replace(/<[^>]+>/g, ''))}
                           className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-gray-800 px-4 py-1.5 rounded-full text-xs hover:bg-[#144f36] hover:text-white hover:border-[#144f36] transition-colors shadow-sm"
                         >
                           View

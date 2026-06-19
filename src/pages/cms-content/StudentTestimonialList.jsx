@@ -47,7 +47,7 @@ export default function StudentTestimonialList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this testimonial?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this testimonial?')) return
     try {
       const token = localStorage.getItem('token')
       let url = `${BASE_URL}/myadmin/stdtestimonial/delete-stdtestimonial/${id}`
@@ -65,7 +65,7 @@ export default function StudentTestimonialList() {
       }
     } catch (error) {
       console.error('Delete failed:', error)
-      alert(error.response?.data?.message || 'Failed to delete')
+      await window.customAlert(error.response?.data?.message || 'Failed to delete')
     }
   }
 
@@ -138,7 +138,7 @@ export default function StudentTestimonialList() {
     } catch (error) {
       console.error('Submit error:', error)
       const errorMsg = error.response?.data?.message || error.message
-      alert(`Failed to save testimonial.\n\nBackend Error: ${errorMsg}`)
+      await window.customAlert(`Failed to save testimonial.\n\nBackend Error: ${errorMsg}`)
     } finally {
       setIsSubmitting(false)
     }

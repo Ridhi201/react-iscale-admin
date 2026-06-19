@@ -74,7 +74,7 @@ export default function JobRegistrations() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this job application?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this job application?')) return
     
     try {
       const token = localStorage.getItem('token')
@@ -83,14 +83,14 @@ export default function JobRegistrations() {
       })
 
       if (response.data.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchData(filters, currentPage)
       } else {
-        alert(response.data.message || 'Failed to delete')
+        await window.customAlert(response.data.message || 'Failed to delete')
       }
     } catch (err) {
       console.error('Error deleting:', err)
-      alert(err.response?.data?.message || 'Error deleting application')
+      await window.customAlert(err.response?.data?.message || 'Error deleting application')
     }
   }
 
@@ -108,7 +108,7 @@ export default function JobRegistrations() {
       }
     } catch (err) {
       console.error('Error fetching single job application details:', err)
-      alert('Failed to load details')
+      await window.customAlert('Failed to load details')
       setIsModalOpen(false)
     } finally {
       setLoadingModal(false)
@@ -144,9 +144,9 @@ export default function JobRegistrations() {
     setCurrentPage(1)
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!data || data.length === 0) {
-      alert("No data to export");
+      await window.customAlert("No data to export");
       return;
     }
     

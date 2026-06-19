@@ -47,18 +47,18 @@ export default function BannersList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this banner?")) return;
+    if (!await window.customConfirm("Are you sure you want to delete this banner?")) return;
     try {
       const token = localStorage.getItem('token');
       const res = await axios.delete(`${BASE_URL}/myadmin/banners/delete/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data?.status) {
-        alert(res.data.message || "Banner deleted successfully");
+        await window.customAlert(res.data.message || "Banner deleted successfully");
         fetchBanners();
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete banner");
+      await window.customAlert(err.response?.data?.message || "Failed to delete banner");
     }
   }
 
@@ -74,7 +74,7 @@ export default function BannersList() {
         fetchBanners()
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to change status")
+      await window.customAlert(err.response?.data?.message || "Failed to change status")
     }
   }
 
@@ -141,7 +141,7 @@ export default function BannersList() {
               <input 
                 type="text" 
                 value={search}
-                onChange={(e) => {
+                onChange={async (e) => {
                   setSearch(e.target.value)
                   setCurrentPage(1)
                 }}

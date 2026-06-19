@@ -50,7 +50,7 @@ export default function StudentNewsList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this news item?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this news item?')) return
     try {
       const token = localStorage.getItem('token')
       let url = `${BASE_URL}/myadmin/news/delete-news/${id}`
@@ -68,7 +68,7 @@ export default function StudentNewsList() {
       }
     } catch (error) {
       console.error('Delete failed:', error)
-      alert(error.response?.data?.message || 'Failed to delete')
+      await window.customAlert(error.response?.data?.message || 'Failed to delete')
     }
   }
 
@@ -90,9 +90,9 @@ export default function StudentNewsList() {
     } catch (error) {
       console.error('Status toggle failed:', error)
       if (error.response?.status === 404) {
-        alert("Status API Endpoint Not Found (404). Please ask your backend developer to verify the route for toggling status.")
+        await window.customAlert("Status API Endpoint Not Found (404). Please ask your backend developer to verify the route for toggling status.")
       } else {
-        alert(error.response?.data?.message || 'Failed to update status')
+        await window.customAlert(error.response?.data?.message || 'Failed to update status')
       }
     }
   }
@@ -176,7 +176,7 @@ export default function StudentNewsList() {
     } catch (error) {
       console.error('Submit error:', error)
       const errorMsg = error.response?.data?.message || error.message
-      alert(`Failed to save news.\n\nBackend Error: ${errorMsg}`)
+      await window.customAlert(`Failed to save news.\n\nBackend Error: ${errorMsg}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -266,7 +266,7 @@ export default function StudentNewsList() {
                   type="text" 
                   placeholder="Search..."
                   value={searchTerm}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}

@@ -22,7 +22,7 @@ export default function AddPPT() {
 
   const handleSubmit = async () => {
     if (!formData.m_pre_name) {
-      alert('Name is required')
+      await window.customAlert('Name is required')
       return
     }
 
@@ -47,7 +47,7 @@ export default function AddPPT() {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.data?.status) {
-        alert(response.data.message || 'PPT added successfully')
+        await window.customAlert(response.data.message || 'PPT added successfully')
         navigate('/placement-talks')
       } else {
         setBackendError(response.data?.message || 'Failed to add PPT (Backend returned status: false)')

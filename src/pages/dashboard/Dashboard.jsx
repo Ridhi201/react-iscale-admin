@@ -26,7 +26,7 @@ export default function Dashboard() {
           axios.get(`${BASE_URL}/myadmin/dashboard/cards`, { headers }),
           axios.get(`${BASE_URL}/myadmin/dashboard/graph`, { headers }),
           axios.get(`${BASE_URL}/myadmin/dashboard/top-courses`, { headers }),
-          axios.get(`${BASE_URL}/myadmin/dashboard/activities`, { headers })
+          axios.get(`${BASE_URL}/myadmin/dashboard/recent_activities`, { headers })
         ])
 
         setApiData({
@@ -55,11 +55,14 @@ export default function Dashboard() {
         });
       } else if (typeof apiData.cards === 'object') {
         displayCards = topStats.map(stat => {
-          const snakeKey = stat.key.replace(/([A-Z])/g, "_$1").toLowerCase();
-          const val = apiData.cards[stat.key] ?? apiData.cards[snakeKey] ?? apiData.cards[stat.title] ?? apiData.cards[stat.title.toLowerCase()] ?? stat.value;
+          let apiValue = apiData.cards[stat.key];
+          if (stat.key === 'totalRegistration') apiValue = apiData.cards.totalRegistrations ?? apiValue;
+          if (stat.key === 'totalQuizs') apiValue = apiData.cards.totalQuizzes ?? apiValue;
+          if (stat.key === 'totalNotesSale') apiValue = apiData.cards.totalNoteSale ?? apiValue;
+          
           return {
             ...stat,
-            value: val
+            value: apiValue !== undefined && apiValue !== null ? apiValue : stat.value
           };
         });
       }
@@ -72,7 +75,7 @@ export default function Dashboard() {
   const mainCards = displayCards.slice(0, 4);
 
   return (
-    <div className="relative min-h-screen bg-[#f5f7fa] dark:bg-[#0b0914] p-4 md:p-6 overflow-hidden">
+    <div className="relative min-h-screen bg-[#f5f7fa] dark:bg-[#0b0914] px-4 md:px-6 pt-0 pb-6 overflow-hidden">
       <div className="relative z-10 max-w-[1600px] mx-auto">
         <AnimatePresence mode="wait">
           {loading ? (
@@ -108,7 +111,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
                 {/* Chart Area */}
                 <div className="xl:col-span-2 h-[400px]">
-                  <RegistrationChart />
+                  <RegistrationChart apiData={apiData.graph} />
                 </div>
                 
                 {/* Activity Feed */}

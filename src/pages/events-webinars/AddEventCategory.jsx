@@ -26,7 +26,7 @@ export default function AddEventCategory() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.m_event_category_name) {
-      alert("Category Name is required");
+      await window.customAlert("Category Name is required");
       return;
     }
     setLoading(true);
@@ -60,10 +60,10 @@ export default function AddEventCategory() {
         }
       });
       if (res.data?.status || res.data?.success || res.data?.msg) {
-        alert(res.data?.message || res.data?.msg || 'Added successfully');
+        await window.customAlert(res.data?.message || res.data?.msg || 'Added successfully');
         navigate('/events/category');
       } else {
-        alert(res.data?.message || res.data?.msg || 'Failed to add');
+        await window.customAlert(res.data?.message || res.data?.msg || 'Failed to add');
       }
     } catch (err) {
       console.error('Submit error:', err);
@@ -76,7 +76,7 @@ export default function AddEventCategory() {
       }
       
       const msg = err.response?.data?.message || err.response?.data?.msg || err.message;
-      alert(`Backend Error: ${msg}\n\nDetails: ${errorDetails}`);
+      await window.customAlert(`Backend Error: ${msg}\n\nDetails: ${errorDetails}`);
     } finally {
       setLoading(false);
     }

@@ -22,7 +22,7 @@ export default function AddClient() {
 
   const handleSubmit = async () => {
     if (!formData.m_client_name) {
-      alert('Name is required')
+      await window.customAlert('Name is required')
       return
     }
 
@@ -46,14 +46,14 @@ export default function AddClient() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert('Added successfully')
+        await window.customAlert('Added successfully')
         navigate('/our-clients')
       } else {
-        alert(response.data?.message || 'Failed to add')
+        await window.customAlert(response.data?.message || 'Failed to add')
       }
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.message || 'Error adding client')
+      await window.customAlert(err.response?.data?.message || 'Error adding client')
     } finally {
       setLoading(false)
     }

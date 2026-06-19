@@ -64,7 +64,7 @@ export default function EditEvent() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.m_event_title || !formData.m_event_category) {
-      alert("Title and Category are required");
+      await window.customAlert("Title and Category are required");
       return;
     }
     setLoading(true);
@@ -101,14 +101,14 @@ export default function EditEvent() {
       }
       
       if (res.data?.status || res.data?.success || res.data?.msg) {
-        alert(res.data?.message || res.data?.msg || 'Updated successfully');
+        await window.customAlert(res.data?.message || res.data?.msg || 'Updated successfully');
         navigate('/events/list');
       } else {
-        alert(res.data?.message || res.data?.msg || 'Failed to update');
+        await window.customAlert(res.data?.message || res.data?.msg || 'Failed to update');
       }
     } catch (err) {
       console.error('Submit error:', err);
-      alert(err.response?.data?.message || err.response?.data?.msg || 'Failed to update');
+      await window.customAlert(err.response?.data?.message || err.response?.data?.msg || 'Failed to update');
     } finally {
       setLoading(false);
     }

@@ -164,7 +164,7 @@ export default function AnalyticsList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this record?')) return;
+    if (!await window.customConfirm('Are you sure you want to delete this record?')) return;
     try {
       const token = localStorage.getItem('token');
       const res = await axios.delete(`${BASE_URL}/myadmin/data-analytics/delete/${id}`, {
@@ -175,7 +175,7 @@ export default function AnalyticsList() {
       }
     } catch (err) {
       console.error("Failed to delete record", err);
-      alert("Failed to delete record");
+      await window.customAlert("Failed to delete record");
     }
   };
 
@@ -269,7 +269,7 @@ export default function AnalyticsList() {
             <span className="text-sm text-slate-700">Show</span>
             <select 
               value={entriesPerPage}
-              onChange={(e) => {
+              onChange={async (e) => {
                 setEntriesPerPage(Number(e.target.value))
                 setCurrentPage(1)
               }}

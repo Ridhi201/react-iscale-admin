@@ -73,7 +73,7 @@ export default function ModuleSubModuleList() {
                   <button 
                     key={btn.label} 
                     title={btn.label} 
-                    onClick={() => {
+                    onClick={async () => {
                       if (btn.label === 'Print') {
                         window.print();
                       } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
@@ -88,7 +88,7 @@ export default function ModuleSubModuleList() {
                         });
                         if (btn.label === 'Copy') {
                           navigator.clipboard.writeText(csv);
-                          alert('Table data copied to clipboard!');
+                          await window.customAlert('Table data copied to clipboard!');
                         } else {
                           const blob = new Blob([csv], { type: 'text/csv' });
                           const url = window.URL.createObjectURL(blob);
@@ -110,7 +110,7 @@ export default function ModuleSubModuleList() {
                   type="text" 
                   placeholder="Search..."
                   value={searchTerm}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}

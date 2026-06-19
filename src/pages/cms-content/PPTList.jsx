@@ -48,21 +48,21 @@ export default function PPTList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this PPT?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this PPT?')) return
     try {
       const token = localStorage.getItem('token')
       const response = await axios.delete(`${BASE_URL}/myadmin/ppt/delete-ppt/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchData()
       } else {
-        alert(response.data.message || 'Delete failed')
+        await window.customAlert(response.data.message || 'Delete failed')
       }
     } catch (error) {
       console.error('Error deleting PPT:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -75,11 +75,11 @@ export default function PPTList() {
       if (response.data?.status) {
         fetchData()
       } else {
-        alert(response.data?.message || 'Failed to update status')
+        await window.customAlert(response.data?.message || 'Failed to update status')
       }
     } catch (error) {
       console.error('Error updating status:', error)
-      alert('Error updating status')
+      await window.customAlert('Error updating status')
     }
   }
 

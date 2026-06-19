@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Eye, Edit2, Trash2 } from 'lucide-react'
+import { Eye, Edit2, Trash2, Copy, FileSpreadsheet, FileText, Printer } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import axios from 'axios'
@@ -48,7 +48,7 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
   }
 
   const handleDelete = async (topicId) => {
-    if (!window.confirm('Are you sure you want to delete this topic?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this topic?')) return
 
     try {
       const token = localStorage.getItem('token')
@@ -56,14 +56,14 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchTopics()
       } else {
-        alert(response.data.message || 'Delete failed')
+        await window.customAlert(response.data.message || 'Delete failed')
       }
     } catch (error) {
       console.error('Error deleting topic:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -122,7 +122,7 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
               <span>↩ Courses</span>
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
                 localStorage.setItem('currentCourseId', courseId)
                 navigate(`/courses/topics/add/${subjectId}`, {
                   state: { courseId }
@@ -154,11 +154,79 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
                 <span>Entries</span>
               </div>
               
-              <div className="flex rounded border border-slate-300 overflow-hidden text-sm">
-                <button className="px-3 py-1 bg-white hover:bg-slate-50 border-r border-slate-300 text-slate-600">Copy</button>
-                <button className="px-3 py-1 bg-white hover:bg-slate-50 border-r border-slate-300 text-slate-600">Excel</button>
-                <button className="px-3 py-1 bg-white hover:bg-slate-50 border-r border-slate-300 text-slate-600">PDF</button>
-                <button className="px-3 py-1 bg-white hover:bg-slate-50 text-slate-600">Print</button>
+              <div className="flex rounded border border-slate-300 overflow-hidden text-sm shadow-sm bg-white">
+                <button 
+                  onClick={async () => {
+                    const table = document.querySelector('table');
+                    if (!table) return;
+                    let csv = '';
+                    const rows = table.querySelectorAll('tr');
+                    rows.forEach(row => {
+                      const cols = row.querySelectorAll('td, th');
+                      const rowData = Array.from(cols).slice(0, -1).map(c => '"' + c.innerText.replace(/"/g, '""') + '"');
+                      csv += rowData.join(',') + '\n';
+                    });
+                    navigator.clipboard.writeText(csv);
+                    await window.customAlert('Table data copied to clipboard!');
+                  }}
+                  className="px-3.5 py-2 hover:bg-slate-50 border-r border-slate-300 text-slate-600 flex items-center justify-center transition-colors"
+                  title="Copy"
+                >
+                  <Copy size={15} className="text-indigo-600 animate-[pulse_1.5s_infinite]" />
+                </button>
+                <button 
+                  onClick={() => {
+                    const table = document.querySelector('table');
+                    if (!table) return;
+                    let csv = '';
+                    const rows = table.querySelectorAll('tr');
+                    rows.forEach(row => {
+                      const cols = row.querySelectorAll('td, th');
+                      const rowData = Array.from(cols).slice(0, -1).map(c => '"' + c.innerText.replace(/"/g, '""') + '"');
+                      csv += rowData.join(',') + '\n';
+                    });
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'topic_list.csv';
+                    a.click();
+                  }}
+                  className="px-3.5 py-2 hover:bg-slate-50 border-r border-slate-300 text-slate-600 flex items-center justify-center transition-colors"
+                  title="Excel"
+                >
+                  <FileSpreadsheet size={15} className="text-emerald-600" />
+                </button>
+                <button 
+                  onClick={() => {
+                    const table = document.querySelector('table');
+                    if (!table) return;
+                    let csv = '';
+                    const rows = table.querySelectorAll('tr');
+                    rows.forEach(row => {
+                      const cols = row.querySelectorAll('td, th');
+                      const rowData = Array.from(cols).slice(0, -1).map(c => '"' + c.innerText.replace(/"/g, '""') + '"');
+                      csv += rowData.join(',') + '\n';
+                    });
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'topic_list.csv';
+                    a.click();
+                  }}
+                  className="px-3.5 py-2 hover:bg-slate-50 border-r border-slate-300 text-slate-600 flex items-center justify-center transition-colors"
+                  title="PDF"
+                >
+                  <FileText size={15} className="text-rose-600" />
+                </button>
+                <button 
+                  onClick={() => window.print()}
+                  className="px-3.5 py-2 hover:bg-slate-50 text-slate-600 flex items-center justify-center transition-colors"
+                  title="Print"
+                >
+                  <Printer size={15} className="text-teal-600" />
+                </button>
               </div>
             </div>
 

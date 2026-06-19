@@ -88,19 +88,19 @@ export default function EventRegistrations() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this event registration?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this event registration?')) return
     try {
       const token = localStorage.getItem('token')
       const response = await axios.delete(`${BASE_URL}/myadmin/registrations/delete-event/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchData()
       }
     } catch (err) {
       console.error('Error deleting:', err)
-      alert('Failed to delete registration')
+      await window.customAlert('Failed to delete registration')
     }
   }
 
@@ -118,7 +118,7 @@ export default function EventRegistrations() {
       }
     } catch (err) {
       console.error('Error fetching single registration:', err)
-      alert('Failed to load details')
+      await window.customAlert('Failed to load details')
       setIsModalOpen(false)
     } finally {
       setLoadingModal(false)
@@ -154,9 +154,9 @@ export default function EventRegistrations() {
     setCurrentPage(1)
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!data || data.length === 0) {
-      alert("No data to export");
+      await window.customAlert("No data to export");
       return;
     }
     

@@ -31,7 +31,7 @@ export default function PublicLeadForm() {
         setData(res.data.data)
       }
     } catch (err) {
-      alert('Failed to load lead details')
+      await window.customAlert('Failed to load lead details')
     } finally {
       setLoading(false)
     }
@@ -55,14 +55,14 @@ export default function PublicLeadForm() {
       const res = await axios.post(`${BASE_URL}/myadmin/lead-generate/form/${slug}`, payload);
       
       if (res.data?.status || res.status === 200 || res.status === 201) {
-        alert(res.data?.message || 'Form submitted successfully');
+        await window.customAlert(res.data?.message || 'Form submitted successfully');
         // Redirect to analytics directly as requested instead of the external redirect link
         navigate('/analytics');
       } else {
-        alert(res.data?.message || 'Failed to submit form');
+        await window.customAlert(res.data?.message || 'Failed to submit form');
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'An error occurred while submitting the form');
+      await window.customAlert(err.response?.data?.message || 'An error occurred while submitting the form');
     }
   }
 
@@ -124,7 +124,7 @@ export default function PublicLeadForm() {
                 name="mobile"
                 required
                 value={form.mobile}
-                onChange={(e) => {
+                onChange={async (e) => {
                   handleChange(e);
                   if (form.sameAsMobile) {
                     setForm(prev => ({ ...prev, alternate: e.target.value }))

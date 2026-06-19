@@ -20,7 +20,7 @@ export default function HeroBanner({ cardsData = [] }) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-[#144f36] rounded-[24px] p-8 mb-6 relative overflow-visible flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 shadow-[0_10px_30px_rgba(20,79,54,0.15)]"
+      className="bg-[#144f36] rounded-[24px] py-12 px-8 mb-6 relative overflow-visible flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 shadow-[0_10px_30px_rgba(20,79,54,0.15)]"
     >
       {/* Background pattern */}
       <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay pointer-events-none rounded-r-[24px]"></div>
@@ -41,7 +41,10 @@ export default function HeroBanner({ cardsData = [] }) {
         
         <div className="flex gap-4">
 
-          <button className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold py-2.5 px-6 rounded-full hover:bg-white/20 transition-all flex items-center gap-2 hover:-translate-y-0.5">
+          <button 
+            onClick={() => navigate('/analytics')}
+            className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold py-2.5 px-6 rounded-full hover:bg-white/20 transition-all flex items-center gap-2 hover:-translate-y-0.5"
+          >
             <Icons.BarChart2 size={18} strokeWidth={2.5} /> View Analytics
           </button>
         </div>

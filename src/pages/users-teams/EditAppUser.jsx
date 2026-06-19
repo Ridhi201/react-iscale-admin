@@ -70,7 +70,7 @@ export default function EditAppUser() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if(formData.password && formData.password !== formData.confirm_password) {
-      alert("Passwords do not match")
+      await window.customAlert("Passwords do not match")
       return
     }
     
@@ -87,11 +87,11 @@ export default function EditAppUser() {
         }
       })
       if (res.data?.status) {
-        alert(res.data.message || 'User updated successfully')
+        await window.customAlert(res.data.message || 'User updated successfully')
         navigate('/app-users')
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Error updating user')
+      await window.customAlert(err.response?.data?.message || 'Error updating user')
     }
   }
 

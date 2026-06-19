@@ -70,11 +70,11 @@ export default function AddLiveClass() {
       if (response.data.status) {
         navigate('/live-classes')
       } else {
-        alert(response.data.message || 'Failed to add live class')
+        await window.customAlert(response.data.message || 'Failed to add live class')
       }
     } catch (error) {
       console.error('Error adding live class:', error)
-      alert(error.response?.data?.message || 'Error adding live class')
+      await window.customAlert(error.response?.data?.message || 'Error adding live class')
     } finally {
       setLoading(false)
     }

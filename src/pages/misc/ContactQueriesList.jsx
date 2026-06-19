@@ -38,21 +38,21 @@ export default function ContactQueriesList() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this query?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this query?')) return
     try {
       const token = localStorage.getItem('token')
       const response = await axios.delete(`${BASE_URL}/myadmin/contact-us/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status || response.data?.success || response.data?.msg === 'Query deleted successfully') {
-        alert(response.data.msg || response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.msg || response.data.message || 'Deleted successfully')
         fetchData()
       } else {
-        alert(response.data.message || response.data.msg || 'Delete failed')
+        await window.customAlert(response.data.message || response.data.msg || 'Delete failed')
       }
     } catch (error) {
       console.error('Error deleting contact query:', error)
-      alert(error.response?.data?.message || error.response?.data?.msg || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || error.response?.data?.msg || 'Delete failed')
     }
   }
 
@@ -98,12 +98,12 @@ export default function ContactQueriesList() {
       if (response && (response.data?.status || response.data?.success || response.data?.msg || response.status === 200)) {
         fetchData()
       } else {
-        alert(response?.data?.message || response?.data?.msg || 'Failed to update status')
+        await window.customAlert(response?.data?.message || response?.data?.msg || 'Failed to update status')
       }
     } catch (error) {
       console.error('Error updating status:', error)
       const errorMsg = error.response?.data?.message || error.response?.data?.msg || error.response?.data?.error || error.message;
-      alert('Error updating status: ' + (typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg))
+      await window.customAlert('Error updating status: ' + (typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg))
     }
   }
 
@@ -157,7 +157,7 @@ export default function ContactQueriesList() {
                   <button 
                     key={btn.label} 
                     title={btn.label} 
-                    onClick={() => {
+                    onClick={async () => {
                       if (btn.label === 'Print') {
                         window.print();
                       } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
@@ -172,7 +172,7 @@ export default function ContactQueriesList() {
                         });
                         if (btn.label === 'Copy') {
                           navigator.clipboard.writeText(csv);
-                          alert('Table data copied to clipboard!');
+                          await window.customAlert('Table data copied to clipboard!');
                         } else {
                           const blob = new Blob([csv], { type: 'text/csv' });
                           const url = window.URL.createObjectURL(blob);

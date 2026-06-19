@@ -100,17 +100,17 @@ export default function AddQuiz() {
       console.log('API RESPONSE:', response.data)
 
       if (response.data?.status) {
-        alert(response.data.message || (isEditing ? 'Quiz updated!' : 'Quiz added successfully!'))
+        await window.customAlert(response.data.message || (isEditing ? 'Quiz updated!' : 'Quiz added successfully!'))
         navigate(`/quiz/list/${packageId}`, { state: { packageTitle, courseId } })
       } else {
-        alert(response.data.message || 'Operation failed')
+        await window.customAlert(response.data.message || 'Operation failed')
       }
     } catch (error) {
       console.error('Error saving quiz:', error)
       if (error.response) {
         console.log('BACKEND ERROR:', JSON.stringify(error.response.data, null, 2))
       }
-      alert(error.response?.data?.message || 'Save failed. Please try again.')
+      await window.customAlert(error.response?.data?.message || 'Save failed. Please try again.')
     } finally {
       setLoading(false)
     }

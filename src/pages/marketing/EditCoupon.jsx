@@ -40,7 +40,7 @@ export default function EditCoupon() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.m_coupon_code || !formData.m_coupon_title) {
-      alert("Coupon Code and Title are required");
+      await window.customAlert("Coupon Code and Title are required");
       return;
     }
     setLoading(true);
@@ -67,17 +67,17 @@ export default function EditCoupon() {
       });
       
       if (res.data?.status || res.data?.success || res.data?.message) {
-        alert(res.data?.message || 'Updated successfully');
+        await window.customAlert(res.data?.message || 'Updated successfully');
         navigate('/master/coupons');
       } else {
-        alert(res.data?.message || 'Failed to update');
+        await window.customAlert(res.data?.message || 'Failed to update');
       }
     } catch (err) {
       console.error('Submit error:', err);
       if (err.response?.data?.message && err.response.data.message.includes('validation failed')) {
-        alert(`Backend Error: ${err.response.data.message}\n\nPlease take a screenshot of this error.`);
+        await window.customAlert(`Backend Error: ${err.response.data.message}\n\nPlease take a screenshot of this error.`);
       } else {
-        alert(err.response?.data?.message || err.response?.data?.error || 'Failed to update coupon');
+        await window.customAlert(err.response?.data?.message || err.response?.data?.error || 'Failed to update coupon');
       }
     } finally {
       setLoading(false);

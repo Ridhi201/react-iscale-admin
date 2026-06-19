@@ -65,11 +65,11 @@ export default function AddInstructor() {
       if (response.data && response.data.status) {
         navigate('/instructors/all')
       } else {
-        alert(response.data.message || 'Failed to add instructor')
+        await window.customAlert(response.data.message || 'Failed to add instructor')
       }
     } catch (error) {
       console.error('Submit failed:', error)
-      alert('Failed to add instructor. Please check console.')
+      await window.customAlert('Failed to add instructor. Please check console.')
     } finally {
       setLoading(false)
     }

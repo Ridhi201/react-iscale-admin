@@ -46,7 +46,7 @@ export default function CourseCategories() {
       }
     } catch (error) {
       console.error('Error fetching categories from real API:', error)
-      alert("Failed to fetch from API. Please check console for 404 error if your backend is not ready!")
+      await window.customAlert("Failed to fetch from API. Please check console for 404 error if your backend is not ready!")
     } finally {
       setLoading(false)
     }
@@ -54,7 +54,7 @@ export default function CourseCategories() {
 
   
   const handleDelete = async (id) => {
-  if (!window.confirm("Are you sure you want to delete this category?")) {
+  if (!await window.customConfirm("Are you sure you want to delete this category?")) {
     return;
   }
 
@@ -73,10 +73,10 @@ export default function CourseCategories() {
     console.log("Delete Response:", response.data);
 
     if (response.data?.status) {
-      alert(response.data.message || "Category deleted successfully");
+      await window.customAlert(response.data.message || "Category deleted successfully");
       fetchCategories();
     } else {
-      alert("Delete failed");
+      await window.customAlert("Delete failed");
     }
 
   } catch (error) {
@@ -84,9 +84,9 @@ export default function CourseCategories() {
 
     if (error.response) {
       console.log(error.response.data);
-      alert(error.response.data?.message || "Delete failed");
+      await window.customAlert(error.response.data?.message || "Delete failed");
     } else {
-      alert("Network Error");
+      await window.customAlert("Network Error");
     }
   }
 };
@@ -166,7 +166,7 @@ export default function CourseCategories() {
                   <button 
                     key={btn.label} 
                     title={btn.label} 
-                    onClick={() => {
+                    onClick={async () => {
                       if (btn.label === 'Print') {
                         window.print();
                       } else if (btn.label === 'Excel' || btn.label === 'Copy' || btn.label === 'PDF') {
@@ -181,7 +181,7 @@ export default function CourseCategories() {
                         });
                         if (btn.label === 'Copy') {
                           navigator.clipboard.writeText(csv);
-                          alert('Table data copied to clipboard!');
+                          await window.customAlert('Table data copied to clipboard!');
                         } else {
                           const blob = new Blob([csv], { type: 'text/csv' });
                           const url = window.URL.createObjectURL(blob);

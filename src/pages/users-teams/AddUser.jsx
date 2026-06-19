@@ -52,7 +52,7 @@ export default function AddUser() {
       })
     } catch (error) {
       console.error('Failed to fetch user:', error)
-      alert('Failed to load user details for editing.')
+      await window.customAlert('Failed to load user details for editing.')
     }
   }
 

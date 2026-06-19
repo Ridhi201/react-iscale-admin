@@ -46,14 +46,14 @@ export default function AddCourseSubject() {
       }
 
       if (response.data?.status) {
-        alert(response.data.message || 'Saved successfully')
+        await window.customAlert(response.data.message || 'Saved successfully')
         navigate(`/courses/subjects/${id}`)
       } else {
-        alert(response.data.message || 'Operation failed')
+        await window.customAlert(response.data.message || 'Operation failed')
       }
     } catch (error) {
       console.error('Error saving subject:', error)
-      alert(error.response?.data?.message || 'Something went wrong')
+      await window.customAlert(error.response?.data?.message || 'Something went wrong')
     }
   }
 

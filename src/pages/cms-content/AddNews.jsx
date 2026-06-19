@@ -20,7 +20,7 @@ export default function AddNews() {
 
   const handleSubmit = async () => {
     if (!formData.m_news_title) {
-      alert('Title is required')
+      await window.customAlert('Title is required')
       return
     }
 
@@ -41,7 +41,7 @@ export default function AddNews() {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.data?.status || response.data?.msg === 'News&Updates added successfully') {
-        alert(response.data.msg || response.data.message || 'News & Updates added successfully')
+        await window.customAlert(response.data.msg || response.data.message || 'News & Updates added successfully')
         navigate('/news-updates')
       } else {
         setBackendError(response.data?.message || response.data?.msg || 'Failed to add (Backend returned status: false)')

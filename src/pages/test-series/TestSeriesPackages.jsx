@@ -37,7 +37,7 @@ export default function TestSeriesPackages() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this package?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this package?')) return
 
     try {
       const token = localStorage.getItem('token')
@@ -45,14 +45,14 @@ export default function TestSeriesPackages() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Deleted successfully')
+        await window.customAlert(response.data.message || 'Deleted successfully')
         fetchPackages()
       } else {
-        alert(response.data.message || 'Failed to delete')
+        await window.customAlert(response.data.message || 'Failed to delete')
       }
     } catch (error) {
       console.error('Error deleting package:', error)
-      alert(error.response?.data?.message || 'Delete failed')
+      await window.customAlert(error.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -66,9 +66,9 @@ export default function TestSeriesPackages() {
   const endIndex = Math.min(startIndex + entriesPerPage, TOTAL_ENTRIES)
   const currentData = filteredPackages.slice(startIndex, endIndex)
 
-  const handleExport = () => {
+  const handleExport = async (type) => {
     if (!filteredPackages || filteredPackages.length === 0) {
-      alert("No data to export");
+      await window.customAlert("No data to export");
       return;
     }
     
@@ -84,14 +84,19 @@ export default function TestSeriesPackages() {
       csvRows.push(values.join(','));
     });
     
-    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "test_packages.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const csvString = csvRows.join('\n');
+    if (type === 'Copy') {
+      navigator.clipboard.writeText(csvString);
+      await window.customAlert('Table data copied to clipboard!');
+    } else {
+      const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
+      const link = document.createElement("a");
+      link.setAttribute("href", csvContent);
+      link.setAttribute("download", type === 'PDF' ? "test_packages.pdf" : "test_packages.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   }
 
   const handlePrint = () => {
@@ -160,10 +165,10 @@ export default function TestSeriesPackages() {
                   <button 
                     key={btn.label} 
                     title={btn.label} 
-                    onClick={btn.label === 'Print' ? handlePrint : handleExport}
+                    onClick={() => btn.label === 'Print' ? handlePrint() : handleExport(btn.label)}
                     className="px-3 py-1.5 bg-white hover:bg-slate-50 border-r border-slate-300 last:border-r-0 flex items-center justify-center"
                   >
-                    <span className="text-xs font-medium text-slate-600 mr-1 hidden sm:block">{btn.label}</span>
+                    {btn.icon}
                   </button>
                 ))}
               </div>
@@ -173,7 +178,7 @@ export default function TestSeriesPackages() {
               type="text" 
               placeholder="Search..."
               value={searchTerm}
-              onChange={(e) => {
+              onChange={async (e) => {
                 setSearchTerm(e.target.value)
                 setCurrentPage(1)
               }}

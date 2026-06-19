@@ -41,7 +41,7 @@ export default function InstructorList() {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this instructor?")) {
+    if (await window.customConfirm("Are you sure you want to delete this instructor?")) {
       try {
         const token = localStorage.getItem('token')
         await axios.delete(`${BASE_URL}/myadmin/instructor/delete-instructor/${id}`, {
@@ -50,7 +50,7 @@ export default function InstructorList() {
         fetchInstructors()
       } catch (error) {
         console.error('Delete failed:', error)
-        alert('Delete failed')
+        await window.customAlert('Delete failed')
       }
     }
   }
@@ -167,7 +167,8 @@ export default function InstructorList() {
                       <div className="flex gap-2">
                         <button 
                           onClick={() => navigate(`/instructors/edit/${row._id}`)}
-                          className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800 p-1.5 rounded hover:bg-[#152a4a] transition-colors"
+                          className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#b55d1f] transition-colors shadow-sm"
+                          title="Edit"
                         >
                           <Edit2 size={14} />
                         </button>

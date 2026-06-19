@@ -25,7 +25,7 @@ export default function OffersList() {
       }
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.message || 'Failed to fetch offers')
+      await window.customAlert(err.response?.data?.message || 'Failed to fetch offers')
     } finally {
       setLoading(false)
     }
@@ -50,12 +50,12 @@ export default function OffersList() {
         fetchOffers()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update status')
+      await window.customAlert(err.response?.data?.message || 'Failed to update status')
     }
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this offer?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this offer?')) return
     try {
       const token = localStorage.getItem('token')
       const res = await axios.delete(`${BASE_URL}/myadmin/offers/delete/${id}`, {
@@ -65,7 +65,7 @@ export default function OffersList() {
         fetchOffers()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete offer')
+      await window.customAlert(err.response?.data?.message || 'Failed to delete offer')
     }
   }
 

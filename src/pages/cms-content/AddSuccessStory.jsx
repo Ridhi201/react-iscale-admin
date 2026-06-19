@@ -25,7 +25,7 @@ export default function AddSuccessStory() {
 
   const handleSubmit = async () => {
     if (!formData.m_ss_name) {
-      alert('Name is required')
+      await window.customAlert('Name is required')
       return
     }
 
@@ -51,14 +51,14 @@ export default function AddSuccessStory() {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.data?.status) {
-        alert(response.data.message || 'Success story added')
+        await window.customAlert(response.data.message || 'Success story added')
         navigate('/success-story')
       } else {
-        alert(response.data?.message || 'Failed to add')
+        await window.customAlert(response.data?.message || 'Failed to add')
       }
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.message || 'Error adding success story')
+      await window.customAlert(err.response?.data?.message || 'Error adding success story')
     } finally {
       setLoading(false)
     }

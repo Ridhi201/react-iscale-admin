@@ -212,13 +212,13 @@ export default function ApplicationSetting() {
       const res = await axios.put(url, payload, { headers })
       
       if (res.data?.status || res.data?.success || res.status === 200) {
-        alert(`${activeTab} updated successfully!`)
+        await window.customAlert(`${activeTab} updated successfully!`)
       } else {
-        alert(res.data?.message || 'Failed to update settings')
+        await window.customAlert(res.data?.message || 'Failed to update settings')
       }
     } catch (error) {
       console.error("Update failed", error)
-      alert(error.response?.data?.message || 'Error updating settings. Check console.')
+      await window.customAlert(error.response?.data?.message || 'Error updating settings. Check console.')
     } finally {
       setLoading(false)
     }
@@ -240,9 +240,9 @@ export default function ApplicationSetting() {
       const res = await axios.put(url, payload, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      alert(`All Text Settings updated successfully!`)
+      await window.customAlert(`All Text Settings updated successfully!`)
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to update all settings')
+      await window.customAlert(error.response?.data?.message || 'Failed to update all settings')
     } finally {
       setLoading(false)
     }

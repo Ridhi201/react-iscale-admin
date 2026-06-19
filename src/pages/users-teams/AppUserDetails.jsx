@@ -27,13 +27,13 @@ export default function AppUserDetails() {
         <div className="flex gap-4 border-b border-white/20 pb-2">
           <button 
             className={`px-4 py-2 text-sm font-bold rounded-t-lg transition-colors ${activeTab === 'enrollments' ? 'bg-white text-[#144f36]' : 'text-white hover:bg-white/10'}`}
-            onClick={() => { setActiveTab('enrollments'); setActiveSubTab('courses'); }}
+            onClick={async () => { setActiveTab('enrollments'); setActiveSubTab('courses'); }}
           >
             Enrollments
           </button>
           <button 
             className={`px-4 py-2 text-sm font-bold rounded-t-lg transition-colors ${activeTab === 'wishlists' ? 'bg-white text-[#144f36]' : 'text-white hover:bg-white/10'}`}
-            onClick={() => { setActiveTab('wishlists'); setActiveSubTab('courses'); }}
+            onClick={async () => { setActiveTab('wishlists'); setActiveSubTab('courses'); }}
           >
             Wishlists
           </button>
@@ -89,7 +89,7 @@ function EnrollmentCourses({ candidateId }) {
         setModalData(res.data.data)
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to fetch details')
+      await window.customAlert(err.response?.data?.message || 'Failed to fetch details')
     }
   }
 
@@ -111,18 +111,18 @@ function EnrollmentCourses({ candidateId }) {
   useEffect(() => { fetchData() }, [candidateId])
 
   const handleDelete = async (id) => {
-    if(!window.confirm('Delete this purchased course?')) return
+    if(!await window.customConfirm('Delete this purchased course?')) return
     try {
       const token = localStorage.getItem('token')
       const res = await axios.delete(`${BASE_URL}/myadmin/app-users-enrollments-details/course/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
-        alert(res.data.message || 'Deleted successfully')
+        await window.customAlert(res.data.message || 'Deleted successfully')
         fetchData()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Delete failed')
+      await window.customAlert(err.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -136,11 +136,11 @@ function EnrollmentCourses({ candidateId }) {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
-        alert(res.data.message || 'Duration updated')
+        await window.customAlert(res.data.message || 'Duration updated')
         fetchData()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Update failed')
+      await window.customAlert(err.response?.data?.message || 'Update failed')
     }
   }
 
@@ -204,7 +204,7 @@ function EnrollmentTestSeries({ candidateId }) {
         setModalData(res.data.data)
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to fetch details')
+      await window.customAlert(err.response?.data?.message || 'Failed to fetch details')
     }
   }
 
@@ -226,18 +226,18 @@ function EnrollmentTestSeries({ candidateId }) {
   useEffect(() => { fetchData() }, [candidateId])
 
   const handleDelete = async (id) => {
-    if(!window.confirm('Delete this purchased test series?')) return
+    if(!await window.customConfirm('Delete this purchased test series?')) return
     try {
       const token = localStorage.getItem('token')
       const res = await axios.delete(`${BASE_URL}/myadmin/app-users-enrollments-details/test-series/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
-        alert(res.data.message || 'Deleted successfully')
+        await window.customAlert(res.data.message || 'Deleted successfully')
         fetchData()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Delete failed')
+      await window.customAlert(err.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -249,7 +249,7 @@ function EnrollmentTestSeries({ candidateId }) {
       })
       if (res.data?.status) fetchData()
     } catch (err) {
-      alert(err.response?.data?.message || 'Status update failed')
+      await window.customAlert(err.response?.data?.message || 'Status update failed')
     }
   }
 
@@ -308,7 +308,7 @@ function EnrollmentNotes({ candidateId }) {
         setModalData(res.data.data)
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to fetch details')
+      await window.customAlert(err.response?.data?.message || 'Failed to fetch details')
     }
   }
 
@@ -330,18 +330,18 @@ function EnrollmentNotes({ candidateId }) {
   useEffect(() => { fetchData() }, [candidateId])
 
   const handleDelete = async (id) => {
-    if(!window.confirm('Delete this purchased note?')) return
+    if(!await window.customConfirm('Delete this purchased note?')) return
     try {
       const token = localStorage.getItem('token')
       const res = await axios.delete(`${BASE_URL}/myadmin/app-users-enrollments-details/notes/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
-        alert(res.data.message || 'Deleted successfully')
+        await window.customAlert(res.data.message || 'Deleted successfully')
         fetchData()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Delete failed')
+      await window.customAlert(err.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -353,7 +353,7 @@ function EnrollmentNotes({ candidateId }) {
       })
       if (res.data?.status) fetchData()
     } catch (err) {
-      alert(err.response?.data?.message || 'Status update failed')
+      await window.customAlert(err.response?.data?.message || 'Status update failed')
     }
   }
 
@@ -408,7 +408,7 @@ function WishlistCourses({ candidateId }) {
         setModalData(res.data.data)
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to fetch details')
+      await window.customAlert(err.response?.data?.message || 'Failed to fetch details')
     }
   }
 
@@ -430,18 +430,18 @@ function WishlistCourses({ candidateId }) {
   useEffect(() => { fetchData() }, [candidateId])
 
   const handleDelete = async (id) => {
-    if(!window.confirm('Remove course from wishlist?')) return
+    if(!await window.customConfirm('Remove course from wishlist?')) return
     try {
       const token = localStorage.getItem('token')
       const res = await axios.delete(`${BASE_URL}/myadmin/app-users-wishlist-details/course/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
-        alert(res.data.message || 'Deleted successfully')
+        await window.customAlert(res.data.message || 'Deleted successfully')
         fetchData()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Delete failed')
+      await window.customAlert(err.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -492,7 +492,7 @@ function WishlistTestSeries({ candidateId }) {
         setModalData(res.data.data)
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to fetch details')
+      await window.customAlert(err.response?.data?.message || 'Failed to fetch details')
     }
   }
 
@@ -514,18 +514,18 @@ function WishlistTestSeries({ candidateId }) {
   useEffect(() => { fetchData() }, [candidateId])
 
   const handleDelete = async (id) => {
-    if(!window.confirm('Remove test series from wishlist?')) return
+    if(!await window.customConfirm('Remove test series from wishlist?')) return
     try {
       const token = localStorage.getItem('token')
       const res = await axios.delete(`${BASE_URL}/myadmin/app-users-wishlist-details/test/series/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
-        alert(res.data.message || 'Deleted successfully')
+        await window.customAlert(res.data.message || 'Deleted successfully')
         fetchData()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Delete failed')
+      await window.customAlert(err.response?.data?.message || 'Delete failed')
     }
   }
 
@@ -576,7 +576,7 @@ function WishlistNotes({ candidateId }) {
         setModalData(res.data.data)
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to fetch details')
+      await window.customAlert(err.response?.data?.message || 'Failed to fetch details')
     }
   }
 
@@ -598,18 +598,18 @@ function WishlistNotes({ candidateId }) {
   useEffect(() => { fetchData() }, [candidateId])
 
   const handleDelete = async (id) => {
-    if(!window.confirm('Remove notes from wishlist?')) return
+    if(!await window.customConfirm('Remove notes from wishlist?')) return
     try {
       const token = localStorage.getItem('token')
       const res = await axios.delete(`${BASE_URL}/myadmin/app-users-wishlist-details/notes/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
-        alert(res.data.message || 'Deleted successfully')
+        await window.customAlert(res.data.message || 'Deleted successfully')
         fetchData()
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Delete failed')
+      await window.customAlert(err.response?.data?.message || 'Delete failed')
     }
   }
 

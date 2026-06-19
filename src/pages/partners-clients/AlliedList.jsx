@@ -54,7 +54,7 @@ export default function AlliedList() {
   }, [currentPage, entriesPerPage, search])
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this allied college?')) return
+    if (!await window.customConfirm('Are you sure you want to delete this allied college?')) return
     try {
       const token = localStorage.getItem('token')
       const response = await axios.delete(`${BASE_URL}/myadmin/allied/delete-allied/${id}`, {
@@ -63,11 +63,11 @@ export default function AlliedList() {
       if (response.data?.status) {
         fetchData()
       } else {
-        alert(response.data?.message || 'Delete failed')
+        await window.customAlert(response.data?.message || 'Delete failed')
       }
     } catch (err) {
       console.error(err)
-      alert('Error deleting')
+      await window.customAlert('Error deleting')
     }
   }
 

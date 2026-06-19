@@ -43,7 +43,7 @@ export default function JobUpdatesList() {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this job?')) {
+    if (await window.customConfirm('Are you sure you want to delete this job?')) {
       try {
         const token = localStorage.getItem('token')
         const response = await axios.delete(`${BASE_URL}/myadmin/comp-requirement/delete-job/${id}`, {
@@ -56,7 +56,7 @@ export default function JobUpdatesList() {
         }
       } catch (error) {
         console.error('Error deleting job:', error)
-        alert('Failed to delete job')
+        await window.customAlert('Failed to delete job')
       }
     }
   }
@@ -72,11 +72,11 @@ export default function JobUpdatesList() {
       if (response.data && response.data.status) {
         fetchJobs()
       } else {
-        alert(response.data?.message || 'Failed to update status')
+        await window.customAlert(response.data?.message || 'Failed to update status')
       }
     } catch (error) {
       console.error('Error updating status:', error)
-      alert('Error updating status')
+      await window.customAlert('Error updating status')
     }
   }
 

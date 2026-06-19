@@ -91,8 +91,8 @@ export default function AppUsers() {
     return pages
   }
 
-  const handleDelete = (id) => {
-    alert("Delete API not provided for App User. Please provide DELETE API.")
+  const handleDelete = async (id) => {
+    await window.customAlert("Delete API not provided for App User. Please provide DELETE API.")
   }
 
   const handleExport = async () => {
@@ -140,11 +140,11 @@ export default function AppUsers() {
         a.click()
         window.URL.revokeObjectURL(url)
       } else {
-        alert("Failed to fetch data for export.")
+        await window.customAlert("Failed to fetch data for export.")
       }
     } catch (err) {
       console.error(err)
-      alert("Error exporting data.")
+      await window.customAlert("Error exporting data.")
     }
   }
 

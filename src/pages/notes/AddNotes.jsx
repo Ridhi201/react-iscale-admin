@@ -128,14 +128,14 @@ export default function AddNotes() {
       }
 
       if (response.data?.status) {
-        alert(response.data.message || (isEditing ? 'Updated successfully!' : 'Added successfully!'))
+        await window.customAlert(response.data.message || (isEditing ? 'Updated successfully!' : 'Added successfully!'))
         navigate('/notes/all')
       } else {
-        alert(response.data.message || 'Operation failed')
+        await window.customAlert(response.data.message || 'Operation failed')
       }
     } catch (error) {
       console.error('Error saving notes:', error)
-      alert(error.response?.data?.message || 'Save failed. Please try again.')
+      await window.customAlert(error.response?.data?.message || 'Save failed. Please try again.')
     } finally {
       setLoading(false)
     }

@@ -26,7 +26,7 @@ export default function EditClient() {
 
   const handleSubmit = async () => {
     if (!formData.m_client_name) {
-      alert('Name is required')
+      await window.customAlert('Name is required')
       return
     }
 
@@ -50,14 +50,14 @@ export default function EditClient() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
-        alert('Updated successfully')
+        await window.customAlert('Updated successfully')
         navigate('/our-clients')
       } else {
-        alert(response.data?.message || 'Failed to update')
+        await window.customAlert(response.data?.message || 'Failed to update')
       }
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.message || 'Error updating client')
+      await window.customAlert(err.response?.data?.message || 'Error updating client')
     } finally {
       setLoading(false)
     }

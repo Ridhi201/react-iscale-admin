@@ -33,7 +33,7 @@ export default function EditSuccessStory() {
 
   const handleSubmit = async () => {
     if (!formData.m_ss_name) {
-      alert('Name is required')
+      await window.customAlert('Name is required')
       return
     }
 
@@ -56,14 +56,14 @@ export default function EditSuccessStory() {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.data?.status) {
-        alert('Updated successfully')
+        await window.customAlert('Updated successfully')
         navigate('/success-story')
       } else {
-        alert(response.data?.message || 'Failed to update')
+        await window.customAlert(response.data?.message || 'Failed to update')
       }
     } catch (err) {
       console.error(err)
-      alert('Error updating success story')
+      await window.customAlert('Error updating success story')
     }
   }
 
