@@ -5,7 +5,8 @@ export default function IconButton({
   onClick, 
   variant = "primary", 
   className = "",
-  size = 14
+  size = 14,
+  ...props
 }) {
   const baseStyles = "p-2 rounded-xl transition-all duration-300 flex items-center justify-center hover:scale-105 hover:-translate-y-0.5 active:scale-95";
   
@@ -21,6 +22,7 @@ export default function IconButton({
       type="button"
       onClick={onClick}
       className={`${baseStyles} ${variants[variant] || variants.primary} ${className}`}
+      {...props}
     >
       <Icon size={size} />
     </button>

@@ -37,9 +37,15 @@ export default function AddNews() {
       setLoading(true)
       setBackendError(null)
       const token = localStorage.getItem('token')
-      const response = await axios.post(`${BASE_URL}/myadmin/news&updates/add-news&updates`, submitData, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+     const response = await axios.post(
+    `${BASE_URL}/myadmin/news_updates/add`,
+     submitData,
+   {
+     headers:{
+     Authorization:`Bearer ${token}`
+   }
+   }
+   )
       if (response.data?.status || response.data?.msg === 'News&Updates added successfully') {
         await window.customAlert(response.data.msg || response.data.message || 'News & Updates added successfully')
         navigate('/news-updates')

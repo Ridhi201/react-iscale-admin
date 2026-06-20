@@ -1,134 +1,143 @@
+import React, { Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from '../components/ProtectedRoute'
 import MainLayout from '../layouts/MainLayout'
-import Dashboard from '../pages/dashboard/Dashboard'
-import Registrations from '../pages/misc/Registrations'
-import Analytics from '../pages/dashboard/Analytics'
-import AnalyticsList from '../pages/dashboard/AnalyticsList'
-import AnalyticsDetails from '../pages/dashboard/AnalyticsDetails'
-import Settings from '../pages/settings/Settings'
-import PlaceholderPage from '../pages/misc/PlaceholderPage'
-import Login from '../pages/auth/Login'
-import BatchManagement from '../pages/live-classes/BatchManagement'
-import LiveClasses from '../pages/live-classes/LiveClasses'
-import TestSeriesCategory from '../pages/test-series/TestSeriesCategory'
-import TestSeriesPackages from '../pages/test-series/TestSeriesPackages'
-import Logout from '../pages/auth/Logout'
-import LeaderBoard from '../pages/dashboard/LeaderBoard'
-import CertificateRequests from '../pages/misc/CertificateRequests'
-import TestSeriesRegistrations from '../pages/test-series/TestSeriesRegistrations'
-import NotesRegistrations from '../pages/notes/NotesRegistrations'
-import WebinarRegistrations from '../pages/events-webinars/WebinarRegistrations'
-import JobRegistrations from '../pages/jobs-careers/JobRegistrations'
-import EventRegistrations from '../pages/events-webinars/EventRegistrations'
-import CourseWishlist from '../pages/courses/CourseWishlist'
-import TestSeriesWishlist from '../pages/test-series/TestSeriesWishlist'
-import NotesWishlist from '../pages/notes/NotesWishlist'
-import WebinarWishlist from '../pages/events-webinars/WebinarWishlist'
-import CourseCategories from '../pages/courses/CourseCategories'
-import AllCourses from '../pages/courses/AllCourses'
-import PopularCourses from '../pages/courses/PopularCourses'
-import RecommendedCourses from '../pages/courses/RecommendedCourses'
-import CourseView from '../pages/courses/CourseView'
-import CourseFaq from '../pages/courses/CourseFaq'
-import CourseFeatures from '../pages/courses/CourseFeatures'
-import CourseTools from '../pages/courses/CourseTools'
-import CourseSubjects from '../pages/courses/CourseSubjects'
-import AddCourseSubject from '../pages/courses/AddCourseSubject'
-import CourseTopics from '../pages/courses/CourseTopics'
-import AddCourseTopic from '../pages/courses/AddCourseTopic'
-import CourseTestSeries from '../pages/courses/CourseTestSeries'
-import AddCourseTestSeries from '../pages/courses/AddCourseTestSeries'
-import CourseTrainingHighlights from '../pages/courses/CourseTrainingHighlights'
-import NotesCategory from '../pages/notes/NotesCategory'
-import NotesSubCategory from '../pages/notes/NotesSubCategory'
-import AllNotes from '../pages/notes/AllNotes'
-import ClassesList from '../pages/live-classes/ClassesList'
-import AppUsers from '../pages/users-teams/AppUsers'
-import AppUserDetails from '../pages/users-teams/AppUserDetails'
-import EditAppUser from '../pages/users-teams/EditAppUser'
-import TeamsList from '../pages/users-teams/TeamsList'
-import AddTeam from '../pages/users-teams/AddTeam'
-import OffersList from '../pages/marketing/OffersList'
-import InstructorList from '../pages/instructors/InstructorList'
-import AddInstructor from '../pages/instructors/AddInstructor'
-import EditInstructor from '../pages/instructors/EditInstructor'
-import PartnersList from '../pages/partners-clients/PartnersList'
-import AddPartner from '../pages/partners-clients/AddPartner'
-import CourseRatings from '../pages/courses/CourseRatings'
-import SubjectRatings from '../pages/misc/SubjectRatings'
-import HomePageReviews from '../pages/cms-content/HomePageReviews'
-import BannersList from '../pages/marketing/BannersList'
-import AddBanner from '../pages/marketing/AddBanner'
-import LeadGenerateList from '../pages/marketing/LeadGenerateList'
-import AddLeadGenerate from '../pages/marketing/AddLeadGenerate'
-import LeadGeneratePreview from '../pages/marketing/LeadGeneratePreview'
-import PublicLeadForm from '../pages/marketing/PublicLeadForm'
-import JobUpdatesList from '../pages/jobs-careers/JobUpdatesList'
-import AddJobUpdate from '../pages/jobs-careers/AddJobUpdate'
-import SuccessStoryList from '../pages/cms-content/SuccessStoryList'
-import AddSuccessStory from '../pages/cms-content/AddSuccessStory'
-import EditSuccessStory from '../pages/cms-content/EditSuccessStory'
-import PPTList from '../pages/cms-content/PPTList'
-import AddPPT from '../pages/cms-content/AddPPT'
-import EditPPT from '../pages/cms-content/EditPPT'
-import NewsList from '../pages/cms-content/NewsList'
-import AddNews from '../pages/cms-content/AddNews'
-import EditNews from '../pages/cms-content/EditNews'
-import AlliedList from '../pages/partners-clients/AlliedList'
-import AddAllied from '../pages/partners-clients/AddAllied'
-import EditAllied from '../pages/partners-clients/EditAllied'
-import ClientList from '../pages/partners-clients/ClientList'
-import AddClient from '../pages/partners-clients/AddClient'
-import EditClient from '../pages/partners-clients/EditClient'
-import ContactQueriesList from '../pages/misc/ContactQueriesList'
-import HireWithUsList from '../pages/jobs-careers/HireWithUsList'
-import CouponsList from '../pages/marketing/CouponsList'
-import AddCoupon from '../pages/marketing/AddCoupon'
-import EditCoupon from '../pages/marketing/EditCoupon'
-import ModuleSubModuleList from '../pages/settings/ModuleSubModuleList'
-import BrandVideoList from '../pages/cms-content/BrandVideoList'
-import AddBrandVideo from '../pages/cms-content/AddBrandVideo'
-import EditBrandVideo from '../pages/cms-content/EditBrandVideo'
-import StudentNewsList from '../pages/cms-content/StudentNewsList'
-import StudentTestimonialList from '../pages/cms-content/StudentTestimonialList'
-import AddStudentTestimonial from '../pages/cms-content/AddStudentTestimonial'
-import EditStudentTestimonial from '../pages/cms-content/EditStudentTestimonial'
-import EventCategoryList from '../pages/events-webinars/EventCategoryList'
-import AddEventCategory from '../pages/events-webinars/AddEventCategory'
-import EditEventCategory from '../pages/events-webinars/EditEventCategory'
-import EventList from '../pages/events-webinars/EventList'
-import AddEvent from '../pages/events-webinars/AddEvent'
-import EditEvent from '../pages/events-webinars/EditEvent'
-import UserRoleList from '../pages/users-teams/UserRoleList'
-import AddUser from '../pages/users-teams/AddUser'
-import MyProfile from '../pages/settings/MyProfile'
-import ApplicationSetting from '../pages/settings/ApplicationSetting'
-import SendNotification from '../pages/misc/SendNotification'
-import LocationCountry from '../pages/locations/LocationCountry'
-import LocationState from '../pages/locations/LocationState'
-import LocationCity from '../pages/locations/LocationCity'
-import AddLiveClass from '../pages/live-classes/AddLiveClass'
-import EditLiveClass from '../pages/live-classes/EditLiveClass'
-import AddCourseCategory from '../pages/courses/AddCourseCategory'
-import EditCourseCategory from '../pages/courses/EditCourseCategory'
-import AddCourse from '../pages/courses/AddCourse'
-import EditCourse from '../pages/courses/EditCourse'
-import AddTestSeriesCategory from '../pages/test-series/AddTestSeriesCategory'
-import AddTestSeriesPackage from '../pages/test-series/AddTestSeriesPackage'
-import PackageView from '../pages/test-series/PackageView'
-import AddNotesSubCategory from '../pages/notes/AddNotesSubCategory'
-import AddNotes from '../pages/notes/AddNotes'
-import AddClass from '../pages/live-classes/AddClass'
-import AddOffer from '../pages/marketing/AddOffer'
-import AddSubjectRating from '../pages/misc/AddSubjectRating'
-import AddUserReview from '../pages/cms-content/AddUserReview'
-import QuizList from '../pages/quiz/QuizList'
-import AddQuiz from '../pages/quiz/AddQuiz'
+const Dashboard = React.lazy(() => import('../pages/dashboard/Dashboard'))
+const Registrations = React.lazy(() => import('../pages/misc/Registrations'))
+const Analytics = React.lazy(() => import('../pages/dashboard/Analytics'))
+const AnalyticsList = React.lazy(() => import('../pages/dashboard/AnalyticsList'))
+const AnalyticsDetails = React.lazy(() => import('../pages/dashboard/AnalyticsDetails'))
+const Settings = React.lazy(() => import('../pages/settings/Settings'))
+const PlaceholderPage = React.lazy(() => import('../pages/misc/PlaceholderPage'))
+const Login = React.lazy(() => import('../pages/auth/Login'))
+const BatchManagement = React.lazy(() => import('../pages/live-classes/BatchManagement'))
+const LiveClasses = React.lazy(() => import('../pages/live-classes/LiveClasses'))
+const TestSeriesCategory = React.lazy(() => import('../pages/test-series/TestSeriesCategory'))
+const TestSeriesPackages = React.lazy(() => import('../pages/test-series/TestSeriesPackages'))
+const Logout = React.lazy(() => import('../pages/auth/Logout'))
+const LeaderBoard = React.lazy(() => import('../pages/dashboard/LeaderBoard'))
+const CertificateRequests = React.lazy(() => import('../pages/misc/CertificateRequests'))
+const TestSeriesRegistrations = React.lazy(() => import('../pages/test-series/TestSeriesRegistrations'))
+const NotesRegistrations = React.lazy(() => import('../pages/notes/NotesRegistrations'))
+const WebinarRegistrations = React.lazy(() => import('../pages/events-webinars/WebinarRegistrations'))
+const JobRegistrations = React.lazy(() => import('../pages/jobs-careers/JobRegistrations'))
+const EventRegistrations = React.lazy(() => import('../pages/events-webinars/EventRegistrations'))
+const CourseWishlist = React.lazy(() => import('../pages/courses/CourseWishlist'))
+const TestSeriesWishlist = React.lazy(() => import('../pages/test-series/TestSeriesWishlist'))
+const NotesWishlist = React.lazy(() => import('../pages/notes/NotesWishlist'))
+const WebinarWishlist = React.lazy(() => import('../pages/events-webinars/WebinarWishlist'))
+const CourseCategories = React.lazy(() => import('../pages/courses/CourseCategories'))
+const AllCourses = React.lazy(() => import('../pages/courses/AllCourses'))
+const PopularCourses = React.lazy(() => import('../pages/courses/PopularCourses'))
+const RecommendedCourses = React.lazy(() => import('../pages/courses/RecommendedCourses'))
+const CourseView = React.lazy(() => import('../pages/courses/CourseView'))
+const CourseFaq = React.lazy(() => import('../pages/courses/CourseFaq'))
+const CourseFeatures = React.lazy(() => import('../pages/courses/CourseFeatures'))
+const CourseTools = React.lazy(() => import('../pages/courses/CourseTools'))
+const CourseSubjects = React.lazy(() => import('../pages/courses/CourseSubjects'))
+const AddCourseSubject = React.lazy(() => import('../pages/courses/AddCourseSubject'))
+const CourseTopics = React.lazy(() => import('../pages/courses/CourseTopics'))
+const AddCourseTopic = React.lazy(() => import('../pages/courses/AddCourseTopic'))
+const CourseTestSeries = React.lazy(() => import('../pages/courses/CourseTestSeries'))
+const AddCourseTestSeries = React.lazy(() => import('../pages/courses/AddCourseTestSeries'))
+const CourseTrainingHighlights = React.lazy(() => import('../pages/courses/CourseTrainingHighlights'))
+const NotesCategory = React.lazy(() => import('../pages/notes/NotesCategory'))
+const NotesSubCategory = React.lazy(() => import('../pages/notes/NotesSubCategory'))
+const AllNotes = React.lazy(() => import('../pages/notes/AllNotes'))
+const ClassesList = React.lazy(() => import('../pages/live-classes/ClassesList'))
+const AppUsers = React.lazy(() => import('../pages/users-teams/AppUsers'))
+const AppUserDetails = React.lazy(() => import('../pages/users-teams/AppUserDetails'))
+const EditAppUser = React.lazy(() => import('../pages/users-teams/EditAppUser'))
+const TeamsList = React.lazy(() => import('../pages/users-teams/TeamsList'))
+const AddTeam = React.lazy(() => import('../pages/users-teams/AddTeam'))
+const OffersList = React.lazy(() => import('../pages/marketing/OffersList'))
+const InstructorList = React.lazy(() => import('../pages/instructors/InstructorList'))
+const AddInstructor = React.lazy(() => import('../pages/instructors/AddInstructor'))
+const EditInstructor = React.lazy(() => import('../pages/instructors/EditInstructor'))
+const PartnersList = React.lazy(() => import('../pages/partners-clients/PartnersList'))
+const AddPartner = React.lazy(() => import('../pages/partners-clients/AddPartner'))
+const CourseRatings = React.lazy(() => import('../pages/courses/CourseRatings'))
+const SubjectRatings = React.lazy(() => import('../pages/misc/SubjectRatings'))
+const HomePageReviews = React.lazy(() => import('../pages/cms-content/HomePageReviews'))
+const BannersList = React.lazy(() => import('../pages/marketing/BannersList'))
+const AddBanner = React.lazy(() => import('../pages/marketing/AddBanner'))
+const LeadGenerateList = React.lazy(() => import('../pages/marketing/LeadGenerateList'))
+const AddLeadGenerate = React.lazy(() => import('../pages/marketing/AddLeadGenerate'))
+const LeadGeneratePreview = React.lazy(() => import('../pages/marketing/LeadGeneratePreview'))
+const PublicLeadForm = React.lazy(() => import('../pages/marketing/PublicLeadForm'))
+const JobUpdatesList = React.lazy(() => import('../pages/jobs-careers/JobUpdatesList'))
+const AddJobUpdate = React.lazy(() => import('../pages/jobs-careers/AddJobUpdate'))
+const SuccessStoryList = React.lazy(() => import('../pages/cms-content/SuccessStoryList'))
+const AddSuccessStory = React.lazy(() => import('../pages/cms-content/AddSuccessStory'))
+const EditSuccessStory = React.lazy(() => import('../pages/cms-content/EditSuccessStory'))
+const PPTList = React.lazy(() => import('../pages/cms-content/PPTList'))
+const AddPPT = React.lazy(() => import('../pages/cms-content/AddPPT'))
+const EditPPT = React.lazy(() => import('../pages/cms-content/EditPPT'))
+const NewsList = React.lazy(() => import('../pages/cms-content/NewsList'))
+const AddNews = React.lazy(() => import('../pages/cms-content/AddNews'))
+const EditNews = React.lazy(() => import('../pages/cms-content/EditNews'))
+const AlliedList = React.lazy(() => import('../pages/partners-clients/AlliedList'))
+const AddAllied = React.lazy(() => import('../pages/partners-clients/AddAllied'))
+const EditAllied = React.lazy(() => import('../pages/partners-clients/EditAllied'))
+const ClientList = React.lazy(() => import('../pages/partners-clients/ClientList'))
+const AddClient = React.lazy(() => import('../pages/partners-clients/AddClient'))
+const EditClient = React.lazy(() => import('../pages/partners-clients/EditClient'))
+const ContactQueriesList = React.lazy(() => import('../pages/misc/ContactQueriesList'))
+const HireWithUsList = React.lazy(() => import('../pages/jobs-careers/HireWithUsList'))
+const CouponsList = React.lazy(() => import('../pages/marketing/CouponsList'))
+const AddCoupon = React.lazy(() => import('../pages/marketing/AddCoupon'))
+const EditCoupon = React.lazy(() => import('../pages/marketing/EditCoupon'))
+const ModuleSubModuleList = React.lazy(() => import('../pages/settings/ModuleSubModuleList'))
+const BrandVideoList = React.lazy(() => import('../pages/cms-content/BrandVideoList'))
+const AddBrandVideo = React.lazy(() => import('../pages/cms-content/AddBrandVideo'))
+const EditBrandVideo = React.lazy(() => import('../pages/cms-content/EditBrandVideo'))
+const StudentNewsList = React.lazy(() => import('../pages/cms-content/StudentNewsList'))
+const StudentTestimonialList = React.lazy(() => import('../pages/cms-content/StudentTestimonialList'))
+const AddStudentTestimonial = React.lazy(() => import('../pages/cms-content/AddStudentTestimonial'))
+const EditStudentTestimonial = React.lazy(() => import('../pages/cms-content/EditStudentTestimonial'))
+const EventCategoryList = React.lazy(() => import('../pages/events-webinars/EventCategoryList'))
+const AddEventCategory = React.lazy(() => import('../pages/events-webinars/AddEventCategory'))
+const EditEventCategory = React.lazy(() => import('../pages/events-webinars/EditEventCategory'))
+const EventList = React.lazy(() => import('../pages/events-webinars/EventList'))
+const AddEvent = React.lazy(() => import('../pages/events-webinars/AddEvent'))
+const EditEvent = React.lazy(() => import('../pages/events-webinars/EditEvent'))
+const UserRoleList = React.lazy(() => import('../pages/users-teams/UserRoleList'))
+const AddUser = React.lazy(() => import('../pages/users-teams/AddUser'))
+const MyProfile = React.lazy(() => import('../pages/settings/MyProfile'))
+const ApplicationSetting = React.lazy(() => import('../pages/settings/ApplicationSetting'))
+const SendNotification = React.lazy(() => import('../pages/misc/SendNotification'))
+const LocationCountry = React.lazy(() => import('../pages/locations/LocationCountry'))
+const LocationState = React.lazy(() => import('../pages/locations/LocationState'))
+const LocationCity = React.lazy(() => import('../pages/locations/LocationCity'))
+const AddLiveClass = React.lazy(() => import('../pages/live-classes/AddLiveClass'))
+const EditLiveClass = React.lazy(() => import('../pages/live-classes/EditLiveClass'))
+const AddCourseCategory = React.lazy(() => import('../pages/courses/AddCourseCategory'))
+const EditCourseCategory = React.lazy(() => import('../pages/courses/EditCourseCategory'))
+const AddCourse = React.lazy(() => import('../pages/courses/AddCourse'))
+const EditCourse = React.lazy(() => import('../pages/courses/EditCourse'))
+const AddTestSeriesCategory = React.lazy(() => import('../pages/test-series/AddTestSeriesCategory'))
+const AddTestSeriesPackage = React.lazy(() => import('../pages/test-series/AddTestSeriesPackage'))
+const PackageView = React.lazy(() => import('../pages/test-series/PackageView'))
+const AddNotesSubCategory = React.lazy(() => import('../pages/notes/AddNotesSubCategory'))
+const AddNotes = React.lazy(() => import('../pages/notes/AddNotes'))
+const AddClass = React.lazy(() => import('../pages/live-classes/AddClass'))
+const AddOffer = React.lazy(() => import('../pages/marketing/AddOffer'))
+const AddSubjectRating = React.lazy(() => import('../pages/misc/AddSubjectRating'))
+const AddUserReview = React.lazy(() => import('../pages/cms-content/AddUserReview'))
+const QuizList = React.lazy(() => import('../pages/quiz/QuizList'))
+const AddQuiz = React.lazy(() => import('../pages/quiz/AddQuiz'))
 
 export default function AppRoutes() {
   return (
-    <Routes>
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center bg-[#f5f7fa] dark:bg-[#0b0914] text-slate-500">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-sm font-medium tracking-wide">Loading...</span>
+        </div>
+      </div>
+    }>
+      <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/form/:slug" element={<PublicLeadForm />} />
       <Route path="/leads/preview/:slug" element={<LeadGeneratePreview />} />
@@ -142,7 +151,10 @@ export default function AppRoutes() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/registrations" element={<Registrations />} />
         <Route path="/registrations/course" element={<Registrations />} />
-        <Route path="/registrations/certificate" element={<CertificateRequests />} />
+        <Route path="/registrations/certificate" element={<CertificateRequests />} />
+
+
+
         <Route path="/registrations/job" element={<JobRegistrations />} />
         <Route path="/registrations/event" element={<EventRegistrations />} />
         <Route path="/wishlist/course" element={<CourseWishlist />} />
@@ -158,7 +170,8 @@ export default function AppRoutes() {
         <Route path="/batch/create" element={<BatchManagement />} />
         <Route path="/live-classes" element={<LiveClasses />} />
         <Route path="/live-classes/add" element={<AddLiveClass />} />
-        <Route path="/live-classes/edit/:id" element={<EditLiveClass />} />
+        <Route path="/live-classes/edit/:id" element={<EditLiveClass />} />
+
         <Route path="/test-series" element={<TestSeriesCategory />} />
         <Route path="/test-series/category" element={<TestSeriesCategory />} />
         <Route path="/test-series/category/add" element={<AddTestSeriesCategory />} />
@@ -186,7 +199,16 @@ export default function AppRoutes() {
         <Route path="/courses/test-series/add/:id" element={<AddCourseTestSeries />} />
         <Route path="/courses/training-highlights/:id" element={<CourseTrainingHighlights />} />
         <Route path="/quiz/list/:packageId" element={<QuizList />} />
-        <Route path="/quiz/add/:packageId" element={<AddQuiz />} />
+        <Route path="/quiz/add/:packageId" element={<AddQuiz />} />
+
+
+
+
+
+
+
+
+
         <Route path="/app-users" element={<AppUsers />} />
         <Route path="/app-users/details/:id" element={<AppUserDetails />} />
         <Route path="/app-users/edit/:id" element={<EditAppUser />} />
@@ -199,7 +221,12 @@ export default function AppRoutes() {
         <Route path="/instructors" element={<InstructorList />} />
         <Route path="/instructors/all" element={<InstructorList />} />
         <Route path="/instructors/add" element={<AddInstructor />} />
-        <Route path="/instructors/edit/:id" element={<EditInstructor />} />
+        <Route path="/instructors/edit/:id" element={<EditInstructor />} />
+
+
+
+
+
         <Route path="/ratings/home-page" element={<HomePageReviews />} />
         <Route path="/subject-ratings/add" element={<AddSubjectRating />} />
         <Route path="/home-page-reviews/add" element={<AddUserReview />} />
@@ -265,5 +292,6 @@ export default function AppRoutes() {
         <Route path="*" element={<PlaceholderPage title="404 — Not Found" subtitle="The page you're looking for doesn't exist." icon="🔍" />} />
       </Route>
     </Routes>
+    </Suspense>
   )
 }

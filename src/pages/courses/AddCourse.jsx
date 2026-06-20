@@ -238,7 +238,7 @@ export default function AddCourse() {
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Status (Web)</label>
               <select id="course_status_web" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
                 <option>1</option>
-                <option>0</option>
+                <option>0</option>  
               </select>
             </div>
             <div>

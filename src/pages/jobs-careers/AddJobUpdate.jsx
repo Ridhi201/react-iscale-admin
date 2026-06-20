@@ -113,7 +113,7 @@ export default function AddJobUpdate() {
         company_social_links: {
           linkedin: formData.linkedin
         },
-        status: "open",
+        status: "1",
         job_status: 1
       }
 

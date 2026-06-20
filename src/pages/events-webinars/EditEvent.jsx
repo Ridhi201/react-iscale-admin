@@ -14,19 +14,19 @@ export default function EditEvent() {
   const [categories, setCategories] = useState([])
   
   const [formData, setFormData] = useState({
-    m_event_category: eventData.m_event_category || eventData.category || '',
+    m_event_category: (eventData.m_event_category?._id || eventData.m_event_category) || (eventData.category?._id || eventData.category) || '',
     m_event_title: eventData.m_event_title || eventData.title || eventData.eventTitle || '',
-    m_event_start_date: eventData.m_event_start_date || '',
-    m_event_end_date: eventData.m_event_end_date || '',
-    m_event_start_time: eventData.m_event_start_time || '',
-    m_event_end_time: eventData.m_event_end_time || '',
-    m_event_skill_level: eventData.m_event_skill_level || '',
-    m_event_certificate: eventData.m_event_certificate || '',
-    m_event_language: eventData.m_event_language || '',
+    m_event_start_date: eventData.m_event_date_start || eventData.m_event_start_date || '',
+    m_event_end_date: eventData.m_event_date_end || eventData.m_event_end_date || '',
+    m_event_start_time: eventData.m_event_time_start || eventData.m_event_start_time || '',
+    m_event_end_time: eventData.m_event_time_end || eventData.m_event_end_time || '',
+    m_event_skill_level: eventData.m_event_skill_level || 'Beginner',
+    m_event_certificate: eventData.m_event_certificate || 'yes',
+    m_event_language: eventData.m_event_lang || eventData.m_event_language || 'English',
     m_event_enrolled: eventData.m_event_enrolled || '',
-    m_event_youtube: eventData.m_event_youtube || '',
-    m_event_meeting_link: eventData.m_event_meeting_link || '',
-    m_event_host_name: eventData.m_event_host_name || '',
+    m_event_youtube: eventData.m_event_url || eventData.m_event_youtube || '',
+    m_event_meeting_link: eventData.m_event_link || eventData.m_event_meeting_link || '',
+    m_event_host_name: eventData.m_event_host || eventData.m_event_host_name || '',
     m_event_contact: eventData.m_event_contact || '',
     m_event_whatsapp: eventData.m_event_whatsapp || '',
     m_event_order: eventData.m_event_order || eventData.order || '',
@@ -45,11 +45,11 @@ export default function EditEvent() {
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem('token')
-      const res = await axios.get(`${BASE_URL}/myadmin/event/get-events-dropdown`, {
+      const res = await axios.get(`${BASE_URL}/myadmin/event-category/get-event-categories`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status || res.data?.success) {
-        setCategories(res.data.data || res.data.categories || [])
+        setCategories(res.data.data || res.data.categories || res.data.eventCategories || [])
       }
     } catch (err) {
       console.error('Error fetching categories:', err)
@@ -64,15 +64,47 @@ export default function EditEvent() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.m_event_title || !formData.m_event_category) {
-      await window.customAlert("Title and Category are required");
+      await window.customAlert("❌ Event Title and Category are required");
+      return;
+    }
+    if (!formData.m_event_start_date || !formData.m_event_end_date) {
+      await window.customAlert("❌ Start Date and End Date are required");
+      return;
+    }
+    if (!formData.m_event_start_time || !formData.m_event_end_time) {
+      await window.customAlert("❌ Start Time and End Time are required");
       return;
     }
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const data = new FormData();
+      const keyMap = {
+        m_event_start_date: 'm_event_date_start',
+        m_event_end_date: 'm_event_date_end',
+        m_event_start_time: 'm_event_time_start',
+        m_event_end_time: 'm_event_time_end',
+        m_event_language: 'm_event_lang',
+        m_event_host_name: 'm_event_host',
+        m_event_youtube: 'm_event_url',
+        m_event_meeting_link: 'm_event_link'
+      };
+
       Object.keys(formData).forEach(key => {
-        data.append(key, formData[key]);
+        const backendKey = keyMap[key] || key;
+        let val = formData[key];
+
+        // Sanitize optional numeric fields if they are empty
+        if (['m_event_order', 'm_event_enrolled'].includes(backendKey)) {
+          if (val === "" || val === null || val === undefined || val === "NaN") {
+            val = 0;
+          } else {
+            const num = Number(val);
+            val = isNaN(num) ? 0 : num;
+          }
+        }
+
+        data.append(backendKey, val ?? "");
       });
       if (file) {
         data.append('m_event_banner', file);
@@ -136,7 +168,9 @@ export default function EditEvent() {
               <select name="m_event_category" value={formData.m_event_category} onChange={handleChange} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 border-slate-300 dark:border-gray-700">
                 <option value="">--Select Category--</option>
                 {categories.map((c, i) => (
-                  <option key={i} value={c._id || c.id || c.name || c}>{c.name || c.title || c.m_event_category || c}</option>
+                  <option key={i} value={c?._id || c?.id || c?.name || (typeof c === 'string' ? c : JSON.stringify(c))}>
+                    {c?.m_ec_title || c?.name || c?.title || c?.m_event_category || (typeof c === 'string' ? c : 'Unknown Category')}
+                  </option>
                 ))}
               </select>
             </div>
@@ -236,14 +270,15 @@ export default function EditEvent() {
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Certificate</label>
-              <input 
-                type="text" 
+              <select 
                 name="m_event_certificate"
                 value={formData.m_event_certificate}
                 onChange={handleChange}
-                placeholder="Yes/No"
-                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 placeholder:text-slate-800 dark:text-slate-200"
-              />
+                className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e] text-slate-800 dark:text-slate-200"
+              >
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Language</label>

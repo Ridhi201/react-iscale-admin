@@ -7,9 +7,10 @@ export default function Button({
   variant = "primary", 
   className = "",
   fullWidth = false,
-  icon = null
+  icon = null,
+  ...props
 }) {
-  const baseStyles = "rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2";
+  const baseStyles = "flex items-center justify-center gap-2 px-6 h-11 text-sm font-medium rounded-xl transition-all duration-300";
   
   // Different color variants that we frequently use
   const variants = {
@@ -20,13 +21,13 @@ export default function Button({
   };
 
   const widthClass = fullWidth ? "w-full" : "";
-  const defaultPadding = "px-3 py-1.5";
 
   return (
     <button
       type={type}
       onClick={onClick}
-      className={`flex items-center justify-center gap-2 px-6 h-11 text-sm font-medium rounded-xl transition-all duration-300 ${variants[variant]} ${widthClass} ${className}`}
+      className={`${baseStyles} ${variants[variant]} ${widthClass} ${className}`}
+      {...props}
     >
       {icon && <span>{icon}</span>}
       <span>{children}</span>

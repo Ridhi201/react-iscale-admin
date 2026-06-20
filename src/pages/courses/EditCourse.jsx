@@ -107,11 +107,11 @@ export default function EditCourse() {
 
     const populateForm = (course, categoriesList) => {
       const normStatus = (val) => {
-     if (val === 0 || val === "0" || val === "inactive") {
-     return "0";
-     }
-     return "1";
-     };
+        if (val === 0 || val === "0" || val === "inactive") {
+          return "0";
+        }
+        return "1";
+      };
 
       let categoryId = course.category || course.m_course_category || '';
       if (categoryId && !categoriesList.find(c => c._id === categoryId)) {
@@ -149,8 +149,8 @@ export default function EditCourse() {
         m_course_web_g_link: course.web_g_link || course.m_course_web_g_link || '',
         m_course_graphy_instruction: course.graphy_instruction || course.m_course_graphy_instruction || '',
         instructor: course.instructor || course.m_course_instructor || '',
-        m_course_price: course.price || course.m_course_price || '',
-        m_course_offer_price: course.offer_price || course.m_course_offer_price || ''
+        m_course_price: course.price ?? course.m_course_price ?? 0,
+        m_course_offer_price: course.offer_price ?? course.m_course_offer_price ?? 0
       });
     };
 
@@ -163,16 +163,42 @@ export default function EditCourse() {
       const token = localStorage.getItem('token');
       const payload = new FormData();
       Object.entries(courseData).forEach(([key, val]) => {
-        if (key === "m_course_status") {
-          payload.append(key, Number(val));
-        } else if (key === "m_course_status_web") {
-          payload.append(key, Number(val));
+        if (
+          [
+            "m_course_status",
+            "m_course_status_web",
+            "m_course_price",
+            "m_course_offer_price",
+            "m_course_lang",
+            "m_course_type",
+            "m_course_order",
+            "m_course_popular",
+            "m_course_recomended",
+            "m_course_certificate",
+            "m_course_live_class"
+          ].includes(key)
+        ) {
+          const num = Number(val);
+          if (val === "" || val === null || val === undefined) {
+            payload.append(key, 0);
+          } else if (isNaN(num)) {
+            if (key === "m_course_type" && ["Self Paced", "Live", "Hybrid"].includes(val)) {
+              payload.append(key, val);
+            } else {
+              payload.append(key, 0);
+            }
+          } else {
+            payload.append(key, num);
+          }
         } else {
-          payload.append(key, val);
+          payload.append(key, val ?? "");
         }
       });
       if (bannerFile) payload.append('m_course_banner', bannerFile);
       if (pdfFile) payload.append('m_course_pdf', pdfFile);
+      for (let pair of payload.entries()) {
+        console.log(pair[0], pair[1]);
+      }
       const response = await axios.put(`${BASE_URL}/myadmin/course/update-course/${id}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
