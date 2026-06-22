@@ -35,21 +35,56 @@ export default function AddJobUpdate() {
   }
 
   useEffect(() => {
-    if (id && location.state?.jobData) {
-      const job = location.state.jobData
-      setFormData({
-        job_title: job.job_title || '',
-        company_name: job.company_name || '',
-        location: job.job_locations?.[0] || '',
-        experience: job.experience?.max?.toString() || '',
-        salaryFrom: job.salary?.min?.toString() || '',
-        salaryTo: job.salary?.max?.toString() || '',
-        salary_type: job.salary_type || 'PM',
-        job_description: job.job_description || '',
-        apply_link: job.application_link || job.apply_link || '',
-        linkedin: job.company_social_links?.linkedin || job.social_links?.linkedin || '',
-        job_order: job.job_order || ''
-      })
+    const fetchJob = async () => {
+      try {
+        setLoading(true)
+        const token = localStorage.getItem('token')
+        const response = await axios.get(`${BASE_URL}/myadmin/comp-requirement/get-job/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (response.data?.status && response.data.data) {
+          const job = response.data.data
+          setFormData({
+            job_title: job.job_title || '',
+            company_name: job.company_name || '',
+            location: job.job_locations?.[0] || '',
+            experience: job.experience?.max?.toString() || '',
+            salaryFrom: job.salary?.min?.toString() || '',
+            salaryTo: job.salary?.max?.toString() || '',
+            salary_type: job.salary_type || 'PM',
+            job_description: job.job_description || '',
+            apply_link: job.application_link || job.apply_link || '',
+            linkedin: job.company_social_links?.linkedin || job.social_links?.linkedin || '',
+            job_order: job.job_order || ''
+          })
+        }
+      } catch (err) {
+        console.error('Error fetching job details', err)
+        setBackendError('Error fetching job details')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (id) {
+      if (location.state?.jobData) {
+        const job = location.state.jobData
+        setFormData({
+          job_title: job.job_title || '',
+          company_name: job.company_name || '',
+          location: job.job_locations?.[0] || '',
+          experience: job.experience?.max?.toString() || '',
+          salaryFrom: job.salary?.min?.toString() || '',
+          salaryTo: job.salary?.max?.toString() || '',
+          salary_type: job.salary_type || 'PM',
+          job_description: job.job_description || '',
+          apply_link: job.application_link || job.apply_link || '',
+          linkedin: job.company_social_links?.linkedin || job.social_links?.linkedin || '',
+          job_order: job.job_order || ''
+        })
+      } else {
+        fetchJob()
+      }
     }
   }, [id, location.state])
 

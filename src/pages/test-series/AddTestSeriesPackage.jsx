@@ -51,7 +51,7 @@ export default function AddTestSeriesPackage() {
   const fetchCourses = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get(`${BASE_URL}/myadmin/course/get-all-courses`, {
+      const response = await axios.get(`${BASE_URL}/myadmin/course/all-courses?limit=1000`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
@@ -174,7 +174,7 @@ export default function AddTestSeriesPackage() {
               >
                 <option value="">- - - Select - - -</option>
                 {courses.map(course => (
-                  <option key={course._id} value={course._id}>{course.m_course_title}</option>
+                  <option key={course._id} value={course._id}>{course.title || course.m_course_title}</option>
                 ))}
               </select>
             </div>

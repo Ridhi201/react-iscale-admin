@@ -125,7 +125,12 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
               onClick={async () => {
                 localStorage.setItem('currentCourseId', courseId)
                 navigate(`/courses/topics/add/${subjectId}`, {
-                  state: { courseId }
+                  state: { 
+                    courseId,
+                    courseTitle: headerData.course,
+                    categoryTitle: headerData.category,
+                    subjectTitle: headerData.subject
+                  }
                 })   
               }}
               className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 hover:shadow hover:-translate-y-0.5"
@@ -280,7 +285,15 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
                       </td>
                       <td className="px-3 py-3 align-middle">
                         <div className="flex gap-1">
-                          <button onClick={() => navigate(`/courses/topics/add/${subjectId}`, { state: { editTopic: row, courseId } })} className="bg-[#d87025] text-white p-1.5 rounded-full hover:bg-[#c2621f] transition-colors">
+                          <button onClick={() => navigate(`/courses/topics/add/${subjectId}`, { 
+                            state: { 
+                              editTopic: row, 
+                              courseId,
+                              courseTitle: headerData.course,
+                              categoryTitle: headerData.category,
+                              subjectTitle: headerData.subject
+                            } 
+                          })} className="bg-[#d87025] text-white p-1.5 rounded-full hover:bg-[#c2621f] transition-colors">
                             <Edit2 size={12} />
                           </button>
                           <button onClick={() => handleDelete(row._id)} className="bg-[#d9534f] text-white p-1.5 rounded-full hover:bg-[#c9302c] transition-colors">

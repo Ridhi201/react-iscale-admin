@@ -23,26 +23,31 @@ export default function AddCourseTopic() {
     ml_title: editTopic?.ml_title || '',
     ml_code: editTopic?.ml_code || '',
     ml_type: editTopic?.ml_type || '',
-    ml_stype: editTopic?.ml_stype || '',
+    ml_stype: editTopic?.ml_stype || 'Topic',
     ml_video_id: editTopic?.ml_video_id || '',
-    ml_status: editTopic?.ml_status !== undefined ? editTopic.ml_status.toString() : '1'
+    ml_status: editTopic?.ml_status !== undefined ? editTopic.ml_status.toString() : '1',
+    ml_hours: editTopic?.ml_hours || '00',
+    ml_minutes: editTopic?.ml_minutes || '00',
+    ml_seconds: editTopic?.ml_seconds || '00',
+    ml_video_type: editTopic?.ml_video_type || 'VdoCipher',
+    ml_pdffile: null
   })
 
- useEffect(() => {
-  console.log("COURSE ID FOR SUBJECT API:", courseId)
+  useEffect(() => {
+    console.log("COURSE ID FOR SUBJECT API:", courseId)
 
-  if (courseId) {
-    fetchSubjects()
-  }
-}, [courseId])
+    if (courseId) {
+      fetchSubjects()
+    }
+  }, [courseId])
+
   const fetchSubjects = async () => {
     try {
       const token = localStorage.getItem('token')
       console.log(
-  "SUBJECT API URL:",
-  
-  `${BASE_URL}/myadmin/subject/subject-dropdown?m_course_id=${courseId}`
-)
+        "SUBJECT API URL:",
+        `${BASE_URL}/myadmin/subject/subject-dropdown?m_course_id=${courseId}`
+      )
       const response = await axios.get(`${BASE_URL}/myadmin/subject/subject-dropdown?m_course_id=${courseId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -74,27 +79,27 @@ export default function AddCourseTopic() {
       }
 
       const token = localStorage.getItem('token')
-      
       const payload = new FormData()
       
       payload.append('ml_title', formData.ml_title || '')
       payload.append('ml_code', formData.ml_code || '')
       let rawType = formData.ml_type || '';
-      // Assuming UI sends '1'/'2' or 'Video'/'Document', normalize it to the numeric string for the payload
       const payloadType = (rawType === 'Video' || rawType === '1') ? '1' : '2';
-      const isVideo = payloadType === '1';
       
       payload.append('ml_type', payloadType);
       payload.append('ml_stype', formData.ml_stype || 'Topic');
       
-      if (isVideo && formData.ml_video_id) {
+      if (formData.ml_video_id) {
         payload.append('ml_video_id', formData.ml_video_id);
       }
-      // Prevent Multer 'Unexpected field' crash by only sending ONE file field
+      
+      payload.append('ml_hours', formData.ml_hours || '00')
+      payload.append('ml_minutes', formData.ml_minutes || '00')
+      payload.append('ml_seconds', formData.ml_seconds || '00')
+      payload.append('ml_video_type', formData.ml_video_type || 'VdoCipher')
+
       if (formData.ml_pdffile) {
         payload.append('ml_pdffile', formData.ml_pdffile);
-      } else if (formData.ml_file) {
-        payload.append('ml_file', formData.ml_file);
       }
       payload.append('ml_status', formData.ml_status ? String(formData.ml_status) : '0')
       
@@ -112,9 +117,6 @@ export default function AddCourseTopic() {
         console.log(pair[0] + ', ' + pair[1]);
       }
 
-      console.log('FORM DATA:', formData)
-      console.log("SUBJECT VALUE:", formData.ml_subject)
-      console.log("SUBJECTS ARRAY:", subjects)
       let response
       if (isEditing) {
         response = await axios.put(`${BASE_URL}/myadmin/topics/update-topic/${editTopic._id}`, payload, {
@@ -132,8 +134,6 @@ export default function AddCourseTopic() {
         })
       }
 
-      console.log('TOPIC RESPONSE:', response.data)
-
       if (response.data?.status) {
         await window.customAlert(response.data.message || 'Saved successfully')
         navigate(-1)
@@ -142,9 +142,6 @@ export default function AddCourseTopic() {
       }
     } catch (error) {
       console.error('Error saving topic:', error)
-      if (error.response) {
-        console.log("BACKEND ERROR:", JSON.stringify(error.response.data, null, 2))
-      }
       await window.customAlert(error.response?.data?.message || 'Save failed')
     } finally {
       setLoading(false)
@@ -152,149 +149,195 @@ export default function AddCourseTopic() {
   }
 
   return (
-    <div className="h-full animate-fade-in-up flex flex-col">
-      <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] border border-slate-100 flex-1 overflow-hidden flex flex-col transition-shadow">
+    <div className="min-h-screen bg-[#eaf3f8] p-4 sm:p-6 font-sans">
+      <div className="bg-white rounded-2xl shadow-md border border-slate-100 max-w-4xl mx-auto overflow-hidden flex flex-col">
         
         {/* Header */}
-        <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
-          
-          <div className="flex items-center relative z-10">
-            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+        <div className="bg-white p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200">
+          <div>
+            <h2 className="text-[#1e293b] font-bold text-2xl">
               {isEditing ? 'Edit Topic' : 'Add New Topic'}
             </h2>
           </div>
-
-          <div className="relative z-10">
-            <button onClick={() => navigate(-1)} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all hover:-translate-y-0.5">
-              Back To Topics
-            </button>
+          
+          <div className="flex flex-wrap items-center gap-6 mt-3 sm:mt-0 text-sm text-[#475569]">
+            <div>
+              <span className="font-semibold text-[#1e293b]">Category :</span>{' '}
+              <span className="text-[#475569]">{location.state?.categoryTitle || 'Cohort Courses'}</span>
+            </div>
+            {location.state?.courseTitle && (
+              <div>
+                <span className="font-semibold text-[#1e293b]">Course :</span>{' '}
+                <span className="text-[#475569]">{location.state.courseTitle}</span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Form Body */}
-        <div className="flex-1 p-6 overflow-y-auto bg-slate-50 dark:bg-[#1f1b2e]/50">
-          <div className="w-full bg-white dark:bg-[#13111c] p-8 rounded-xl border border-slate-200 dark:border-[#1f1b2e] shadow-sm">
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              
-              <div className="lg:col-span-2">
-                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 border-b pb-2 mb-4">Topic Details</h3>
-              </div>
+        <div className="p-6 sm:p-8 bg-white">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            
+            {/* Topic Subject */}
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic Subject</label>
+              <select 
+                name="ml_subject"
+                value={formData.ml_subject}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                disabled={isEditing}
+              >
+                <option value="">Select Subject</option>
+                {subjects.map(s => (
+                  <option key={s._id} value={s._id}>{s.m_subject_title}</option>
+                ))}
+                {subjects.length === 0 && subjectId && (
+                  <option value={subjectId}>Current Subject</option>
+                )}
+              </select>
+            </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Topic Subject</label>
-                <select 
-                  name="ml_subject"
-                  value={formData.ml_subject}
-                  onChange={handleChange}
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 bg-slate-50 dark:bg-[#1f1b2e]/50 shadow-sm transition-colors"
-                  disabled={isEditing}
-                >
-                  <option value="">Select Subject</option>
-                  {subjects.map(s => (
-                    <option key={s._id} value={s._id}>{s.m_subject_title}</option>
-                  ))}
-                  {/* Fallback if subjects not loaded but we have subjectId */}
-                  {subjects.length === 0 && subjectId && (
-                    <option value={subjectId}>Current Subject</option>
-                  )}
-                </select>
-              </div>
+            {/* Select Type */}
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-1.5">Select Type</label>
+              <select 
+                name="ml_stype" 
+                value={formData.ml_stype} 
+                onChange={handleChange} 
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+              >
+                <option value="Topic">Topic</option>
+              </select>
+            </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Select Type</label>
-                <select name="ml_stype" value={formData.ml_stype} onChange={handleChange} className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 bg-slate-50 dark:bg-[#1f1b2e]/50 shadow-sm transition-colors">
-                  <option value="">Select</option>
-                  <option value="Topic">Topic</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Topic Title</label>
-                <input 
-                  type="text" 
-                  name="ml_title"
-                  value={formData.ml_title}
-                  onChange={handleChange}
-                  placeholder="Enter Topic Title" 
-                  className="w-full border-2 border-slate-300 focus:border-[#144f36] rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#144f36] bg-white dark:bg-[#13111c] shadow-sm transition-all" 
-                  required 
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Topic Code</label>
-                <input 
-                  type="text" 
-                  name="ml_code"
-                  value={formData.ml_code}
-                  onChange={handleChange}
-                  placeholder="Enter Topic Code" 
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 bg-white dark:bg-[#13111c] shadow-sm transition-colors" 
-                />
-              </div>
-
-              <div className="flex flex-col justify-center gap-2">
-                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">Status</label>
-                <div className="flex items-center gap-6 bg-slate-50 dark:bg-[#1f1b2e]/50 p-3 rounded-lg border border-slate-200 dark:border-[#1f1b2e] w-fit">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="ml_status" value="1" checked={formData.ml_status === '1'} onChange={handleChange} className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" />
-                    <span className="text-sm font-medium text-slate-800 dark:text-slate-200">Active</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="ml_status" value="0" checked={formData.ml_status === '0'} onChange={handleChange} className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" />
-                    <span className="text-sm font-medium text-slate-800 dark:text-slate-200">Inactive</span>
-                  </label>
+            {/* Duration */}
+            <div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-1.5">Duration : HH</label>
+                  <input 
+                    type="text" 
+                    name="ml_hours"
+                    value={formData.ml_hours}
+                    onChange={handleChange}
+                    placeholder="00"
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-1.5">: MM</label>
+                  <input 
+                    type="text" 
+                    name="ml_minutes"
+                    value={formData.ml_minutes}
+                    onChange={handleChange}
+                    placeholder="00"
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-1.5">: SS</label>
+                  <input 
+                    type="text" 
+                    name="ml_seconds"
+                    value={formData.ml_seconds}
+                    onChange={handleChange}
+                    placeholder="00"
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                  />
                 </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Topic Type</label>
-                <select name="ml_type" value={formData.ml_type} onChange={handleChange} className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 bg-slate-50 dark:bg-[#1f1b2e]/50 shadow-sm transition-colors">
-                  <option value="">Select Topic Type</option>
-                  <option value="1">Video</option>
-                  <option value="2">Document</option>
-                </select>
-              </div>
+            {/* Topic Title */}
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic Title</label>
+              <input 
+                type="text" 
+                name="ml_title"
+                value={formData.ml_title}
+                onChange={handleChange}
+                placeholder="Enter Topic Title" 
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white" 
+                required 
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Topic Video ID (if Video)</label>
+            {/* Topic Code */}
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic Code</label>
+              <input 
+                type="text" 
+                name="ml_code"
+                value={formData.ml_code}
+                onChange={handleChange}
+                placeholder="Enter Topic Code" 
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white" 
+              />
+            </div>
+
+            {/* YouTube vs VdoCipher Radio Group */}
+            <div className="flex items-center gap-6 py-2">
+              <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800 text-sm">
                 <input 
-                  type="text" 
-                  name="ml_video_id"
-                  value={formData.ml_video_id}
-                  onChange={handleChange}
-                  placeholder="Enter Video ID" 
-                  className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-lg px-4 py-2.5 outline-none focus:border-indigo-500 bg-white dark:bg-[#13111c] shadow-sm transition-colors" 
+                  type="radio" 
+                  name="ml_video_type" 
+                  value="YouTube" 
+                  checked={formData.ml_video_type === 'YouTube'} 
+                  onChange={handleChange} 
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500" 
                 />
-              </div>
+                <span>YouTube</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800 text-sm">
+                <input 
+                  type="radio" 
+                  name="ml_video_type" 
+                  value="VdoCipher" 
+                  checked={formData.ml_video_type === 'VdoCipher'} 
+                  onChange={handleChange} 
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500" 
+                />
+                <span>VdoCipher</span>
+              </label>
+            </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">
-                  Topic File
-                </label>
+            {/* Topic Type */}
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic Type</label>
+              <select 
+                name="ml_type" 
+                value={formData.ml_type} 
+                onChange={handleChange} 
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+              >
+                <option value="">Select Topic Type</option>
+                <option value="1">Video</option>
+                <option value="2">Document</option>
+              </select>
+            </div>
 
+            {/* Topic Video ID */}
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic Video ID</label>
+              <input 
+                type="text" 
+                name="ml_video_id"
+                value={formData.ml_video_id}
+                onChange={handleChange}
+                placeholder="Enter Video ID" 
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white" 
+              />
+            </div>
+
+            {/* PDF Attachment (Select PDF Button) */}
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-1.5">PDF Attachment</label>
+              <div className="relative">
                 <input
                   type="file"
-                  onChange={(e) =>
-                    setFormData(prev => ({
-                      ...prev,
-                      ml_file: e.target.files[0]
-                    }))
-                  }
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">
-                  Topic PDF
-                </label>
-
-                <input
-                  type="file"
+                  id="pdf-upload"
                   accept=".pdf"
                   onChange={(e) =>
                     setFormData(prev => ({
@@ -302,22 +345,50 @@ export default function AddCourseTopic() {
                       ml_pdffile: e.target.files[0]
                     }))
                   }
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5"
+                  className="hidden"
                 />
+                <label
+                  htmlFor="pdf-upload"
+                  className="w-full bg-[#3b82f6] hover:bg-blue-600 text-white text-center py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors cursor-pointer block"
+                >
+                  {formData.ml_pdffile ? formData.ml_pdffile.name : 'Select PDF'}
+                </label>
               </div>
+            </div>
 
-              <div className="lg:col-span-2 pt-6 mt-4 border-t border-slate-200 dark:border-[#1f1b2e] flex justify-end gap-4">
-                <button type="button" onClick={() => navigate(-1)} className="bg-white dark:bg-[#13111c] border border-slate-300 dark:border-[#1f1b2e] text-slate-700 dark:text-slate-300 px-8 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-50 dark:bg-[#1f1b2e]/50 transition-colors shadow-sm">
-                  Cancel
-                </button>
-                
-                <button type="submit" disabled={loading} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-2.5 rounded-lg text-sm font-bold hover:from-blue-700 hover:to-indigo-700 transition-colors shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70">
-                  {loading ? 'Submitting...' : 'Submit Topic'}
-                </button>
-              </div>
+            {/* Topic Status */}
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic Status</label>
+              <select 
+                name="ml_status" 
+                value={formData.ml_status} 
+                onChange={handleChange} 
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+              >
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+            </div>
 
-            </form>
-          </div>
+            {/* Action Buttons */}
+            <div className="flex gap-4 mt-6">
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="bg-[#3b82f6] hover:bg-blue-600 text-white py-2.5 rounded-lg text-sm font-bold transition-colors flex-1 shadow-sm disabled:opacity-50"
+              >
+                {loading ? 'Submitting...' : 'Submit'}
+              </button>
+              <button 
+                type="button" 
+                onClick={() => navigate(-1)}
+                className="bg-[#ea580c] hover:bg-orange-600 text-white py-2.5 rounded-lg text-sm font-bold transition-colors flex-1 shadow-sm"
+              >
+                Cancel
+              </button>
+            </div>
+
+          </form>
         </div>
       </div>
     </div>

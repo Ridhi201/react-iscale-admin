@@ -212,7 +212,7 @@ export default function EventCategoryList() {
                     const icon = getField(row, ['m_ec_icon', 'm_event_category_icon', 'icon']);
                     const banner = getField(row, ['m_ec_banner', 'm_event_category_banner', 'banner']);
                     const statusStr = getField(row, ['m_ec_status', 'm_event_category_status', 'status']);
-                    const status = statusStr !== '-' ? String(statusStr) : 'Active';
+                    const status = statusStr !== '-' ? String(statusStr) : '1';
                     const sno = indexOfFirstEntry + index + 1;
 
                     return (

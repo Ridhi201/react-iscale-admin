@@ -11,9 +11,17 @@ export default function EditEventCategory() {
   const { id } = useParams()
   const categoryData = location.state?.categoryData || {}
 
+  const getInitialStatus = () => {
+    const statusVal = categoryData.m_ec_status !== undefined ? categoryData.m_ec_status : (categoryData.m_event_category_status !== undefined ? categoryData.m_event_category_status : categoryData.status);
+    if (statusVal === undefined || statusVal === null) return 1;
+    const strVal = String(statusVal).toLowerCase();
+    if (strVal === 'active' || strVal === '1' || strVal === 'true') return 1;
+    return 0;
+  }
+
   const [formData, setFormData] = useState({
     m_event_category_name: categoryData.m_ec_title || categoryData.m_event_category_name || categoryData.name || categoryData.title || categoryData.categoryName || '',
-    m_event_category_status: (categoryData.m_ec_status && categoryData.m_ec_status.toLowerCase() === 'active') ? 'Active' : (categoryData.m_ec_status && categoryData.m_ec_status.toLowerCase() === 'inactive') ? 'In-Active' : categoryData.m_event_category_status || categoryData.status || 'Active',
+    m_event_category_status: getInitialStatus(),
     m_event_category_keyword: categoryData.m_ec_keyword || categoryData.m_event_category_keyword || categoryData.keyword || '',
     m_event_category_order: categoryData.m_ec_order || categoryData.m_event_category_order || categoryData.order || '',
     m_event_category_description: categoryData.m_ec_desc || categoryData.m_event_category_description || categoryData.description || ''
@@ -24,7 +32,10 @@ export default function EditEventCategory() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'm_event_category_status' ? Number(value) : value
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -38,7 +49,12 @@ export default function EditEventCategory() {
       const token = localStorage.getItem('token');
       const data = new FormData();
       data.append('m_ec_title', formData.m_event_category_name);
-      data.append('m_ec_status', formData.m_event_category_status === 'Active' ? 'active' : 'inactive');
+      data.append('m_ec_status', Number(formData.m_event_category_status));
+      
+      // Print payload for debugging
+      for (const pair of data.entries()) {
+        console.log(pair[0], pair[1]);
+      }
       
       // The backend doesn't explicitly require these in the docs, but we pass them safely
       if (formData.m_event_category_keyword) data.append('m_ec_keyword', formData.m_event_category_keyword);
@@ -122,9 +138,8 @@ export default function EditEventCategory() {
             <div>
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Category Status</label>
               <select name="m_event_category_status" value={formData.m_event_category_status} onChange={handleChange} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e] text-slate-800 dark:text-slate-200">
-                <option value="Active">Active</option>
-                <option value="In-Active">In-Active</option>
-                <option value="Inactive">Inactive</option>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
               </select>
             </div>
             <div>
