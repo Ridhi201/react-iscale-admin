@@ -16,7 +16,7 @@ export default function NewsList() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await axios.get(`${BASE_URL}/myadmin/news&updates/all-news&updates`, {
+      const response = await axios.get(`${BASE_URL}/myadmin/news_updates/all`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {
@@ -40,7 +40,7 @@ export default function NewsList() {
     if (!await window.customConfirm('Are you sure you want to delete this News/Update?')) return
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.delete(`${BASE_URL}/myadmin/news&updates/delete-news&updates/${id}`, {
+      const response = await axios.delete(`${BASE_URL}/myadmin/news_updates/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
         data: {}
       })
@@ -59,7 +59,7 @@ export default function NewsList() {
   const handleToggleStatus = async (id) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.put(`${BASE_URL}/myadmin/news&updates/status/${id}`, {}, {
+      const response = await axios.patch(`${BASE_URL}/myadmin/news_updates/status/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status) {

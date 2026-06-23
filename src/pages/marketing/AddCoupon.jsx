@@ -9,7 +9,7 @@ export default function AddCoupon() {
   const [formData, setFormData] = useState({
     m_coupon_code: '',
     m_coupon_title: '',
-    m_coupon_type: 'Course',
+    m_coupon_type: '1',
     m_coupon_discount_type: 'Flat',
     m_coupon_discount: '',
     m_coupon_start_date: '',
@@ -27,6 +27,7 @@ export default function AddCoupon() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     if (!formData.m_coupon_code || !formData.m_coupon_title) {
       await window.customAlert("Coupon Code and Title are required");
       return;
@@ -38,14 +39,15 @@ export default function AddCoupon() {
       const payload = {
         coupon_code: formData.m_coupon_code,
         coupon_title: formData.m_coupon_title,
-        coupon_type: formData.m_coupon_type.toLowerCase(),
+        coupon_type: Number(formData.m_coupon_type),
         coupon_discount_type: formData.m_coupon_discount_type.toLowerCase(),
         coupon_discount: Number(formData.m_coupon_discount) || 0,
         coupon_start_date: formData.m_coupon_start_date ? new Date(formData.m_coupon_start_date).toISOString() : null,
         coupon_end_date: formData.m_coupon_end_date ? new Date(formData.m_coupon_end_date).toISOString() : null,
         total_coupon: Number(formData.m_coupon_total) || 0,
         coupon_visible: formData.m_coupon_is_visible === '1' ? 'yes' : 'no',
-        coupon_status: formData.m_coupon_status === '1' ? 'active' : 'inactive'
+        coupon_status: Number(formData.m_coupon_status),
+        coupon_details: formData.m_coupon_details || ''
       };
 
       const res = await axios.post(`${BASE_URL}/myadmin/coupons/add`, payload, {
@@ -116,14 +118,16 @@ export default function AddCoupon() {
             </div>
             <div className="lg:col-span-2">
               <label className="block text-sm font-bold text-slate-800 mb-1">Coupon Type</label>
-              <input 
-                type="text" 
+              <select 
                 name="m_coupon_type"
                 value={formData.m_coupon_type}
                 onChange={handleChange}
-                placeholder="e.g. notes, courses, events"
                 className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-[#f6f6ff] text-slate-700"
-              />
+              >
+                <option value="1">Course</option>
+                <option value="2">Notes</option>
+                <option value="3">Test Series</option>
+              </select>
             </div>
           </div>
 

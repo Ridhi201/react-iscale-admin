@@ -23,7 +23,7 @@ export default function EditNews() {
     const fetchNews = async () => {
       try {
         const token = localStorage.getItem('token')
-        const response = await axios.get(`${BASE_URL}/myadmin/news&updates/single-news&updates/${id}`, {
+        const response = await axios.get(`${BASE_URL}/myadmin/news_updates/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (response.data?.status && response.data.data) {
@@ -62,6 +62,7 @@ export default function EditNews() {
   }
 
   const handleSubmit = async () => {
+    if (loading) return
     if (!formData.m_news_title) {
       await window.customAlert('Title is required')
       return
@@ -84,7 +85,7 @@ export default function EditNews() {
       setLoading(true)
       setBackendError(null)
       const token = localStorage.getItem('token')
-      const response = await axios.put(`${BASE_URL}/myadmin/news&updates/update-news&updates/${id}`, submitData, {
+      const response = await axios.put(`${BASE_URL}/myadmin/news_updates/update/${id}`, submitData, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.data?.status || response.data?.msg === 'Updated') {
@@ -95,12 +96,16 @@ export default function EditNews() {
       }
     } catch (err) {
       console.error(err)
-      setBackendError(
-        err.response?.data?.message || 
+      let errMsg = err.response?.data?.message || 
         err.response?.data?.msg || 
         err.message || 
-        'Unknown error occurred while updating News'
-      )
+        'Unknown error occurred while updating News';
+        
+      if (errMsg.includes('E11000 duplicate key error') && errMsg.includes('m_news_slug')) {
+        errMsg = 'A news item with this title already exists. Please choose a unique title.';
+      }
+      
+      setBackendError(errMsg)
     } finally {
       setLoading(false)
     }

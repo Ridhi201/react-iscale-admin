@@ -125,12 +125,21 @@ export default function CouponsList() {
     return '-'
   }
 
+  const getCouponTypeLabel = (typeVal) => {
+    const mapping = {
+      '1': 'Course',
+      '2': 'Notes',
+      '3': 'Test Series'
+    };
+    return mapping[String(typeVal)] || typeVal || '-';
+  };
+
   const filteredData = data.filter((row) => {
     if (!searchTerm) return true;
     
     const code = row.coupon_code || '';
     const title = row.coupon_title || '';
-    const type = row.coupon_type || '';
+    const type = getCouponTypeLabel(row.coupon_type);
     
     const searchLower = searchTerm.toLowerCase();
     
@@ -230,7 +239,7 @@ export default function CouponsList() {
                     const sno = indexOfFirstEntry + index + 1;
                     const code = row.coupon_code || '-';
                     const title = row.coupon_title || '-';
-                    const type = row.coupon_type || '-';
+                    const type = getCouponTypeLabel(row.coupon_type);
                     const discountType = row.coupon_discount_type || 'flat';
                     const discount = row.coupon_discount || 0;
                     const startDate = row.coupon_start_date || '-';
@@ -240,8 +249,8 @@ export default function CouponsList() {
                     const isVisibleStr = row.coupon_visible || 'yes';
                     const statusStr = row.coupon_status || 'active';
                     
-                    const isVisible = String(isVisibleStr).toLowerCase() === 'yes' || String(isVisibleStr).toLowerCase() === 'true' || isVisibleStr === 1;
-                    const isActive = String(statusStr).toLowerCase() === 'active' || String(statusStr).toLowerCase() === 'true' || statusStr === 1;
+                    const isVisible = String(isVisibleStr).toLowerCase() === 'yes' || String(isVisibleStr).toLowerCase() === 'true' || isVisibleStr === 1 || String(isVisibleStr) === '1';
+                    const isActive = String(statusStr).toLowerCase() === 'active' || String(statusStr).toLowerCase() === 'true' || statusStr === 1 || String(statusStr) === '1';
 
                     return (
                       <tr key={id} className="border-b border-slate-200 hover:bg-slate-50 bg-[#f6f6ff] transition-colors">

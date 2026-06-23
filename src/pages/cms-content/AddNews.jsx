@@ -19,6 +19,7 @@ export default function AddNews() {
   }
 
   const handleSubmit = async () => {
+    if (loading) return
     if (!formData.m_news_title) {
       await window.customAlert('Title is required')
       return
@@ -54,12 +55,16 @@ export default function AddNews() {
       }
     } catch (err) {
       console.error(err)
-      setBackendError(
-        err.response?.data?.message || 
+      let errMsg = err.response?.data?.message || 
         err.response?.data?.msg || 
         err.message || 
-        'Unknown error occurred while adding News & Updates'
-      )
+        'Unknown error occurred while adding News & Updates';
+        
+      if (errMsg.includes('E11000 duplicate key error') && errMsg.includes('m_news_slug')) {
+        errMsg = 'A news item with this title already exists. Please choose a unique title or check if it has already been added.';
+      }
+      
+      setBackendError(errMsg)
     } finally {
       setLoading(false)
     }
