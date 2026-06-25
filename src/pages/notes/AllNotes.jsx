@@ -19,7 +19,7 @@ export default function AllNotes() {
 
   const fetchNotes = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/notes/all?limit=1000`, {
         headers: { Authorization: `Bearer ${token}` }

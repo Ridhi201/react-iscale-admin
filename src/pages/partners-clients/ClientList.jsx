@@ -23,7 +23,7 @@ export default function ClientList() {
 
   const fetchData = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const params = {
         page: currentPage,

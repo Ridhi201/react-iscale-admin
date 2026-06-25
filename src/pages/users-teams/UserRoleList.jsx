@@ -24,7 +24,7 @@ export default function UserRoleList() {
 
   const fetchUsers = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/auth/all`, {
         headers: { Authorization: `Bearer ${token}` }

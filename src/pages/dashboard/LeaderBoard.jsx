@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { allLeaderBoardData } from '../../utils/mockData'
 import { Calendar, Trash2 } from 'lucide-react'
+import ThemeButton from '../../components/common/ThemeButton'
+import CardHeader from '../../components/ui/CardHeader'
 
 const ENTRIES_PER_PAGE = 10
 const TOTAL_ENTRIES = allLeaderBoardData.length
@@ -41,9 +43,7 @@ export default function LeaderBoard() {
   return (
     <div className="h-full animate-fade-in-up">
       {/* Title Card */}
-           <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-4 mb-5">
-        <h2 className="text-indigo-900 dark:text-indigo-300 font-bold tracking-tight text-xl font-medium">Test Series Leader Board</h2>
-      </div>
+      <CardHeader title="Test Series Leader Board" className="rounded-2xl mb-5" />
 
       {/* Filters Card */}
            <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-5 mb-5">
@@ -86,10 +86,10 @@ export default function LeaderBoard() {
           </div>
           {/* Buttons */}
           <div className="flex-none flex gap-2 h-[38px] w-full md:w-auto mt-7">
-            <button className="btn-glossy-blue">Search</button>
-            <button className="btn-glossy-teal">Filter</button>
-            <button className="btn-glossy-purple">Reset</button>
-            <button className="btn-glossy-royalblue">Export</button>
+            <ThemeButton variant="solid-green">Search</ThemeButton>
+            <ThemeButton variant="solid-green">Filter</ThemeButton>
+            <ThemeButton variant="outline-green">Reset</ThemeButton>
+            <ThemeButton variant="outline-green">Export</ThemeButton>
           </div>
           {/* Export Button */}
           </div>

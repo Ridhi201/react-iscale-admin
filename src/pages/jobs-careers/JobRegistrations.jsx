@@ -25,20 +25,25 @@ export default function JobRegistrations() {
   const [selectedReg, setSelectedReg] = useState(null)
   const [loadingModal, setLoadingModal] = useState(false)
 
+  const isValidObjectId = (id) => {
+    return /^[0-9a-fA-F]{24}$/.test(id);
+  }
+
   const fetchData = async (overrideFilters = null, page = currentPage) => {
-    setLoading(true)
+    setLoading(true); setTimeout(() => setLoading(false), 2000)
     try {
       const token = localStorage.getItem('token')
       const activeFilters = overrideFilters || filters
+      const isJobIdValid = isValidObjectId(activeFilters.job_id)
       
       const queryParams = new URLSearchParams({
         page: page,
         limit: entriesPerPage,
         search: activeFilters.search,
-        job_id: activeFilters.job_id,
         company_name: activeFilters.company_name,
         from_date: activeFilters.from_date,
-        to_date: activeFilters.to_date
+        to_date: activeFilters.to_date,
+        ...(isJobIdValid && { job_id: activeFilters.job_id })
       }).toString()
 
       const response = await axios.get(`${BASE_URL}/myadmin/registrations/job-applications?${queryParams}`, {
@@ -46,7 +51,22 @@ export default function JobRegistrations() {
       })
 
       if (response.data.status) {
-        setData(response.data.data || [])
+        let rawData = response.data.data || []
+
+        // If job_id filter is specified but is NOT a valid ObjectId, we filter client-side by job_title / ID
+        if (activeFilters.job_id && !isJobIdValid) {
+          const searchVal = activeFilters.job_id.toLowerCase().trim()
+          rawData = rawData.filter(row => {
+            const jobTitle = row.job_id?.job_title || ''
+            const jobId = row.job_id?._id || ''
+            const jobCode = row.job_id?.job_code || ''
+            return jobTitle.toLowerCase().includes(searchVal) || 
+                   jobId.toLowerCase().includes(searchVal) ||
+                   jobCode.toLowerCase().includes(searchVal)
+          })
+        }
+
+        setData(rawData)
         setTotalPages(response.data.total_pages || 1)
         setTotalEntries(response.data.total_records || 0)
       }
@@ -194,7 +214,7 @@ export default function JobRegistrations() {
               type="date" 
               value={filters.from_date}
               onChange={(e) => setFilters({...filters, from_date: e.target.value})}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" 
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] text-slate-500" 
             />
           </div>
           <div className="w-full">
@@ -203,7 +223,7 @@ export default function JobRegistrations() {
               type="date" 
               value={filters.to_date}
               onChange={(e) => setFilters({...filters, to_date: e.target.value})}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" 
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] text-slate-500" 
             />
           </div>
           <div className="w-full">
@@ -213,7 +233,7 @@ export default function JobRegistrations() {
               placeholder="Search by job ID or Title..." 
               value={filters.job_id}
               onChange={(e) => setFilters({...filters, job_id: e.target.value})}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" 
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" 
             />
           </div>
           <div className="w-full">
@@ -223,7 +243,7 @@ export default function JobRegistrations() {
               placeholder="Search Company..." 
               value={filters.company_name}
               onChange={(e) => setFilters({...filters, company_name: e.target.value})}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" 
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" 
             />
           </div>
           <div className="w-full">
@@ -233,7 +253,7 @@ export default function JobRegistrations() {
               placeholder="Search Name/Email..." 
               value={filters.search}
               onChange={(e) => setFilters({...filters, search: e.target.value})}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" 
+              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" 
             />
           </div>
           <div className="flex gap-2 w-full">

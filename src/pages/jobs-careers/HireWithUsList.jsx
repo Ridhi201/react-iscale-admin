@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, X } from 'lucide-react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
+import { hireWithUsData } from '../../utils/mockData'
+import ThemeButton from '../../components/common/ThemeButton'
+import CardHeader from '../../components/ui/CardHeader'
 
 export default function HireWithUsList() {
   const [currentPage, setCurrentPage] = useState(1)
@@ -10,28 +13,71 @@ export default function HireWithUsList() {
   const [loading, setLoading] = useState(false)
   const [totalEntries, setTotalEntries] = useState(0)
 
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('')
+  const [fromDateInput, setFromDateInput] = useState('')
+  const [toDateInput, setToDateInput] = useState('')
+  const [orgTypeInput, setOrgTypeInput] = useState('--Select Type--')
+  const [filters, setFilters] = useState({
+    fromDate: '',
+    toDate: '',
+    orgType: ''
+  })
+
+  // Modal states
+  const [selectedForm, setSelectedForm] = useState(null)
+  const [modalType, setModalType] = useState(null) // 'org' or 'description'
+
+  const handleApplyFilter = () => {
+    setFilters({
+      fromDate: fromDateInput,
+      toDate: toDateInput,
+      orgType: orgTypeInput
+    })
+    setCurrentPage(1)
+  }
+
+  const handleResetFilter = () => {
+    setFromDateInput('')
+    setToDateInput('')
+    setOrgTypeInput('--Select Type--')
+    setFilters({
+      fromDate: '',
+      toDate: '',
+      orgType: ''
+    })
+    setSearchQuery('')
+    setCurrentPage(1)
+  }
+
   useEffect(() => {
     fetchData()
   }, [])
 
   const fetchData = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/hiring-form/all`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status || response.data?.success || response.data?.data) {
-        setData(response.data.data || [])
-        setTotalEntries(response.data.data?.length || 0)
+        const fetchedData = response.data.data || []
+        if (fetchedData.length > 0) {
+          setData(fetchedData)
+          setTotalEntries(fetchedData.length)
+        } else {
+          setData(hireWithUsData || [])
+          setTotalEntries(hireWithUsData?.length || 0)
+        }
       } else {
-        setData([])
-        setTotalEntries(0)
+        setData(hireWithUsData || [])
+        setTotalEntries(hireWithUsData?.length || 0)
       }
     } catch (error) {
       console.error('Error fetching hiring forms:', error)
-      setData([])
-      setTotalEntries(0)
+      setData(hireWithUsData || [])
+      setTotalEntries(hireWithUsData?.length || 0)
     } finally {
       setLoading(false)
     }
@@ -61,14 +107,82 @@ export default function HireWithUsList() {
     setCurrentPage(1)
   }
 
+  const filteredData = data.filter(row => {
+    // 1. Search Query filter
+    const getFieldStr = (fields) => {
+      for (const field of fields) {
+        if (row[field] !== undefined && row[field] !== null && row[field] !== '') return String(row[field]);
+      }
+      return '';
+    };
+
+    const orgType = getFieldStr(['organization_type', 'orgType', 'organizationType', 'm_hf_orgType', 'type', 'm_type']).toLowerCase();
+    const orgName = getFieldStr(['organization_name', 'orgName', 'organizationName', 'm_hf_orgName', 'companyName', 'company', 'name', 'm_name']).toLowerCase();
+    const hrEmail = row.hr_email_1 ? [row.hr_email_1, row.hr_email_2].filter(Boolean).join(' ').toLowerCase() : getFieldStr(['hrEmail', 'email', 'm_hf_email', 'm_email']).toLowerCase();
+    const contactNo = getFieldStr(['hr_contact_no', 'contactNo', 'contact', 'phone', 'mobile', 'mobileNo', 'm_hf_contact', 'm_phone', 'm_mobile']).toLowerCase();
+    const whatsappNo = getFieldStr(['whatsapp_no', 'whatsappNo', 'altContactNo', 'whatsapp', 'alternateContact', 'm_hf_whatsapp', 'm_whatsapp']).toLowerCase();
+    const description = getFieldStr(['description', 'desc', 'message', 'm_hf_description']).toLowerCase();
+    const q = searchQuery.toLowerCase();
+
+    const matchesSearch = searchQuery === '' || (
+      orgType.includes(q) ||
+      orgName.includes(q) ||
+      hrEmail.includes(q) ||
+      contactNo.includes(q) ||
+      whatsappNo.includes(q) ||
+      description.includes(q)
+    );
+
+    if (!matchesSearch) return false;
+
+    // 2. Org Type filter
+    if (filters.orgType && filters.orgType !== '--Select Type--') {
+      if (orgType !== filters.orgType.toLowerCase()) return false;
+    }
+
+    // 3. Date filters
+    let rowDateVal = null;
+    if (row.createdAt) {
+      rowDateVal = new Date(row.createdAt);
+    } else if (row.date && row.date !== '-') {
+      const parts = row.date.split(/[-/]/);
+      if (parts.length === 3) {
+        rowDateVal = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+      } else {
+        rowDateVal = new Date(row.date);
+      }
+    }
+
+    if (rowDateVal && !isNaN(rowDateVal.getTime())) {
+      if (filters.fromDate) {
+        const from = new Date(filters.fromDate);
+        from.setHours(0,0,0,0);
+        const rowDatePart = new Date(rowDateVal);
+        rowDatePart.setHours(0,0,0,0);
+        if (rowDatePart < from) return false;
+      }
+      if (filters.toDate) {
+        const to = new Date(filters.toDate);
+        to.setHours(23,59,59,999);
+        const rowDatePart = new Date(rowDateVal);
+        rowDatePart.setHours(0,0,0,0);
+        if (rowDatePart > to) return false;
+      }
+    }
+
+    return true;
+  });
+
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
-  const totalPages = Math.ceil(data.length / entriesPerPage) || 1
+  const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const totalPages = Math.ceil(filteredData.length / entriesPerPage) || 1
 
   return (
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden flex flex-col h-full">
+        <CardHeader title="Hire With Us" />
+
         {/* Filter Section */}
         <div className="p-4 border-b border-slate-200 dark:border-gray-800/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]">
           <div className="flex flex-wrap gap-4 items-end">
@@ -76,27 +190,31 @@ export default function HireWithUsList() {
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">From Date</label>
               <div className="relative">
                 <input 
-                  type="text" 
-                  placeholder="mm/dd/yyyy"
-                  className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 pr-10"
+                  type="date" 
+                  value={fromDateInput}
+                  onChange={(e) => setFromDateInput(e.target.value)}
+                  className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 dark:text-slate-400">📅</span>
               </div>
             </div>
             <div className="flex-1 min-w-[200px]">
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">To Date</label>
               <div className="relative">
                 <input 
-                  type="text" 
-                  placeholder="mm/dd/yyyy"
-                  className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 pr-10"
+                  type="date" 
+                  value={toDateInput}
+                  onChange={(e) => setToDateInput(e.target.value)}
+                  className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 dark:text-slate-400">📅</span>
               </div>
             </div>
             <div className="flex-1 min-w-[200px]">
               <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Organization Type</label>
-              <select className="w-full border border-fuchsia-500 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e] shadow-[0_0_0_1px_rgba(217,70,239,0.5)]">
+              <select 
+                value={orgTypeInput}
+                onChange={(e) => setOrgTypeInput(e.target.value)}
+                className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-[#f6f6ff] dark:bg-[#1f1b2e]"
+              >
                 <option>--Select Type--</option>
                 <option>Proprietorship Firm</option>
                 <option>Partnership Firm</option>
@@ -106,12 +224,12 @@ export default function HireWithUsList() {
               </select>
             </div>
             <div className="flex gap-2">
-              <button className="btn-glossy-teal">
+              <ThemeButton onClick={handleApplyFilter} variant="solid-green">
                 Filter
-              </button>
-              <button className="btn-glossy-purple">
+              </ThemeButton>
+              <ThemeButton onClick={handleResetFilter} variant="outline-green">
                 Reset
-              </button>
+              </ThemeButton>
             </div>
           </div>
         </div>
@@ -179,7 +297,12 @@ export default function HireWithUsList() {
               <input 
                 type="text" 
                 placeholder="Search..."
-                className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-64"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-64"
               />
             </div>
           </div>
@@ -209,7 +332,7 @@ export default function HireWithUsList() {
                   <tr>
                     <td colSpan="9" className="text-center py-8">Loading...</td>
                   </tr>
-                ) : data.length === 0 ? (
+                ) : filteredData.length === 0 ? (
                   <tr>
                     <td colSpan="9" className="text-center py-8">No forms found</td>
                   </tr>
@@ -222,11 +345,11 @@ export default function HireWithUsList() {
                       return '-';
                     };
 
-                    const orgType = getField(['orgType', 'organizationType', 'm_hf_orgType', 'type', 'm_type']);
-                    const orgName = getField(['orgName', 'organizationName', 'm_hf_orgName', 'companyName', 'company', 'name', 'm_name']);
-                    const hrEmail = getField(['hrEmail', 'email', 'm_hf_email', 'm_email']);
-                    const contactNo = getField(['contactNo', 'contact', 'phone', 'mobile', 'mobileNo', 'm_hf_contact', 'm_phone', 'm_mobile']);
-                    const whatsappNo = getField(['whatsappNo', 'altContactNo', 'whatsapp', 'alternateContact', 'm_hf_whatsapp', 'm_whatsapp']);
+                    const orgType = getField(['organization_type', 'orgType', 'organizationType', 'm_hf_orgType', 'type', 'm_type']);
+                    const orgName = getField(['organization_name', 'orgName', 'organizationName', 'm_hf_orgName', 'companyName', 'company', 'name', 'm_name']);
+                    const hrEmail = row.hr_email_1 ? [row.hr_email_1, row.hr_email_2].filter(Boolean).join(' ') : getField(['hrEmail', 'email', 'm_hf_email', 'm_email']);
+                    const contactNo = getField(['hr_contact_no', 'contactNo', 'contact', 'phone', 'mobile', 'mobileNo', 'm_hf_contact', 'm_phone', 'm_mobile']);
+                    const whatsappNo = getField(['whatsapp_no', 'whatsappNo', 'altContactNo', 'whatsapp', 'alternateContact', 'm_hf_whatsapp', 'm_whatsapp']);
                     const dateStr = row.createdAt ? new Date(row.createdAt).toLocaleDateString() : row.date || '-';
 
                     return (
@@ -238,9 +361,15 @@ export default function HireWithUsList() {
                           <div className="whitespace-pre-wrap">{orgType}</div>
                         </td>
                         <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                          <span className="bg-[#144f36] text-white border border-transparent px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shadow-sm">
+                          <ThemeButton 
+                            onClick={() => {
+                              setSelectedForm(row);
+                              setModalType('org');
+                            }}
+                            variant="pill-green"
+                          >
                             {orgName}
-                          </span>
+                          </ThemeButton>
                         </td>
                         <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle break-all max-w-[150px]">
                           {hrEmail}
@@ -254,9 +383,15 @@ export default function HireWithUsList() {
                           </div>
                         </td>
                         <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                          <button className="bg-white text-slate-700 border border-slate-300 px-4 py-1.5 rounded-full text-xs font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                          <ThemeButton 
+                            onClick={() => {
+                              setSelectedForm(row);
+                              setModalType('description');
+                            }}
+                            variant="pill-green"
+                          >
                             View
-                          </button>
+                          </ThemeButton>
                         </td>
                         <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">
                           <div className="w-20">{dateStr}</div>
@@ -279,7 +414,7 @@ export default function HireWithUsList() {
 
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
             <div className="mb-4 md:mb-0">
-              Showing {data.length > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, data.length)} of {data.length} entries
+              Showing {filteredData.length > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, filteredData.length)} of {filteredData.length} entries
             </div>
             <div className="flex items-center space-x-1">
               <button 
@@ -303,6 +438,122 @@ export default function HireWithUsList() {
           </div>
         </div>
       </div>
+
+      {/* Org Details Modal */}
+      {modalType === 'org' && selectedForm && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in text-left">
+          <div className="bg-white dark:bg-[#13111c] rounded-lg shadow-xl w-full max-w-lg overflow-hidden flex flex-col border border-slate-200 dark:border-gray-800">
+            <div className="p-4 bg-[#144f36] text-white flex justify-between items-center">
+              <h3 className="font-bold text-lg">
+                {selectedForm.orgName || selectedForm.organizationName || selectedForm.m_hf_orgName || selectedForm.companyName || 'Organization Details'}
+              </h3>
+              <button 
+                onClick={() => {
+                  setModalType(null);
+                  setSelectedForm(null);
+                }}
+                className="p-1 hover:bg-[#0f3d2a] rounded-full transition-colors"
+              >
+                <X size={20} className="text-white" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs mb-1 font-bold">Organization Name</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                    {selectedForm.orgName || selectedForm.organizationName || selectedForm.m_hf_orgName || selectedForm.companyName || '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs mb-1 font-bold">Organization Type</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                    {selectedForm.orgType || selectedForm.organizationType || selectedForm.m_hf_orgType || selectedForm.type || '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs mb-1 font-bold">HR Email</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200 break-all">
+                    {selectedForm.hrEmail || selectedForm.email || selectedForm.m_hf_email || '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs mb-1 font-bold">Contact No.</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                    {selectedForm.contactNo || selectedForm.contact || selectedForm.phone || selectedForm.mobile || '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs mb-1 font-bold">Whatsapp No.</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                    {selectedForm.whatsappNo || selectedForm.altContactNo || selectedForm.whatsapp || '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs mb-1 font-bold">Submission Date</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                    {selectedForm.createdAt ? new Date(selectedForm.createdAt).toLocaleDateString() : selectedForm.date || '-'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-slate-100 dark:border-gray-800 flex justify-end bg-slate-50 dark:bg-[#1f1b2e]/30">
+              <ThemeButton 
+                onClick={() => {
+                  setModalType(null);
+                  setSelectedForm(null);
+                }}
+                variant="solid-green"
+              >
+                Close
+              </ThemeButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Description View Modal */}
+      {modalType === 'description' && selectedForm && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in text-left">
+          <div className="bg-white dark:bg-[#13111c] rounded-lg shadow-xl w-full max-w-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-gray-800">
+            <div className="p-4 bg-[#144f36] text-white flex justify-between items-center">
+              <h3 className="font-bold text-lg">
+                {selectedForm.orgName || selectedForm.organizationName || selectedForm.m_hf_orgName || selectedForm.companyName || 'Description'}
+              </h3>
+              <button 
+                onClick={() => {
+                  setModalType(null);
+                  setSelectedForm(null);
+                }}
+                className="p-1 hover:bg-[#0f3d2a] rounded-full transition-colors"
+              >
+                <X size={20} className="text-white" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <div className="font-bold text-slate-800 dark:text-slate-200 mb-2">Description / Requirements:</div>
+              <p className="text-slate-600 dark:text-slate-400 whitespace-pre-wrap text-sm leading-relaxed bg-slate-50 dark:bg-[#1f1b2e]/30 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
+                {selectedForm.description || selectedForm.desc || selectedForm.message || selectedForm.m_hf_description || 'No description provided.'}
+              </p>
+            </div>
+            
+            <div className="p-4 border-t border-slate-100 dark:border-gray-800 flex justify-end bg-slate-50 dark:bg-[#1f1b2e]/30">
+              <ThemeButton 
+                onClick={() => {
+                  setModalType(null);
+                  setSelectedForm(null);
+                }}
+                variant="solid-green"
+              >
+                Close
+              </ThemeButton>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

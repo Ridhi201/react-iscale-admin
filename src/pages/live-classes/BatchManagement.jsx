@@ -67,7 +67,7 @@ export default function BatchManagement() {
   }
 
   const fetchBatches = async () => {
-    setLoading(true)
+    setLoading(true); setTimeout(() => setLoading(false), 2000)
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/batch/all`, {

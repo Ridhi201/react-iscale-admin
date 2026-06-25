@@ -25,7 +25,9 @@ export default function AddCourseTopic() {
     ml_type: editTopic?.ml_type || '',
     ml_stype: editTopic?.ml_stype || 'Topic',
     ml_video_id: editTopic?.ml_video_id || '',
-    ml_status: editTopic?.ml_status !== undefined ? editTopic.ml_status.toString() : '1',
+    ml_status: editTopic?.ml_status !== undefined ? (
+      (editTopic.ml_status === 0 || editTopic.ml_status === "0" || editTopic.ml_status === false || editTopic.ml_status === "false" || String(editTopic.ml_status).toLowerCase() === "inactive") ? "0" : "1"
+    ) : '1',
     ml_hours: editTopic?.ml_hours || '00',
     ml_minutes: editTopic?.ml_minutes || '00',
     ml_seconds: editTopic?.ml_seconds || '00',
@@ -69,7 +71,7 @@ export default function AddCourseTopic() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
+    setLoading(true); setTimeout(() => setLoading(false), 2000)
 
     try {
       if (!isEditing && !formData.ml_subject) {
@@ -101,7 +103,9 @@ export default function AddCourseTopic() {
       if (formData.ml_pdffile) {
         payload.append('ml_pdffile', formData.ml_pdffile);
       }
-      payload.append('ml_status', formData.ml_status ? String(formData.ml_status) : '0')
+      const rawStatus = (formData.ml_status === "1" || formData.ml_status === 1) ? "1" : "0";
+      payload.append('ml_status', rawStatus);
+      payload.append('status', rawStatus);
       
       if (!isEditing) {
         payload.append('ml_subject', formData.ml_subject || '')
@@ -150,25 +154,29 @@ export default function AddCourseTopic() {
 
   return (
     <div className="min-h-screen bg-[#eaf3f8] p-4 sm:p-6 font-sans">
-      <div className="bg-white rounded-2xl shadow-md border border-slate-100 max-w-4xl mx-auto overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-md border border-slate-100 w-full overflow-hidden flex flex-col">
         
         {/* Header */}
-        <div className="bg-white p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200">
-          <div>
-            <h2 className="text-[#1e293b] font-bold text-2xl">
+        <div className="bg-[#144f36] rounded-t-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-md relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all duration-700 pointer-events-none"></div>
+          
+          <div className="flex items-center relative z-10">
+            <div className="w-1.5 h-7 bg-white rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
               {isEditing ? 'Edit Topic' : 'Add New Topic'}
             </h2>
           </div>
           
-          <div className="flex flex-wrap items-center gap-6 mt-3 sm:mt-0 text-sm text-[#475569]">
+          <div className="flex flex-wrap items-center gap-6 mt-3 sm:mt-0 text-sm text-white/90 relative z-10">
             <div>
-              <span className="font-semibold text-[#1e293b]">Category :</span>{' '}
-              <span className="text-[#475569]">{location.state?.categoryTitle || 'Cohort Courses'}</span>
+              <span className="font-semibold text-white/70">Category :</span>{' '}
+              <span className="text-white font-medium">{location.state?.categoryTitle || 'Cohort Courses'}</span>
             </div>
             {location.state?.courseTitle && (
               <div>
-                <span className="font-semibold text-[#1e293b]">Course :</span>{' '}
-                <span className="text-[#475569]">{location.state.courseTitle}</span>
+                <span className="font-semibold text-white/70">Course :</span>{' '}
+                <span className="text-white font-medium">{location.state.courseTitle}</span>
               </div>
             )}
           </div>
@@ -185,7 +193,7 @@ export default function AddCourseTopic() {
                 name="ml_subject"
                 value={formData.ml_subject}
                 onChange={handleChange}
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
                 disabled={isEditing}
               >
                 <option value="">Select Subject</option>
@@ -205,7 +213,7 @@ export default function AddCourseTopic() {
                 name="ml_stype" 
                 value={formData.ml_stype} 
                 onChange={handleChange} 
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
               >
                 <option value="Topic">Topic</option>
               </select>
@@ -222,7 +230,7 @@ export default function AddCourseTopic() {
                     value={formData.ml_hours}
                     onChange={handleChange}
                     placeholder="00"
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
                   />
                 </div>
                 <div>
@@ -233,7 +241,7 @@ export default function AddCourseTopic() {
                     value={formData.ml_minutes}
                     onChange={handleChange}
                     placeholder="00"
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
                   />
                 </div>
                 <div>
@@ -244,7 +252,7 @@ export default function AddCourseTopic() {
                     value={formData.ml_seconds}
                     onChange={handleChange}
                     placeholder="00"
-                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
                   />
                 </div>
               </div>
@@ -259,7 +267,7 @@ export default function AddCourseTopic() {
                 value={formData.ml_title}
                 onChange={handleChange}
                 placeholder="Enter Topic Title" 
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white" 
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white" 
                 required 
               />
             </div>
@@ -273,7 +281,7 @@ export default function AddCourseTopic() {
                 value={formData.ml_code}
                 onChange={handleChange}
                 placeholder="Enter Topic Code" 
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white" 
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white" 
               />
             </div>
 
@@ -286,7 +294,7 @@ export default function AddCourseTopic() {
                   value="YouTube" 
                   checked={formData.ml_video_type === 'YouTube'} 
                   onChange={handleChange} 
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500" 
+                  className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" 
                 />
                 <span>YouTube</span>
               </label>
@@ -297,7 +305,7 @@ export default function AddCourseTopic() {
                   value="VdoCipher" 
                   checked={formData.ml_video_type === 'VdoCipher'} 
                   onChange={handleChange} 
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500" 
+                  className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" 
                 />
                 <span>VdoCipher</span>
               </label>
@@ -310,7 +318,7 @@ export default function AddCourseTopic() {
                 name="ml_type" 
                 value={formData.ml_type} 
                 onChange={handleChange} 
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
               >
                 <option value="">Select Topic Type</option>
                 <option value="1">Video</option>
@@ -327,7 +335,7 @@ export default function AddCourseTopic() {
                 value={formData.ml_video_id}
                 onChange={handleChange}
                 placeholder="Enter Video ID" 
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white" 
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white" 
               />
             </div>
 
@@ -349,7 +357,7 @@ export default function AddCourseTopic() {
                 />
                 <label
                   htmlFor="pdf-upload"
-                  className="w-full bg-[#3b82f6] hover:bg-blue-600 text-white text-center py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors cursor-pointer block"
+                  className="w-full bg-[#144f36] hover:bg-[#0f3d2a] text-white text-center py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors cursor-pointer block"
                 >
                   {formData.ml_pdffile ? formData.ml_pdffile.name : 'Select PDF'}
                 </label>
@@ -363,7 +371,7 @@ export default function AddCourseTopic() {
                 name="ml_status" 
                 value={formData.ml_status} 
                 onChange={handleChange} 
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
@@ -375,7 +383,7 @@ export default function AddCourseTopic() {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="bg-[#3b82f6] hover:bg-blue-600 text-white py-2.5 rounded-lg text-sm font-bold transition-colors flex-1 shadow-sm disabled:opacity-50"
+                className="bg-[#144f36] hover:bg-[#0f3d2a] text-white py-2.5 rounded-lg text-sm font-bold transition-colors flex-1 shadow-sm disabled:opacity-50"
               >
                 {loading ? 'Submitting...' : 'Submit'}
               </button>

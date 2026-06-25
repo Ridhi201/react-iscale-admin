@@ -10,12 +10,18 @@ export default function EditAllied() {
   
   const college = location.state?.college || {}
 
+  const getNormalizedStatus = (status) => {
+    if (status === 'active' || String(status) === '1') return 'active';
+    if (status === 'inactive' || String(status) === '0') return 'inactive';
+    return 'active';
+  }
+
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     m_allied_title: college.m_allied_title || '',
     m_allied_inr: college.m_allied_inr || '',
     m_allied_order: college.m_allied_order || '',
-    m_allied_status: college.m_allied_status || 'active'
+    m_allied_status: getNormalizedStatus(college.m_allied_status)
   })
   const [imageFile, setImageFile] = useState(null)
 
@@ -42,7 +48,7 @@ export default function EditAllied() {
     }
 
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.put(`${BASE_URL}/myadmin/allied/update-allied/${id}`, submitData, {
         headers: { Authorization: `Bearer ${token}` }

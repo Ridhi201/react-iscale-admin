@@ -89,7 +89,7 @@ export default function AddBanner() {
 
   return (
     <div className="h-full animate-fade-in-up">
-      <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden max-w-4xl">
+      <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden">
         <div className="p-4 bg-[#144f36] dark:bg-[#0f3d2a] rounded-t-2xl">
           <h2 className="text-xl font-bold tracking-tight text-white">{isEdit ? 'Edit Banner' : 'Add New Banner'}</h2>
         </div>

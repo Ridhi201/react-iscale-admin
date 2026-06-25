@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 import { getImageUrl } from '../../utils/imageUtils'
+import ThemeButton from '../../components/common/ThemeButton'
+import CardHeader from '../../components/ui/CardHeader'
 export default function AllCourses() {
   const navigate = useNavigate()
   const [courses, setCourses] = useState([])
@@ -48,7 +50,7 @@ const fetchCategoriesDropdown = async () => {
 
   const fetchCourses = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(
         `${BASE_URL}/myadmin/course/all-courses?search=${searchTerm}&limit=${entriesPerPage}&page=${currentPage}&category=${categoryFilter}`,
@@ -144,20 +146,11 @@ const fetchCategoriesDropdown = async () => {
   return (
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden flex flex-col h-full">
-        <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
-          {/* Shiny glow effects */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
-          
-          <div className="flex items-center relative z-10">
-            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">All Courses List</h2>
-          </div>
-          
-          <button onClick={() => navigate('/courses/all/add')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
-            <span>+ Add New Course</span>
-          </button>
-        </div>
+        <CardHeader title="All Courses List">
+          <ThemeButton variant="white-add" onClick={() => navigate('/courses/all/add')}>
+            + Add New Course
+          </ThemeButton>
+        </CardHeader>
 
         <div className="p-4 flex-1 flex flex-col min-h-0">
           <div className="flex flex-col xl:flex-row justify-between xl:items-center mb-4 shrink-0 gap-4">

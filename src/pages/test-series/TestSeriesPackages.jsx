@@ -18,7 +18,7 @@ export default function TestSeriesPackages() {
 
   const fetchPackages = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/test-package/get-all-packages`, {
         headers: { Authorization: `Bearer ${token}` }

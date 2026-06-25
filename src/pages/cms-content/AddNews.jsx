@@ -35,7 +35,7 @@ export default function AddNews() {
     }
 
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       setBackendError(null)
       const token = localStorage.getItem('token')
      const response = await axios.post(

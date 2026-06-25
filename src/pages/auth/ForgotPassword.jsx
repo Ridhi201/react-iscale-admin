@@ -12,7 +12,7 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
+    setLoading(true); setTimeout(() => setLoading(false), 2000)
     setStatus('')
     try {
       await forgotPassword(email)

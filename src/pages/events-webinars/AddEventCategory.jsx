@@ -32,7 +32,7 @@ export default function AddEventCategory() {
       await window.customAlert("Category Name is required");
       return;
     }
-    setLoading(true);
+    setLoading(true); setTimeout(() => setLoading(false), 2000);
     try {
       const token = localStorage.getItem('token');
       const data = new FormData();

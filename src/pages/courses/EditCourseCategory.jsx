@@ -41,10 +41,16 @@ export default function EditCourseCategory() {
         }
 
         if (cat) {
+          const normStatus = (val) => {
+            if (val === 0 || val === "0" || val === "inactive" || val === false || val === "false" || String(val).toLowerCase() === "inactive") {
+              return "0";
+            }
+            return "1";
+          };
           setFormData({
             categoryName: cat.m_category_name || '',
             description: cat.m_category_desc || '',
-            status: cat.m_category_status !== undefined ? cat.m_category_status.toString() : '1',
+            status: normStatus(cat.m_category_status ?? cat.status),
             order: cat.m_category_order ? cat.m_category_order.toString() : '1',
             keywords: cat.m_category_keywords || ''
           })
@@ -74,7 +80,7 @@ export default function EditCourseCategory() {
 
   const handleSubmit = async (e) => {
   e.preventDefault()
-  setLoading(true)
+  setLoading(true); setTimeout(() => setLoading(false), 2000)
 
   try {
     const token = localStorage.getItem('token')
@@ -87,6 +93,7 @@ export default function EditCourseCategory() {
     payload.append('m_category_name', formData.categoryName)
     payload.append('m_category_desc', formData.description)
     payload.append('m_category_status', formData.status)
+    payload.append('status', formData.status)
     payload.append('m_category_order', formData.order)
     payload.append('m_category_keywords', formData.keywords)
 

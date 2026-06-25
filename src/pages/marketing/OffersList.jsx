@@ -14,7 +14,7 @@ export default function OffersList() {
 
   const fetchOffers = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const res = await axios.get(`${BASE_URL}/myadmin/offers/all?page=${currentPage}&limit=${entriesPerPage}`, {
         headers: { Authorization: `Bearer ${token}` }

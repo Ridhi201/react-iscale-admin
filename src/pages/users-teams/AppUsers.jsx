@@ -3,12 +3,16 @@ import { Eye, Edit2, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
+import AppUserDetails from './AppUserDetails'
+import ThemeButton from '../../components/common/ThemeButton'
+import CardHeader from '../../components/ui/CardHeader'
 
 export default function AppUsers() {
   const navigate = useNavigate()
   
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedUserId, setSelectedUserId] = useState(null)
   
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -26,7 +30,7 @@ export default function AppUsers() {
 
   const fetchUsers = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const params = new URLSearchParams({
         page: currentPage,
@@ -152,20 +156,11 @@ export default function AppUsers() {
 
   return (
     <div className="h-full animate-fade-in-up">
-      <div className="bg-[#144f36] rounded-2xl shadow-md border border-white/10 p-5 mb-5 flex justify-between items-center relative overflow-hidden group">
-        {/* Shiny glow effects */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
-        <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
-        
-        <div className="flex items-center relative z-10">
-          <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-          <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">App Users List</h2>
-        </div>
-        
-        <button onClick={handleExport} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
+      <CardHeader title="App Users List" className="rounded-2xl mb-5">
+        <ThemeButton variant="white-add" onClick={handleExport}>
           Export
-        </button>
-      </div>
+        </ThemeButton>
+      </CardHeader>
 
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden flex flex-col">
         {/* Filters */}
@@ -195,8 +190,8 @@ export default function AppUsers() {
             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
           </div>
           <div className="flex gap-2">
-            <button onClick={handleFilter} className="bg-[#144f36] text-white px-5 py-2 rounded text-sm shadow hover:bg-[#0f3d2a] transition-colors">Filter</button>
-            <button onClick={handleReset} className="bg-[#144f36] text-white px-5 py-2 rounded text-sm shadow hover:bg-[#0f3d2a] transition-colors">Reset</button>
+            <ThemeButton onClick={handleFilter} variant="solid-green">Filter</ThemeButton>
+            <ThemeButton onClick={handleReset} variant="outline-green">Reset</ThemeButton>
           </div>
         </div>
 
@@ -236,7 +231,7 @@ export default function AppUsers() {
                       </td>
                       <td className="px-4 py-3 align-middle">
                         <div className="flex gap-1.5">
-                          <button onClick={() => navigate(`/app-users/details/${row._id}`)} className="bg-[#428bca] text-white p-1.5 rounded hover:bg-[#3071a9] transition-colors" title="View Details">
+                          <button onClick={() => setSelectedUserId(row._id)} className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors" title="View Details">
                             <Eye size={14} />
                           </button>
                           <button onClick={() => navigate(`/app-users/edit/${row._id}`)} className="bg-green-600 text-white p-1.5 rounded hover:bg-green-700 transition-colors" title="Edit User">
@@ -289,6 +284,9 @@ export default function AppUsers() {
           )}
         </div>
       </div>
+      {selectedUserId && (
+        <AppUserDetails userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
+      )}
     </div>
   )
 }

@@ -14,6 +14,7 @@ export default function QuizList() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [selectedQuiz, setSelectedQuiz] = useState(null)
 
   useEffect(() => {
     fetchQuizzes()
@@ -21,7 +22,7 @@ export default function QuizList() {
 
   const fetchQuizzes = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/quiz/quiz-by-package/${packageId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -183,7 +184,11 @@ export default function QuizList() {
                     </td>
                     <td className="px-4 py-3 align-middle">
                       <div className="flex gap-1.5">
-                        <button className="bg-[#144f36] text-white p-1.5 rounded-full hover:bg-[#0f3d2a] transition-colors" title="View">
+                        <button 
+                          onClick={() => setSelectedQuiz(row)}
+                          className="bg-[#144f36] text-white p-1.5 rounded-full hover:bg-[#0f3d2a] transition-colors" 
+                          title="View"
+                        >
                           <Eye size={14} />
                         </button>
                         <button
@@ -246,6 +251,161 @@ export default function QuizList() {
             </div>
           </div>
         )}
+      </div>
+      {selectedQuiz && (
+        <QuizDetailsModal 
+          isOpen={!!selectedQuiz} 
+          onClose={() => setSelectedQuiz(null)} 
+          quiz={selectedQuiz} 
+          packageTitle={packageTitle} 
+        />
+      )}
+    </div>
+  )
+}
+
+function QuizDetailsModal({ isOpen, onClose, quiz, packageTitle }) {
+  if (!isOpen || !quiz) return null
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A'
+    try {
+      return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    } catch {
+      return 'N/A'
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in text-left">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative border border-slate-200 flex flex-col gap-5">
+        
+        {/* Header */}
+        <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+          <h3 className="text-xl font-bold text-slate-800">Quiz Details</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors text-xl font-bold">
+            ✕
+          </button>
+        </div>
+
+        {/* Content Body */}
+        <div className="flex flex-col gap-5 overflow-y-auto pr-1">
+          
+          {/* General Information Card */}
+          <div className="border border-slate-200 rounded-xl p-5 bg-white shadow-sm">
+            <h4 className="text-xs font-bold tracking-wider text-[#7c3aed] uppercase mb-4">
+              GENERAL INFORMATION
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
+              <div>
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">Quiz Title</div>
+                <div className="text-sm text-slate-800 font-bold">{quiz.m_quiz_title || 'N/A'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">Package Title</div>
+                <div className="text-sm text-slate-800 font-bold">{packageTitle}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">Keywords</div>
+                <div className="text-sm text-slate-800 font-bold">{quiz.m_quiz_keywords || 'N/A'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">Status</div>
+                <div className="mt-1">
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${quiz.m_quiz_status === 1 ? 'bg-[#144f36]/10 text-[#144f36] border border-[#144f36]/20' : 'bg-[#d87025]/10 text-[#d87025] border border-[#d87025]/20'}`}>
+                    {quiz.m_quiz_status === 1 ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Configuration Card */}
+          <div className="border border-slate-200 rounded-xl p-5 bg-white shadow-sm">
+            <h4 className="text-xs font-bold tracking-wider text-emerald-700 uppercase mb-4">
+              QUIZ CONFIGURATION
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-6">
+              <div>
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">Duration</div>
+                <div className="text-sm text-slate-800 font-bold">{quiz.m_quiz_duration || '-'} min</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">Marks Per Question</div>
+                <div className="text-sm text-slate-800 font-bold">{quiz.m_quiz_per_marks ?? 'N/A'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">Negative Marks Per Question</div>
+                <div className="text-sm text-slate-800 font-bold">{quiz.m_quiz_pernegative_marks ?? 'N/A'}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Schedule & Remarks Card */}
+          <div className="border border-slate-200 rounded-xl p-5 bg-white shadow-sm">
+            <h4 className="text-xs font-bold tracking-wider text-[#7c3aed] uppercase mb-4">
+              SCHEDULE & REMARKS
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
+              <div>
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">Start Date & Time</div>
+                <div className="text-sm text-slate-800 font-bold">
+                  {formatDate(quiz.m_quiz_startdate)} {quiz.m_quiz_startTime || ''}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">End Date & Time</div>
+                <div className="text-sm text-slate-800 font-bold">
+                  {formatDate(quiz.m_quiz_enddate)} {quiz.m_quiz_endTime || ''}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-xs text-slate-400 font-semibold mb-0.5">Remark</div>
+                <div className="text-sm text-slate-800 font-semibold">{quiz.m_quiz_remark || 'N/A'}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Description Card */}
+          {(quiz.m_quiz_shortDesc || quiz.m_quiz_description) && (
+            <div className="border border-slate-200 rounded-xl p-5 bg-white shadow-sm">
+              <h4 className="text-xs font-bold tracking-wider text-emerald-700 uppercase mb-4">
+                DESCRIPTION
+              </h4>
+              <div className="flex flex-col gap-4">
+                {quiz.m_quiz_shortDesc && (
+                  <div>
+                    <div className="text-xs text-slate-400 font-semibold mb-0.5">Short Description</div>
+                    <div className="text-sm text-slate-800 font-semibold bg-slate-50 p-2.5 rounded border border-slate-100">
+                      {quiz.m_quiz_shortDesc}
+                    </div>
+                  </div>
+                )}
+                {quiz.m_quiz_description && (
+                  <div>
+                    <div className="text-xs text-slate-400 font-semibold mb-0.5">Description</div>
+                    <div 
+                      className="text-sm text-slate-700 font-medium whitespace-pre-line bg-slate-50 p-3 rounded border border-slate-100 text-justify max-h-40 overflow-y-auto"
+                      dangerouslySetInnerHTML={{ __html: quiz.m_quiz_description }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end pt-3 border-t border-slate-100">
+          <button 
+            onClick={onClose} 
+            className="bg-[#f0f4f9] text-slate-700 hover:bg-[#e1e9f4] px-6 py-2.5 rounded-full font-bold text-sm transition-colors shadow-sm"
+          >
+            Close
+          </button>
+        </div>
+
       </div>
     </div>
   )

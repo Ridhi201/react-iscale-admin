@@ -107,50 +107,57 @@ export default function EditCourse() {
 
     const populateForm = (course, categoriesList) => {
       const normStatus = (val) => {
-        if (val === 0 || val === "0" || val === "inactive") {
+        if (val === 0 || val === "0" || val === "inactive" || val === false || val === "false") {
           return "0";
         }
         return "1";
       };
 
-      let categoryId = course.category || course.m_course_category || '';
+      const isTruthy = (val) => {
+        if (val === 1 || val === "1" || val === true || val === "true" || String(val).toLowerCase() === "yes" || String(val).toLowerCase() === "active") {
+          return 1;
+        }
+        return 0;
+      };
+
+      let categoryId = course.category ?? course.m_course_category ?? '';
       if (categoryId && !categoriesList.find(c => c._id === categoryId)) {
         const found = categoriesList.find(c => c.m_category_name === categoryId);
         if (found) categoryId = found._id;
       }
 
-      let typeVal = course.course_type || course.type || course.m_course_type || '';
+      let typeVal = course.course_type ?? course.type ?? course.m_course_type ?? '';
       if (typeVal === 'Paid') typeVal = '2';
       if (typeVal === 'Free') typeVal = '1';
 
       setCourseData({
-        m_course_lang: course.lang || course.m_course_lang || 1,
-        m_course_title: course.title || course.m_course_title || '',
+        m_course_lang: course.lang ?? course.m_course_lang ?? 1,
+        m_course_title: course.title ?? course.m_course_title ?? '',
         m_course_category: categoryId,
         m_course_type: typeVal,
-        m_course_status: normStatus(course.status || course.m_course_status),
-        m_course_status_web: normStatus(course.status_web || course.m_course_status_web),
-        m_course_popular: Number(course.popular || course.m_course_popular || 0),
-        m_course_recomended: Number(course.recomended || course.recommended || course.m_course_recomended || 0),
-        m_course_description: course.description || course.m_course_description || '',
-        m_course_keyword: course.keyword || course.m_course_keyword || '',
-        m_course_code: course.code || course.m_course_code || '',
-        m_course_video_link: course.video_link || course.m_course_video_link || '',
-        m_course_duration_app: course.duration_app || course.m_course_duration_app || '',
-        m_course_duration_web: course.duration_web || course.m_course_duration_web || '',
-        m_course_order: course.order || course.m_course_order || '',
-        m_course_view: course.view || course.m_course_view || '0',
-        m_course_reviews: course.reviews || course.m_course_reviews || '0',
-        m_course_rating: course.rating || course.m_course_rating || '0',
-        m_course_intro: course.intro || course.m_course_intro || '',
-        m_course_certificate: Number(course.certificate || course.m_course_certificate || 0),
-        m_course_live_class: Number(course.live_class || course.m_course_live_class || 0),
-        m_course_app_g_link: course.app_g_link || course.m_course_app_g_link || '',
-        m_course_web_g_link: course.web_g_link || course.m_course_web_g_link || '',
-        m_course_graphy_instruction: course.graphy_instruction || course.m_course_graphy_instruction || '',
-        instructor: course.instructor || course.m_course_instructor || '',
-        m_course_price: course.price ?? course.m_course_price ?? 0,
-        m_course_offer_price: course.offer_price ?? course.m_course_offer_price ?? 0
+        m_course_status: normStatus(course.status ?? course.m_course_status),
+        m_course_status_web: normStatus(course.status_web ?? course.m_course_status_web),
+        m_course_popular: isTruthy(course.popular ?? course.m_course_popular),
+        m_course_recomended: isTruthy(course.recomended ?? course.recommended ?? course.m_course_recomended),
+        m_course_description: course.description ?? course.m_course_description ?? '',
+        m_course_keyword: course.keyword ?? course.m_course_keyword ?? '',
+        m_course_code: course.code ?? course.m_course_code ?? '',
+        m_course_video_link: course.video_link ?? course.m_course_video_link ?? '',
+        m_course_duration_app: course.duration_app ?? course.m_course_duration_app ?? '',
+        m_course_duration_web: course.duration_web ?? course.m_course_duration_web ?? '',
+        m_course_order: course.order ?? course.m_course_order ?? '',
+        m_course_view: course.view ?? course.m_course_view ?? '0',
+        m_course_reviews: course.reviews ?? course.m_course_reviews ?? '0',
+        m_course_rating: course.rating ?? course.m_course_rating ?? '0',
+        m_course_intro: course.intro ?? course.m_course_intro ?? '',
+        m_course_certificate: isTruthy(course.certificate ?? course.m_course_certificate),
+        m_course_live_class: isTruthy(course.live_class ?? course.m_course_live_class),
+        m_course_app_g_link: course.app_g_link ?? course.m_course_app_g_link ?? '',
+        m_course_web_g_link: course.web_g_link ?? course.m_course_web_g_link ?? '',
+        m_course_graphy_instruction: course.graphy_instruction ?? course.m_course_graphy_instruction ?? '',
+        instructor: course.instructor ?? course.m_course_instructor ?? '',
+        m_course_price: course.price ?? course.m_course_price ?? '',
+        m_course_offer_price: course.offer_price ?? course.m_course_offer_price ?? ''
       });
     };
 
@@ -158,24 +165,39 @@ export default function EditCourse() {
   }, [id, location.state]);
 
   const handleSubmit = async () => {
-    setLoading(true);
+    setLoading(true); setTimeout(() => setLoading(false), 2000);
     try {
       const token = localStorage.getItem('token');
       const payload = new FormData();
       Object.entries(courseData).forEach(([key, val]) => {
-        if (
+        if (key === "m_course_status" || key === "m_course_status_web") {
+          const statusVal = (val === "1" || val === 1 || val === true || String(val) === "true") ? "1" : "0";
+          payload.append(key, statusVal);
+          // Also append flat version to be safe
+          if (key === "m_course_status") payload.append("status", statusVal);
+          if (key === "m_course_status_web") payload.append("status_web", statusVal);
+        } else if (
           [
-            "m_course_status",
-            "m_course_status_web",
-            "m_course_price",
-            "m_course_offer_price",
-            "m_course_lang",
-            "m_course_type",
-            "m_course_order",
             "m_course_popular",
             "m_course_recomended",
             "m_course_certificate",
             "m_course_live_class"
+          ].includes(key)
+        ) {
+          const boolVal = (val === "1" || val === 1 || val === true || String(val) === "true") ? "1" : "0";
+          payload.append(key, boolVal);
+          // Also append flat version to be safe
+          if (key === "m_course_popular") payload.append("popular", boolVal);
+          if (key === "m_course_recomended") payload.append("recomended", boolVal);
+          if (key === "m_course_certificate") payload.append("certificate", boolVal);
+          if (key === "m_course_live_class") payload.append("live_class", boolVal);
+        } else if (
+          [
+            "m_course_price",
+            "m_course_offer_price",
+            "m_course_lang",
+            "m_course_type",
+            "m_course_order"
           ].includes(key)
         ) {
           const num = Number(val);
@@ -331,15 +353,15 @@ export default function EditCourse() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Views</label>
-              <input id="m_course_view" type="text" value={courseData.m_course_view} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none" />
+              <input id="m_course_view" type="text" value={courseData.m_course_view} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Reviews</label>
-              <input id="m_course_reviews" type="text" value={courseData.m_course_reviews} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none" />
+              <input id="m_course_reviews" type="text" value={courseData.m_course_reviews} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Ratings</label>
-              <input id="m_course_rating" type="text" value={courseData.m_course_rating} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none" />
+              <input id="m_course_rating" type="text" value={courseData.m_course_rating} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
             </div>
           </div>
 
@@ -349,16 +371,16 @@ export default function EditCourse() {
               <label className="block text-[13px] font-bold text-slate-800 mb-2">Add to</label>
               <div className="flex flex-col gap-1.5">
                 <label className="flex items-center gap-2 text-xs text-slate-800 font-bold">
-                  <input id="m_course_popular" type="checkbox" checked={courseData.m_course_popular === 1} onChange={handleChange} className="rounded" /> Add to popular course
+                  <input id="m_course_popular" type="checkbox" checked={courseData.m_course_popular === 1} onChange={handleChange} className="rounded text-[#144f36] focus:ring-[#144f36]" /> Add to popular course
                 </label>
                 <label className="flex items-center gap-2 text-xs text-slate-800 font-bold">
-                  <input id="m_course_recomended" type="checkbox" checked={courseData.m_course_recomended === 1} onChange={handleChange} className="rounded" /> Add to recommended course
+                  <input id="m_course_recomended" type="checkbox" checked={courseData.m_course_recomended === 1} onChange={handleChange} className="rounded text-[#144f36] focus:ring-[#144f36]" /> Add to recommended course
                 </label>
                 <label className="flex items-center gap-2 text-xs text-slate-800 font-bold">
-                  <input id="m_course_certificate" type="checkbox" checked={courseData.m_course_certificate === 1} onChange={handleChange} className="rounded" /> Certificate Show
+                  <input id="m_course_certificate" type="checkbox" checked={courseData.m_course_certificate === 1} onChange={handleChange} className="rounded text-[#144f36] focus:ring-[#144f36]" /> Certificate Show
                 </label>
                 <label className="flex items-center gap-2 text-xs text-slate-800 font-bold">
-                  <input id="m_course_live_class" type="checkbox" checked={courseData.m_course_live_class === 1} onChange={handleChange} className="rounded" /> Live Class Show
+                  <input id="m_course_live_class" type="checkbox" checked={courseData.m_course_live_class === 1} onChange={handleChange} className="rounded text-[#144f36] focus:ring-[#144f36]" /> Live Class Show
                 </label>
               </div>
             </div>
@@ -384,26 +406,26 @@ export default function EditCourse() {
           {/* Intro and Description */}
           <div className="mb-4">
             <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Intro</label>
-            <textarea rows="3" id="m_course_intro" value={courseData.m_course_intro} onChange={handleChange} placeholder="Enter Course Intro" className="w-1/2 border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36]"></textarea>
+            <textarea rows="3" id="m_course_intro" value={courseData.m_course_intro} onChange={handleChange} placeholder="Enter Course Intro" className="w-1/2 border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"></textarea>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">App GLink</label>
-              <input id="m_course_app_g_link" type="text" value={courseData.m_course_app_g_link} onChange={handleChange} placeholder="App GLink" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none" />
+              <input id="m_course_app_g_link" type="text" value={courseData.m_course_app_g_link} onChange={handleChange} placeholder="App GLink" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Web GLink</label>
-              <input id="m_course_web_g_link" type="text" value={courseData.m_course_web_g_link} onChange={handleChange} placeholder="Web GLink" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none" />
+              <input id="m_course_web_g_link" type="text" value={courseData.m_course_web_g_link} onChange={handleChange} placeholder="Web GLink" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
             </div>
             <div className="md:col-span-2">
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Graphy Instruction</label>
-              <textarea id="m_course_graphy_instruction" rows="2" value={courseData.m_course_graphy_instruction} onChange={handleChange} placeholder="Graphy Instruction" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none"></textarea>
+              <textarea id="m_course_graphy_instruction" rows="2" value={courseData.m_course_graphy_instruction} onChange={handleChange} placeholder="Graphy Instruction" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"></textarea>
             </div>
           </div>
 
           <div className="mb-6">
             <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Description</label>
-            <textarea id="m_course_description" rows="6" value={courseData.m_course_description} onChange={handleChange} placeholder="Enter Course Description" className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none"></textarea>
+            <textarea id="m_course_description" rows="6" value={courseData.m_course_description} onChange={handleChange} placeholder="Enter Course Description" className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"></textarea>
           </div>
 
           {/* Action Buttons */}

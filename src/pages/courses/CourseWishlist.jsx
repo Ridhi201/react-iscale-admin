@@ -25,7 +25,7 @@ export default function CourseWishlist() {
   const [loading, setLoading] = useState(false)
 
   const fetchWishlists = async () => {
-    setLoading(true)
+    setLoading(true); setTimeout(() => setLoading(false), 2000)
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/user-wishlist/course/admin/all`, {

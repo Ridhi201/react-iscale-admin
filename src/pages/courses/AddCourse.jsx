@@ -63,7 +63,7 @@ export default function AddCourse() {
     const categoryVal = document.getElementById('course_category')?.value;
     if (!titleVal) { await window.customAlert('❌ Course Title is required!'); return; }
     if (!categoryVal) { await window.customAlert('❌ Please select a Course Category!'); return; }
-    setLoading(true);
+    setLoading(true); setTimeout(() => setLoading(false), 2000);
     try {
       const token = localStorage.getItem('token');
       const statusApp = document.getElementById('course_status_app').value;

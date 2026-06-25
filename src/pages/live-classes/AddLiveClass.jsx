@@ -43,7 +43,7 @@ export default function AddLiveClass() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
+    setLoading(true); setTimeout(() => setLoading(false), 2000)
 
     let formattedStartTime = formData.start_time;
     if (formattedStartTime && !formattedStartTime.includes('AM') && !formattedStartTime.includes('PM')) {

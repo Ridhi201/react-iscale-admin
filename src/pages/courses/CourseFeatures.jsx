@@ -26,7 +26,7 @@ export default function CourseFeatures() {
 
   const fetchFeatures = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/feature/get-all-features/${id}`, {
         headers: { Authorization: `Bearer ${token}` }

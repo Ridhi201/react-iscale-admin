@@ -87,7 +87,7 @@ export default function EditPPT() {
     }
 
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       setBackendError(null)
       const token = localStorage.getItem('token')
       const response = await axios.put(`${BASE_URL}/myadmin/ppt/update-ppt/${id}`, submitData, {

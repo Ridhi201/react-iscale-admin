@@ -69,13 +69,15 @@ export default function EventCategoryList() {
   });
 
   const TOTAL_ENTRIES = filteredData.length
+  const totalPages = Math.ceil(TOTAL_ENTRIES / entriesPerPage) || 1
+  const activePage = Math.min(currentPage, totalPages) || 1
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
     setCurrentPage(1)
   }
 
-  const indexOfLastEntry = currentPage * entriesPerPage
+  const indexOfLastEntry = activePage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
   const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry)
 
@@ -284,10 +286,26 @@ export default function EventCategoryList() {
 
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
             <div className="mb-4 md:mb-0">
-              Showing {indexOfFirstEntry + 1} to {Math.min(indexOfLastEntry, TOTAL_ENTRIES)} of {TOTAL_ENTRIES} entries
+              Showing {TOTAL_ENTRIES > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, TOTAL_ENTRIES)} of {TOTAL_ENTRIES} entries
             </div>
             <div className="flex items-center space-x-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">1</button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={activePage === 1}
+                className="px-3 py-1 rounded bg-slate-50 dark:bg-[#13111c] disabled:opacity-50 border border-slate-200 dark:border-gray-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Prev
+              </button>
+              <button className="w-8 h-8 flex items-center justify-center rounded bg-[#144f36] text-white shadow-sm font-medium text-xs">
+                {activePage}
+              </button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={activePage === totalPages}
+                className="px-3 py-1 rounded bg-slate-50 dark:bg-[#13111c] disabled:opacity-50 border border-slate-200 dark:border-gray-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

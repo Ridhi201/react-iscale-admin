@@ -3,6 +3,8 @@ import { Edit2, Trash2, Eye, EyeOff, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
+import ThemeButton from '../../components/common/ThemeButton'
+import CardHeader from '../../components/ui/CardHeader'
 
 export default function BrandVideoList() {
   const navigate = useNavigate()
@@ -21,7 +23,7 @@ export default function BrandVideoList() {
 
   const fetchVideos = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/brand-video/all`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -152,19 +154,11 @@ export default function BrandVideoList() {
   return (
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 overflow-hidden flex flex-col h-full w-full">
-        {/* Header - Success Story Theme */}
-        <div className="p-4 flex justify-between items-center bg-gradient-to-r from-[#144f36] to-[#1a6545] rounded-t-2xl">
-          <div className="flex items-center">
-            <div className="w-1.5 h-6 bg-white rounded-full mr-3"></div>
-            <h2 className="text-xl font-bold text-white tracking-tight">Brand Videos List</h2>
-          </div>
-          <button 
-            onClick={() => navigate('/master/brand-video/add')}
-            className="bg-white text-[#144f36] px-5 py-2 rounded-full flex items-center gap-2 text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm"
-          >
-            <span>+ Add New</span>
-          </button>
-        </div>
+        <CardHeader title="Brand Videos List">
+          <ThemeButton variant="white-add" onClick={() => navigate('/master/brand-video/add')}>
+            + Add New
+          </ThemeButton>
+        </CardHeader>
 
         <div className="p-4 flex-1 flex flex-col">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">

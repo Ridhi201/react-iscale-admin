@@ -21,7 +21,7 @@ export default function CourseTestSeries() {
 
   const fetchPackages = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/test-package/get-packages/${id}`, {
         headers: { Authorization: `Bearer ${token}` }

@@ -18,7 +18,7 @@ export default function PopularCourses() {
 
   const fetchCourses = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       setError(null)
       const token = localStorage.getItem('token')
       console.log('TOKEN:', token ? `${token.substring(0, 30)}...` : 'NULL/MISSING')
@@ -309,7 +309,7 @@ export default function PopularCourses() {
                         <button onClick={() => navigate(`/courses/view/${courseId}`, { state: { courseData: row } })} className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors">
                           <Eye size={14} />
                         </button>
-                        <button onClick={() => navigate(`/courses/all/edit/${courseId}`)} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#c2621f] transition-colors">
+                        <button onClick={() => navigate(`/courses/all/edit/${courseId}`, { state: { courseData: row } })} className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#c2621f] transition-colors">
                           <Edit2 size={14} />
                         </button>
                         <button onClick={() => handleDelete(courseId)} className="bg-[#d9534f] text-white p-1.5 rounded hover:bg-[#d9534f] transition-colors">

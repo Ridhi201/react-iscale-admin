@@ -93,7 +93,7 @@ export default function AddNotes() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
+    setLoading(true); setTimeout(() => setLoading(false), 2000)
 
     try {
       const token = localStorage.getItem('token')

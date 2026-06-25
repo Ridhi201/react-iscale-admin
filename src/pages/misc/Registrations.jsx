@@ -23,21 +23,37 @@ export default function Registrations() {
   const [sourceInput, setSourceInput] = useState('')
   const [statusInput, setStatusInput] = useState('')
   const [fetchTrigger, setFetchTrigger] = useState(0)
+  const [courses, setCourses] = useState([])
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const response = await axios.get(`${BASE_URL}/myadmin/course/all-courses?limit=1000`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (response.data.status && response.data.data) {
+          setCourses(response.data.data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch courses:', err)
+      }
+    }
+    fetchCourses()
+  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       try {
         const token = localStorage.getItem('token')
         
         const queryParams = new URLSearchParams({
           page: currentPage,
           limit: entriesPerPage,
-          ...(fromDateInput && { fromDate: fromDateInput }),
-          ...(toDateInput && { toDate: toDateInput }),
-          ...(courseInput && courseInput !== 'Select Value' && { course: courseInput }),
-          ...(sourceInput && sourceInput !== 'Select Value' && { source: sourceInput }),
-          ...(statusInput && statusInput !== 'Select Value' && { status: statusInput }),
+          ...(fromDateInput && { from_date: fromDateInput }),
+          ...(toDateInput && { to_date: toDateInput }),
+          ...(courseInput && courseInput !== 'Select Value' && { course_id: courseInput }),
           ...(searchInput && { search: searchInput }),
         }).toString();
 
@@ -48,7 +64,31 @@ export default function Registrations() {
           }
         )
         if (response.data.status) {
-          setData(response.data.data)
+          let rawData = response.data.data || []
+
+          // Apply client-side status filter
+          if (statusInput && statusInput !== 'Select Value') {
+            rawData = rawData.filter(row => {
+              if (statusInput === 'Active') {
+                return row.enrollment_status === '1' || row.enrollment_status === 1 || row.enrollment_status === 'active';
+              } else if (statusInput === 'Inactive') {
+                return row.enrollment_status === '0' || row.enrollment_status === 0 || row.enrollment_status === 'inactive';
+              }
+              return true;
+            })
+          }
+
+          // Apply client-side source filter
+          if (sourceInput && sourceInput !== 'Select Value') {
+            rawData = rawData.filter(row => {
+              if (row.source) {
+                return row.source.toLowerCase() === sourceInput.toLowerCase();
+              }
+              return true;
+            })
+          }
+
+          setData(rawData)
           setTotalPages(response.data.total_pages || 1)
           setTotalEntries(response.data.total_records || 0)
         }
@@ -180,26 +220,27 @@ export default function Registrations() {
           {/* From Date */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">From Date</label>
-            <input type="date" value={fromDateInput} onChange={(e) => setFromDateInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
+            <input type="date" value={fromDateInput} onChange={(e) => setFromDateInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] text-slate-500" />
           </div>
           {/* To Date */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">To Date</label>
-            <input type="date" value={toDateInput} onChange={(e) => setToDateInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" />
+            <input type="date" value={toDateInput} onChange={(e) => setToDateInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] text-slate-500" />
           </div>
           {/* Course */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Course</label>
-            <select value={courseInput} onChange={(e) => setCourseInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+            <select value={courseInput} onChange={(e) => setCourseInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]">
               <option value="">Select Value</option>
-              <option value="data_science">Data Science Course</option>
-              <option value="master_data_analytics">Master of Data Analytics</option>
+              {courses.map(c => (
+                <option key={c._id} value={c._id}>{c.title || c.m_course_title}</option>
+              ))}
             </select>
           </div>
           {/* Registration From */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Registration From</label>
-            <select value={sourceInput} onChange={(e) => setSourceInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+            <select value={sourceInput} onChange={(e) => setSourceInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]">
               <option value="">Select Value</option>
               <option value="App">App</option>
               <option value="Web">Web</option>
@@ -208,7 +249,7 @@ export default function Registrations() {
           {/* Status */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Status</label>
-            <select value={statusInput} onChange={(e) => setStatusInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+            <select value={statusInput} onChange={(e) => setStatusInput(e.target.value)} className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]">
               <option value="">Select Value</option>
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
@@ -217,7 +258,7 @@ export default function Registrations() {
           {/* Search */}
           <div className="w-full">
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Search</label>
-            <input type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search..." className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" />
+            <input type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search..." className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
           </div>
           {/* Buttons */}
           <div className="flex gap-2 w-full">

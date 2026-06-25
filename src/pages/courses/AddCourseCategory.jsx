@@ -30,7 +30,7 @@ export default function AddCourseCategory() {
 
   e.preventDefault()
 
-  setLoading(true)
+  setLoading(true); setTimeout(() => setLoading(false), 2000)
 
   try {
 

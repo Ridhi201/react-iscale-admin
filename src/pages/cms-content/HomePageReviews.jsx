@@ -33,7 +33,7 @@ export default function HomePageReviews() {
 
   const fetchReviews = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/user-reviews/all`, {
         headers: { Authorization: `Bearer ${token}` }

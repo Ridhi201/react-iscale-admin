@@ -5,6 +5,8 @@ import * as Icons from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BASE_URL } from '../../config/api'
 import { getImageUrl } from '../../utils/imageUtils'
+import ThemeButton from '../../components/common/ThemeButton'
+import CardHeader from '../../components/ui/CardHeader'
 export default function CourseCategories() {
   const navigate = useNavigate()
   const [categories, setCategories] = useState([])
@@ -25,7 +27,7 @@ export default function CourseCategories() {
 
   const fetchCategories = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       console.log('Fetching from REAL backend API...')
       
@@ -125,19 +127,11 @@ export default function CourseCategories() {
   return (
     <div className="animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors flex flex-col min-h-[600px]">
-        <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
-          
-          <div className="flex items-center relative z-10">
-            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Category List</h2>
-          </div>
-          
-          <button onClick={() => navigate('/courses/categories/add')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 relative z-10 hover:shadow hover:-translate-y-0.5">
-            <span>+ Add New</span>
-          </button>
-        </div>
+        <CardHeader title="Category List">
+          <ThemeButton variant="white-add" onClick={() => navigate('/courses/categories/add')}>
+            + Add New
+          </ThemeButton>
+        </CardHeader>
 
         <div className="p-4 flex-1 flex flex-col">
           <div className="flex flex-col xl:flex-row justify-between xl:items-center mb-4 shrink-0 gap-4">

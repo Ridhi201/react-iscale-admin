@@ -60,7 +60,7 @@ export default function LocationState() {
     }
 
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       
       const payload = { 

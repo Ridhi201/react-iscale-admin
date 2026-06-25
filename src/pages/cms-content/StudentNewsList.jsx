@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Edit2, Trash2, X } from 'lucide-react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
+import ThemeButton from '../../components/common/ThemeButton'
+import CardHeader from '../../components/ui/CardHeader'
 
 export default function StudentNewsList() {
   const [data, setData] = useState([])
@@ -32,7 +34,7 @@ export default function StudentNewsList() {
 
   const fetchNews = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/news/all-news`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -226,21 +228,13 @@ export default function StudentNewsList() {
   return (
     <div className="h-full animate-fade-in-up flex flex-col">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md border border-slate-100 flex flex-col h-full w-full overflow-hidden">
-        {/* Header - Success Story Theme */}
-        <div className="p-4 flex justify-between items-center bg-gradient-to-r from-[#144f36] to-[#1a6545]">
-          <div className="flex items-center">
-            <div className="w-1.5 h-6 bg-white rounded-full mr-3"></div>
-            <h2 className="text-xl font-bold text-white tracking-tight">Student News</h2>
-          </div>
+        <CardHeader title="Student News">
           {isEditing && (
-            <button 
-              onClick={resetForm}
-              className="bg-white text-[#144f36] px-5 py-2 rounded-full flex items-center gap-2 text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm"
-            >
-              <span>+ Add New</span>
-            </button>
+            <ThemeButton variant="white-add" onClick={resetForm}>
+              + Add New
+            </ThemeButton>
           )}
-        </div>
+        </CardHeader>
 
         <div className="p-4 flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden">
           

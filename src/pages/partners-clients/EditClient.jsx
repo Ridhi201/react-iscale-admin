@@ -10,13 +10,19 @@ export default function EditClient() {
   
   const client = location.state?.client || {}
 
+  const getNormalizedStatus = (status) => {
+    if (status === 'active' || String(status) === '1') return 'active';
+    if (status === 'inactive' || String(status) === '0') return 'inactive';
+    return 'active';
+  }
+
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     m_client_name: client.m_client_name || '',
     m_client_company: client.m_client_company || '',
     m_client_description: client.m_client_description || '',
     m_client_order: client.m_client_order || '',
-    m_client_status: client.m_client_status || 'active'
+    m_client_status: getNormalizedStatus(client.m_client_status)
   })
   const [logoFile, setLogoFile] = useState(null)
 
@@ -44,7 +50,7 @@ export default function EditClient() {
     }
 
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.put(`${BASE_URL}/myadmin/client/update-client/${id}`, submitData, {
         headers: { Authorization: `Bearer ${token}` }

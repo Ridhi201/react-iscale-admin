@@ -40,7 +40,7 @@ export default function AddPPT() {
     }
 
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       setBackendError(null)
       const token = localStorage.getItem('token')
       const response = await axios.post(`${BASE_URL}/myadmin/ppt/add-ppt`, submitData, {

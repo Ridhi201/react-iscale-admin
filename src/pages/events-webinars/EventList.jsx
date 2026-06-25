@@ -10,6 +10,7 @@ export default function EventList() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(50)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const fetchData = async () => {
     try {
@@ -65,16 +66,37 @@ export default function EventList() {
     return '-';
   }
 
-  const TOTAL_ENTRIES = data.length
+  const filteredData = data.filter(row => {
+    if (!searchTerm) return true;
+    const s = searchTerm.toLowerCase();
+    const title = getField(row, ['m_event_title', 'title', 'eventTitle', 'm_title']);
+    const category = getField(row, ['m_event_category', 'category', 'eventCategory', 'm_category']);
+    const eventStatus = getField(row, ['m_event_type', 'eventStatus', 'type', 'm_type', 'eventType']);
+    const statusStr = getField(row, ['m_event_status', 'status', 'm_status']);
+
+    const titleStr = title !== '-' ? String(title).toLowerCase() : '';
+    const categoryStr = category !== '-' ? String(category).toLowerCase() : '';
+    const eventStatusStr = eventStatus !== '-' ? String(eventStatus).toLowerCase() : '';
+    const statusText = statusStr !== '-' ? String(statusStr).toLowerCase() : 'active';
+
+    return titleStr.includes(s) || 
+           categoryStr.includes(s) || 
+           eventStatusStr.includes(s) || 
+           statusText.includes(s);
+  });
+
+  const TOTAL_ENTRIES = filteredData.length
+  const totalPages = Math.ceil(TOTAL_ENTRIES / entriesPerPage) || 1
+  const activePage = Math.min(currentPage, totalPages) || 1
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
     setCurrentPage(1)
   }
 
-  const indexOfLastEntry = currentPage * entriesPerPage
+  const indexOfLastEntry = activePage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
+  const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry)
 
   return (
     <div className="h-full animate-fade-in-up">
@@ -157,6 +179,11 @@ export default function EventList() {
               <input 
                 type="text" 
                 placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value)
+                  setCurrentPage(1)
+                }}
                 className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-64"
               />
             </div>
@@ -290,10 +317,26 @@ export default function EventList() {
 
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
             <div className="mb-4 md:mb-0">
-              Showing {indexOfFirstEntry + 1} to {Math.min(indexOfLastEntry, TOTAL_ENTRIES)} of {TOTAL_ENTRIES} entries
+              Showing {TOTAL_ENTRIES > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, TOTAL_ENTRIES)} of {TOTAL_ENTRIES} entries
             </div>
             <div className="flex items-center space-x-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">1</button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={activePage === 1}
+                className="px-3 py-1 rounded bg-slate-50 dark:bg-[#13111c] disabled:opacity-50 border border-slate-200 dark:border-gray-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Prev
+              </button>
+              <button className="w-8 h-8 flex items-center justify-center rounded bg-[#144f36] text-white shadow-sm font-medium text-xs">
+                {activePage}
+              </button>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={activePage === totalPages}
+                className="px-3 py-1 rounded bg-slate-50 dark:bg-[#13111c] disabled:opacity-50 border border-slate-200 dark:border-gray-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>

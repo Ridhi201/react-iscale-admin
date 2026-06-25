@@ -22,7 +22,7 @@ export default function LeadGenerateList() {
 
   const fetchLeads = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const params = new URLSearchParams({
         page: currentPage,

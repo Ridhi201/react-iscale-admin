@@ -26,7 +26,7 @@ export default function TestSeriesRegistrations() {
   const [loadingModal, setLoadingModal] = useState(false)
 
   const fetchData = async (overrideFilters = null, page = currentPage) => {
-    setLoading(true)
+    setLoading(true); setTimeout(() => setLoading(false), 2000)
     try {
       const token = localStorage.getItem('token')
       const activeFilters = overrideFilters || filters

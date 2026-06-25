@@ -21,7 +21,7 @@ export default function CourseSubjects() {
 
   const fetchSubjects = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/subject/get-subjects/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -82,7 +82,7 @@ export default function CourseSubjects() {
             <button onClick={() => navigate('/courses/all')} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all hover:-translate-y-0.5">
               Back To Courses
             </button>
-            <button onClick={() => navigate(`/courses/subjects/add/${id}`)} className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 hover:-translate-y-0.5">
+            <button onClick={() => navigate(`/courses/subjects/add/${id}`)} className="bg-white hover:bg-slate-50 text-[#144f36] px-5 py-2.5 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-2 hover:-translate-y-0.5">
               <span>+ Add New</span>
             </button>
           </div>

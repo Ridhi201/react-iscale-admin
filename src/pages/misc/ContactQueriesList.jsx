@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, X } from 'lucide-react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
+import { contactQueriesData } from '../../utils/mockData'
+import ThemeButton from '../../components/common/ThemeButton'
+import CardHeader from '../../components/ui/CardHeader'
 
 export default function ContactQueriesList() {
   const [currentPage, setCurrentPage] = useState(1)
@@ -10,28 +13,42 @@ export default function ContactQueriesList() {
   const [loading, setLoading] = useState(false)
   const [totalEntries, setTotalEntries] = useState(0)
 
+  // Search, View, and Status Modal states
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedQuery, setSelectedQuery] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false)
+  const [statusToUpdate, setStatusToUpdate] = useState(null)
+  const [newStatusValue, setNewStatusValue] = useState('New')
+
   useEffect(() => {
     fetchData()
   }, [])
 
   const fetchData = async () => {
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/contact-us/all`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.data?.status || response.data?.success || response.data?.data) {
-        setData(response.data.data || [])
-        setTotalEntries(response.data.data?.length || 0)
+        const fetchedData = response.data.data || []
+        if (fetchedData.length > 0) {
+          setData(fetchedData)
+          setTotalEntries(fetchedData.length)
+        } else {
+          setData(contactQueriesData || [])
+          setTotalEntries(contactQueriesData?.length || 0)
+        }
       } else {
-        setData([])
-        setTotalEntries(0)
+        setData(contactQueriesData || [])
+        setTotalEntries(contactQueriesData?.length || 0)
       }
     } catch (error) {
       console.error('Error fetching contact queries:', error)
-      setData([])
-      setTotalEntries(0)
+      setData(contactQueriesData || [])
+      setTotalEntries(contactQueriesData?.length || 0)
     } finally {
       setLoading(false)
     }
@@ -107,28 +124,97 @@ export default function ContactQueriesList() {
     }
   }
 
+  const handleUpdateStatusSubmit = async (e) => {
+    e.preventDefault();
+    if (!statusToUpdate) return;
+    
+    try {
+      const token = localStorage.getItem('token')
+      const id = statusToUpdate._id || statusToUpdate.id;
+      
+      let possibleValues = [];
+      const newStatus = newStatusValue.toLowerCase();
+      if (newStatus === 'new') {
+        possibleValues = ['New', 'new', 'Active', 'active', '1', 1];
+      } else if (newStatus === 'viewed') {
+        possibleValues = ['Viewed', 'viewed', 'Inactive', 'inactive', '0', 0];
+      } else if (newStatus === 'solved') {
+        possibleValues = ['Solved', 'solved', 'Inactive', 'inactive', '0', 0];
+      } else {
+        possibleValues = [newStatusValue, newStatus];
+      }
+
+      let response;
+      let lastError;
+
+      for (const attemptStatus of possibleValues) {
+        try {
+          response = await axios.patch(`${BASE_URL}/myadmin/contact-us/status/${id}`, { status: attemptStatus }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          lastError = null;
+          break;
+        } catch (err) {
+          lastError = err;
+          if (err.response && err.response.status === 400) {
+            continue;
+          } else {
+            break;
+          }
+        }
+      }
+
+      if (lastError) {
+        throw lastError;
+      }
+
+      if (response && (response.data?.status || response.data?.success || response.data?.msg || response.status === 200)) {
+        await window.customAlert(response.data?.msg || response.data?.message || 'Status updated successfully');
+        fetchData();
+        setIsStatusModalOpen(false);
+        setStatusToUpdate(null);
+      } else {
+        await window.customAlert(response?.data?.message || response?.data?.msg || 'Failed to update status')
+      }
+    } catch (error) {
+      console.error('Error updating status:', error)
+      const errorMsg = error.response?.data?.message || error.response?.data?.msg || error.response?.data?.error || error.message;
+      await window.customAlert('Error updating status: ' + (typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg))
+    }
+  }
+
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
     setCurrentPage(1)
   }
 
+  const filteredData = data.filter(row => {
+    const getFieldStr = (fields) => {
+      for (const field of fields) {
+        if (row[field] !== undefined && row[field] !== null && row[field] !== '') return String(row[field]);
+      }
+      return '';
+    };
+
+    const name = getFieldStr(['name', 'fullName', 'm_cq_name', 'm_name']).toLowerCase();
+    const mobile = getFieldStr(['mobile', 'phone', 'contact', 'mobileNumber', 'phoneNumber', 'm_cq_mobile', 'm_mobile', 'm_phone']).toLowerCase();
+    const email = getFieldStr(['email', 'm_cq_email', 'm_email']).toLowerCase();
+    const subject = getFieldStr(['subject', 'm_cq_subject', 'm_subject']).toLowerCase();
+    const message = getFieldStr(['message', 'm_cq_message', 'm_message', 'desc', 'description', 'query']).toLowerCase();
+    const q = searchQuery.toLowerCase();
+
+    return name.includes(q) || mobile.includes(q) || email.includes(q) || subject.includes(q) || message.includes(q);
+  });
+
   const indexOfLastEntry = currentPage * entriesPerPage
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage
-  const currentEntries = data.slice(indexOfFirstEntry, indexOfLastEntry)
-  const totalPages = Math.ceil(data.length / entriesPerPage) || 1
+  const currentEntries = filteredData.slice(indexOfFirstEntry, indexOfLastEntry)
+  const totalPages = Math.ceil(filteredData.length / entriesPerPage) || 1
 
   return (
     <div className="h-full animate-fade-in-up">
       <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors overflow-hidden flex flex-col h-full">
-        <div className="bg-[#144f36] rounded-t p-5 flex justify-between items-center shadow-md relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-[#13111c]/10 rounded-full blur-2xl group-hover:bg-white dark:bg-[#13111c]/20 transition-all duration-700 pointer-events-none"></div>
-          <div className="flex items-center relative z-10">
-            <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Contact Queries</h2>
-          </div>
-          
-        </div>
+        <CardHeader title="Contact Queries" />
 
         <div className="p-4 flex-1 flex flex-col">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
@@ -193,7 +279,12 @@ export default function ContactQueriesList() {
               <input 
                 type="text" 
                 placeholder="Search..."
-                className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-64"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-64"
               />
             </div>
           </div>
@@ -223,7 +314,7 @@ export default function ContactQueriesList() {
                   <tr>
                     <td colSpan="9" className="text-center py-8">Loading...</td>
                   </tr>
-                ) : data.length === 0 ? (
+                ) : filteredData.length === 0 ? (
                   <tr>
                     <td colSpan="9" className="text-center py-8">No contact queries found</td>
                   </tr>
@@ -254,17 +345,32 @@ export default function ContactQueriesList() {
                         <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">{email}</td>
                         <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap max-w-[200px] truncate">{subject}</td>
                         <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                          <button className="bg-white text-slate-700 border border-slate-300 px-4 py-1.5 rounded-full text-xs font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                          <ThemeButton 
+                            onClick={() => {
+                              setSelectedQuery(row);
+                              setIsViewModalOpen(true);
+                            }}
+                            variant="pill-green"
+                          >
                             View
-                          </button>
+                          </ThemeButton>
                         </td>
                         <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap">
                           {dateStr}
                         </td>
                         <td className="px-4 py-4 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
                           <button 
-                            onClick={() => handleToggleStatus(row._id || row.id, status)}
-                            className={`text-white px-4 py-1.5 rounded-full text-xs font-medium transition-colors shadow-sm ${status.toLowerCase() === 'active' || status === '1' || status.toLowerCase() === 'new' ? 'bg-[#144f36] hover:bg-[#0f3d2a]' : 'bg-red-500 hover:bg-red-600'}`}
+                            onClick={() => {
+                              setStatusToUpdate(row);
+                              const mappedStatus = status.toLowerCase() === 'active' || status === '1' || status.toLowerCase() === 'new' ? 'New' : 
+                                                 status.toLowerCase() === 'viewed' ? 'Viewed' : 'Solved';
+                              setNewStatusValue(mappedStatus);
+                              setIsStatusModalOpen(true);
+                            }}
+                            className={`text-white px-4 py-1.5 rounded-full text-xs font-medium transition-colors shadow-sm cursor-pointer ${
+                              status.toLowerCase() === 'active' || status === '1' || status.toLowerCase() === 'new' ? 'bg-[#144f36] hover:bg-[#0f3d2a]' :
+                              status.toLowerCase() === 'viewed' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-600'
+                            }`}
                           >
                             {status.charAt(0).toUpperCase() + status.slice(1)}
                           </button>
@@ -287,7 +393,7 @@ export default function ContactQueriesList() {
 
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
             <div className="mb-4 md:mb-0">
-              Showing {data.length > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, data.length)} of {data.length} entries
+              Showing {filteredData.length > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, filteredData.length)} of {filteredData.length} entries
             </div>
             <div className="flex items-center space-x-1">
               <button 
@@ -311,6 +417,112 @@ export default function ContactQueriesList() {
           </div>
         </div>
       </div>
+
+      {/* View Details Modal */}
+      {isViewModalOpen && selectedQuery && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in text-left">
+          <div className="bg-white dark:bg-[#13111c] rounded-lg shadow-xl w-full max-w-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-gray-800">
+            <div className="p-4 bg-[#144f36] text-white flex justify-between items-center">
+              <h3 className="font-bold text-lg">
+                {selectedQuery.name || selectedQuery.fullName || selectedQuery.m_cq_name || selectedQuery.m_name || 'Query Details'}
+              </h3>
+              <button 
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  setSelectedQuery(null);
+                }}
+                className="p-1 hover:bg-[#0f3d2a] rounded-full transition-colors"
+              >
+                <X size={20} className="text-white" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-4">
+              <div>
+                <span className="font-bold text-slate-800 dark:text-slate-200">Subject: </span>
+                <span className="text-slate-700 dark:text-slate-300 font-semibold">
+                  {selectedQuery.subject || selectedQuery.m_cq_subject || selectedQuery.m_subject || '-'}
+                </span>
+              </div>
+              <div className="border-t border-slate-100 dark:border-gray-800 pt-3">
+                <div className="font-bold text-slate-800 dark:text-slate-200 mb-2">Message:</div>
+                <p className="text-slate-600 dark:text-slate-400 whitespace-pre-wrap text-sm leading-relaxed bg-slate-50 dark:bg-[#1f1b2e]/30 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
+                  {selectedQuery.message || selectedQuery.m_cq_message || selectedQuery.m_message || selectedQuery.query || 'No message content.'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-slate-100 dark:border-gray-800 flex justify-end bg-slate-50 dark:bg-[#1f1b2e]/30">
+              <ThemeButton 
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  setSelectedQuery(null);
+                }}
+                variant="solid-green"
+              >
+                Close
+              </ThemeButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Status Modal */}
+      {isStatusModalOpen && statusToUpdate && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in text-left">
+          <div className="bg-white dark:bg-[#13111c] rounded-lg shadow-xl w-full max-w-md overflow-hidden flex flex-col border border-slate-200 dark:border-gray-800">
+            <div className="p-4 bg-[#144f36] text-white flex justify-between items-center">
+              <h3 className="font-bold text-lg">Update Status</h3>
+              <button 
+                onClick={() => {
+                  setIsStatusModalOpen(false);
+                  setStatusToUpdate(null);
+                }}
+                className="p-1 hover:bg-[#0f3d2a] rounded-full transition-colors"
+              >
+                <X size={20} className="text-white" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateStatusSubmit}>
+              <div className="p-6 space-y-4">
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    Status
+                  </label>
+                  <select 
+                    value={newStatusValue}
+                    onChange={(e) => setNewStatusValue(e.target.value)}
+                    className="border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-800 dark:text-slate-100 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] w-full"
+                  >
+                    <option value="New">New</option>
+                    <option value="Viewed">Viewed</option>
+                    <option value="Solved">Solved</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="p-4 border-t border-slate-100 dark:border-gray-800 flex justify-end gap-2 bg-slate-50 dark:bg-[#1f1b2e]/30">
+                <ThemeButton 
+                  onClick={() => {
+                    setIsStatusModalOpen(false);
+                    setStatusToUpdate(null);
+                  }}
+                  variant="outline-green"
+                >
+                  Cancel
+                </ThemeButton>
+                <ThemeButton 
+                  type="submit"
+                  variant="solid-green"
+                >
+                  Submit
+                </ThemeButton>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

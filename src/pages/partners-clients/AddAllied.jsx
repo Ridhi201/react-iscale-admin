@@ -35,7 +35,7 @@ export default function AddAllied() {
     }
 
     try {
-      setLoading(true)
+      setLoading(true); setTimeout(() => setLoading(false), 2000)
       const token = localStorage.getItem('token')
       const response = await axios.post(`${BASE_URL}/myadmin/allied/add-allied`, submitData, {
         headers: { Authorization: `Bearer ${token}` }
