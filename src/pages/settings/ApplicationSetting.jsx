@@ -188,7 +188,7 @@ export default function ApplicationSetting() {
 
   const handleUpdate = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const endpointSuffix = ENDPOINT_MAP[activeTab]
       
@@ -226,7 +226,7 @@ export default function ApplicationSetting() {
 
   const handleUpdateAll = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const url = settingsId 
         ? `${BASE_URL}/myadmin/app-settings/update/${settingsId}`

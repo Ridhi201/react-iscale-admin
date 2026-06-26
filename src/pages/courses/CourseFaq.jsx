@@ -64,7 +64,7 @@ const fetchFaqs = async () => {
 
 const handleSaveFaq = async () => {
   try {
-    setLoading(true); setTimeout(() => setLoading(false), 2000)
+    setLoading(true); 
 
     const token = localStorage.getItem('token')
 

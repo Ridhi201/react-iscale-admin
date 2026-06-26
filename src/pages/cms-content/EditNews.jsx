@@ -82,7 +82,7 @@ export default function EditNews() {
     }
 
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       setBackendError(null)
       const token = localStorage.getItem('token')
       const response = await axios.put(`${BASE_URL}/myadmin/news_updates/update/${id}`, submitData, {

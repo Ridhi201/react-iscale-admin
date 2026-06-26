@@ -16,7 +16,7 @@ export default function NewsList() {
 
   const fetchData = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/news_updates/all`, {
         headers: { Authorization: `Bearer ${token}` }

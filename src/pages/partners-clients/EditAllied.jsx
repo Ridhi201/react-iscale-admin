@@ -48,7 +48,7 @@ export default function EditAllied() {
     }
 
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.put(`${BASE_URL}/myadmin/allied/update-allied/${id}`, submitData, {
         headers: { Authorization: `Bearer ${token}` }

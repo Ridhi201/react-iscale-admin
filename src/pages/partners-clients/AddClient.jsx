@@ -40,7 +40,7 @@ export default function AddClient() {
     }
 
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.post(`${BASE_URL}/myadmin/client/add-client`, submitData, {
         headers: { Authorization: `Bearer ${token}` }

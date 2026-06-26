@@ -22,7 +22,7 @@ export default function BannersList() {
 
   const fetchBanners = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const params = new URLSearchParams({
         page: currentPage,

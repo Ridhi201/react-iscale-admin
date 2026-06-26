@@ -41,7 +41,7 @@ export default function AddNotesCategory() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true); setTimeout(() => setLoading(false), 2000)
+    setLoading(true); 
 
     try {
       const token = localStorage.getItem('token')

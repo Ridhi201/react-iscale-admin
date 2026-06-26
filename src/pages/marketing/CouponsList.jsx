@@ -18,7 +18,7 @@ export default function CouponsList() {
 
   const fetchCoupons = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/coupons/all`, {
         headers: { Authorization: `Bearer ${token}` }

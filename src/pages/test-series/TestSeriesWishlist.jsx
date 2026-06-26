@@ -25,7 +25,7 @@ export default function TestSeriesWishlist() {
   const [loading, setLoading] = useState(false)
 
   const fetchWishlists = async () => {
-    setLoading(true); setTimeout(() => setLoading(false), 2000)
+    setLoading(true); 
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/user-wishlist/test-pack/admin/all`, {

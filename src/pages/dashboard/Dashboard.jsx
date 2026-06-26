@@ -30,10 +30,10 @@ export default function Dashboard() {
         ])
 
         setApiData({
-          cards: cardsRes.status === 'fulfilled' ? (cardsRes.value?.data?.data || cardsRes.value?.data || null) : null,
+          cards: cardsRes.status === 'fulfilled' ? (cardsRes.value?.data?.data || cardsRes.value?.data?.cards || cardsRes.value?.data || null) : null,
           graph: graphRes.status === 'fulfilled' ? (graphRes.value?.data?.data || graphRes.value?.data || null) : null,
           topCourses: coursesRes.status === 'fulfilled' ? (coursesRes.value?.data?.data || coursesRes.value?.data || null) : null,
-          activities: activitiesRes.status === 'fulfilled' ? (activitiesRes.value?.data?.data || activitiesRes.value?.data || null) : null
+          activities: activitiesRes.status === 'fulfilled' ? (activitiesRes.value?.data?.data || activitiesRes.value?.data?.activities || activitiesRes.value?.data?.recent_activities || activitiesRes.value?.data || null) : null
         })
       } catch (error) {
         console.error("Error fetching dashboard data", error)
@@ -54,11 +54,12 @@ export default function Dashboard() {
           return { ...topStats[i], ...c, title: topStats[i]?.title || c?.title, value: val };
         });
       } else if (typeof apiData.cards === 'object') {
+        const cardSource = apiData.cards.data || apiData.cards.cards || apiData.cards;
         displayCards = topStats.map(stat => {
-          let apiValue = apiData.cards[stat.key];
-          if (stat.key === 'totalRegistration') apiValue = apiData.cards.totalRegistrations ?? apiValue;
-          if (stat.key === 'totalQuizs') apiValue = apiData.cards.totalQuizzes ?? apiValue;
-          if (stat.key === 'totalNotesSale') apiValue = apiData.cards.totalNoteSale ?? apiValue;
+          let apiValue = cardSource[stat.key];
+          if (stat.key === 'totalRegistration') apiValue = cardSource.totalRegistrations ?? cardSource.registrations ?? apiValue;
+          if (stat.key === 'totalQuizs') apiValue = cardSource.totalQuizzes ?? cardSource.quizzes ?? apiValue;
+          if (stat.key === 'totalNotesSale') apiValue = cardSource.totalNoteSale ?? cardSource.notesSale ?? apiValue;
           
           return {
             ...stat,

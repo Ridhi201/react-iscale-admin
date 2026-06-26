@@ -21,7 +21,7 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!token) return
-    setLoading(true); setTimeout(() => setLoading(false), 2000)
+    setLoading(true); 
     setStatus('')
     try {
       await resetPassword({ token, password })

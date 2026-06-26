@@ -50,7 +50,7 @@ const fetchCategoriesDropdown = async () => {
 
   const fetchCourses = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(
         `${BASE_URL}/myadmin/course/all-courses?search=${searchTerm}&limit=${entriesPerPage}&page=${currentPage}&category=${categoryFilter}`,

@@ -16,7 +16,7 @@ export default function JobUpdatesList() {
 
   const fetchJobs = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/comp-requirement/get-all-jobs`, {
         params: {

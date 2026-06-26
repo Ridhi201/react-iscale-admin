@@ -19,7 +19,7 @@ export default function NotesCategory() {
 
   const fetchCategories = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/notes-category/all?limit=1000`, {
         headers: { Authorization: `Bearer ${token}` }

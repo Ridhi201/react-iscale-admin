@@ -22,7 +22,7 @@ export default function QuizList() {
 
   const fetchQuizzes = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/quiz/quiz-by-package/${packageId}`, {
         headers: { Authorization: `Bearer ${token}` }

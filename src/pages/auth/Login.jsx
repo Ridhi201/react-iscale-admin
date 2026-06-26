@@ -72,7 +72,7 @@ export default function Login() {
 
     setError('')
     setSuccess('')
-    setLoading(true); setTimeout(() => setLoading(false), 2000)
+    setLoading(true); 
 
     try {
       console.log("LOGIN STARTED")
@@ -100,7 +100,7 @@ const handleRegister = async (e) => {
 
   setError('')
   setSuccess('')
-  setLoading(true); setTimeout(() => setLoading(false), 2000)
+  setLoading(true); 
 
   try {
 

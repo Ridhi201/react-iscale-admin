@@ -29,7 +29,7 @@ export default function CourseTrainingHighlights() {
 
   const fetchHighlights = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/training/get-th/${id}`, {
         headers: { Authorization: `Bearer ${token}` }

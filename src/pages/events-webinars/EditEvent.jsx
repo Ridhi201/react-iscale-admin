@@ -75,7 +75,7 @@ export default function EditEvent() {
       await window.customAlert("❌ Start Time and End Time are required");
       return;
     }
-    setLoading(true); setTimeout(() => setLoading(false), 2000);
+    setLoading(true); 
     try {
       const token = localStorage.getItem('token');
       const data = new FormData();

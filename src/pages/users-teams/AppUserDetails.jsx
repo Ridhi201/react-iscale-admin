@@ -335,7 +335,7 @@ function EnrollmentCourses({ candidateId }) {
 
   const fetchData = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const res = await axios.get(`${BASE_URL}/myadmin/app-users-enrollments-details/course/all/${candidateId}?limit=100`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -450,7 +450,7 @@ function EnrollmentTestSeries({ candidateId }) {
 
   const fetchData = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const res = await axios.get(`${BASE_URL}/myadmin/app-users-enrollments-details/test-series/all/${candidateId}?limit=100`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -554,7 +554,7 @@ function EnrollmentNotes({ candidateId }) {
 
   const fetchData = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const res = await axios.get(`${BASE_URL}/myadmin/app-users-enrollments-details/notes/all/${candidateId}?limit=100`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -654,7 +654,7 @@ function WishlistCourses({ candidateId }) {
 
   const fetchData = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const res = await axios.get(`${BASE_URL}/myadmin/app-users-wishlist-details/course/all/${candidateId}?limit=100`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -738,7 +738,7 @@ function WishlistTestSeries({ candidateId }) {
 
   const fetchData = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const res = await axios.get(`${BASE_URL}/myadmin/app-users-wishlist-details/test/series/all/${candidateId}?limit=100`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -822,7 +822,7 @@ function WishlistNotes({ candidateId }) {
 
   const fetchData = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const res = await axios.get(`${BASE_URL}/myadmin/app-users-wishlist-details/notes/all/${candidateId}?limit=100`, {
         headers: { Authorization: `Bearer ${token}` }

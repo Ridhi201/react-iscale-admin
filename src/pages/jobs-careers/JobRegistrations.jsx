@@ -30,7 +30,7 @@ export default function JobRegistrations() {
   }
 
   const fetchData = async (overrideFilters = null, page = currentPage) => {
-    setLoading(true); setTimeout(() => setLoading(false), 2000)
+    setLoading(true); 
     try {
       const token = localStorage.getItem('token')
       const activeFilters = overrideFilters || filters

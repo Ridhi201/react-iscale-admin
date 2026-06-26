@@ -21,7 +21,7 @@ export default function CourseSubjects() {
 
   const fetchSubjects = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/subject/get-subjects/${id}`, {
         headers: { Authorization: `Bearer ${token}` }

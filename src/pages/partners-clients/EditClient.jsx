@@ -50,7 +50,7 @@ export default function EditClient() {
     }
 
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.put(`${BASE_URL}/myadmin/client/update-client/${id}`, submitData, {
         headers: { Authorization: `Bearer ${token}` }

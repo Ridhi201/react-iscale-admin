@@ -34,7 +34,7 @@ export default function StudentNewsList() {
 
   const fetchNews = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/news/all-news`, {
         headers: { Authorization: `Bearer ${token}` }

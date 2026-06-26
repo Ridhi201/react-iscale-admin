@@ -26,7 +26,7 @@ export default function TeamsList() {
 
   const fetchTeams = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const params = new URLSearchParams({
         page: currentPage,
@@ -144,7 +144,11 @@ export default function TeamsList() {
             <ThemeButton onClick={handleFilter} variant="solid-green">
               Filter
             </ThemeButton>
-            <ThemeButton onClick={handleReset} variant="outline-green">
+            <ThemeButton 
+              onClick={handleReset} 
+              variant="outline-green" 
+              className="!bg-white !text-[#144f36] !border-2 !border-[#144f36] hover:!bg-[#144f36] hover:!text-white transition-all"
+            >
               Reset
             </ThemeButton>
           </div>

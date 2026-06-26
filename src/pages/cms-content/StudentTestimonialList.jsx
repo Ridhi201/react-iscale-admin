@@ -31,7 +31,7 @@ export default function StudentTestimonialList() {
 
   const fetchTestimonials = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/stdtestimonial/all-stdtestimonials`, {
         headers: { Authorization: `Bearer ${token}` }

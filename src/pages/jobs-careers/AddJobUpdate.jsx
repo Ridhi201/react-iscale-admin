@@ -37,7 +37,7 @@ export default function AddJobUpdate() {
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        setLoading(true); setTimeout(() => setLoading(false), 2000)
+        setLoading(true); 
         const token = localStorage.getItem('token')
         const response = await axios.get(`${BASE_URL}/myadmin/comp-requirement/get-job/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -129,7 +129,7 @@ export default function AddJobUpdate() {
     }
 
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       setBackendError(null)
       const token = localStorage.getItem('token')
 

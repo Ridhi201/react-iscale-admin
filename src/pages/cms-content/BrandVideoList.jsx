@@ -23,7 +23,7 @@ export default function BrandVideoList() {
 
   const fetchVideos = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const response = await axios.get(`${BASE_URL}/myadmin/brand-video/all`, {
         headers: { Authorization: `Bearer ${token}` }

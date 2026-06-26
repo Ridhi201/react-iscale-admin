@@ -21,7 +21,7 @@ export default function PPTList() {
 
   const fetchData = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       const params = {
         page: currentPage,

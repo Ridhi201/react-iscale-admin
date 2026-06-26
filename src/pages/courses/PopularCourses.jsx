@@ -18,7 +18,7 @@ export default function PopularCourses() {
 
   const fetchCourses = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       setError(null)
       const token = localStorage.getItem('token')
       console.log('TOKEN:', token ? `${token.substring(0, 30)}...` : 'NULL/MISSING')

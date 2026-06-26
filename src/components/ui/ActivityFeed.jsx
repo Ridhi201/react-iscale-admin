@@ -10,38 +10,92 @@ const activities = [
 ]
 
 export default function ActivityFeed({ apiData }) {
+  // Helper to format date to relative time
+  const getRelativeTime = (dateInput) => {
+    if (!dateInput) return 'Just now';
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) return dateInput;
+
+    const now = new Date();
+    const diffMs = now - date;
+    
+    if (diffMs < 0) return 'Just now';
+    if (diffMs < 10000) return 'Just now';
+
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHrs = Math.floor(diffMin / 60);
+    const diffDays = Math.floor(diffHrs / 24);
+
+    if (diffSec < 60) return `${diffSec}s ago`;
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   let displayActivities = activities;
 
-  if (apiData && Array.isArray(apiData) && apiData.length > 0) {
-    displayActivities = apiData.map((act, index) => {
-      // Safely map the icon, defaulting to 'Bell' if invalid or missing
-      let iconName = act.icon || 'Bell';
-      if (!Icons[iconName]) {
-        if (act.type === 'user' || act.type === 'registration') iconName = 'User';
-        else if (act.type === 'course' || act.type === 'purchase') iconName = 'ShoppingCart';
-        else if (act.type === 'quiz') iconName = 'FileText';
-        else if (act.type === 'live_class' || act.type === 'class') iconName = 'Video';
-        else iconName = 'Bell';
-      }
+  if (apiData && typeof apiData === 'object') {
+    const dataSource = apiData.data || apiData;
+    const latestCandidates = dataSource.latestCandidates || [];
+    const latestEnrollments = dataSource.latestEnrollments || [];
 
-      // Default colors based on icon type if backend doesn't send color
-      let colorClass = act.color || 'text-indigo-500 bg-indigo-50';
-      if (!act.color) {
-        if (iconName === 'User') colorClass = 'text-[#22c55e] bg-green-50';
-        else if (iconName === 'ShoppingCart') colorClass = 'text-blue-500 bg-blue-50';
-        else if (iconName === 'FileText') colorClass = 'text-orange-500 bg-orange-50';
-        else if (iconName === 'Video') colorClass = 'text-purple-500 bg-purple-50';
-      }
+    if (Array.isArray(latestCandidates) && Array.isArray(latestEnrollments) && (latestCandidates.length > 0 || latestEnrollments.length > 0)) {
+      const candActivities = latestCandidates.map(cand => ({
+        id: cand._id || `cand-${cand.c_email}`,
+        type: 'user',
+        title: 'New Student Registered',
+        desc: `${cand.c_display_name || (cand.c_first_name + ' ' + cand.c_last_name).trim() || 'A new student'} registered (${cand.c_email || 'no email'})`,
+        time: getRelativeTime(cand.c_register_date),
+        date: new Date(cand.c_register_date || Date.now()),
+        icon: 'User',
+        color: 'text-[#22c55e] bg-green-50'
+      }));
 
-      return {
-        id: act._id || act.id || index,
-        title: act.title || act.name || 'New Activity',
-        desc: act.desc || act.description || act.message || 'A new action was logged',
-        time: act.time || act.date || act.createdAt || 'Just now',
-        icon: iconName,
-        color: colorClass
-      };
-    });
+      const enrollActivities = latestEnrollments.map(enroll => ({
+        id: enroll._id || `enroll-${enroll.enrolled_on}`,
+        type: 'course',
+        title: 'Course Purchased',
+        desc: `${enroll.user_id?.c_display_name || (enroll.user_id ? (enroll.user_id.c_first_name + ' ' + enroll.user_id.c_last_name).trim() : '') || 'A student'} purchased ${enroll.course_id?.m_course_title || 'a course'}`,
+        time: getRelativeTime(enroll.enrolled_on),
+        date: new Date(enroll.enrolled_on || Date.now()),
+        icon: 'ShoppingCart',
+        color: 'text-blue-500 bg-blue-50'
+      }));
+
+      displayActivities = [...candActivities, ...enrollActivities].sort((a, b) => b.date.getTime() - a.date.getTime());
+    } else if (Array.isArray(apiData) && apiData.length > 0) {
+      displayActivities = apiData.map((act, index) => {
+        let iconName = act.icon || 'Bell';
+        if (!Icons[iconName]) {
+          if (act.type === 'user' || act.type === 'registration') iconName = 'User';
+          else if (act.type === 'course' || act.type === 'purchase') iconName = 'ShoppingCart';
+          else if (act.type === 'quiz') iconName = 'FileText';
+          else if (act.type === 'live_class' || act.type === 'class') iconName = 'Video';
+          else iconName = 'Bell';
+        }
+
+        let colorClass = act.color || 'text-indigo-500 bg-indigo-50';
+        if (!act.color) {
+          if (iconName === 'User') colorClass = 'text-[#22c55e] bg-green-50';
+          else if (iconName === 'ShoppingCart') colorClass = 'text-blue-500 bg-blue-50';
+          else if (iconName === 'FileText') colorClass = 'text-orange-500 bg-orange-50';
+          else if (iconName === 'Video') colorClass = 'text-purple-500 bg-purple-50';
+        }
+
+        return {
+          id: act._id || act.id || index,
+          title: act.title || act.name || 'New Activity',
+          desc: act.desc || act.description || act.message || 'A new action was logged',
+          time: getRelativeTime(act.time || act.date || act.createdAt),
+          date: new Date(act.time || act.date || act.createdAt || Date.now()),
+          icon: iconName,
+          color: colorClass
+        };
+      });
+    }
   }
 
   return (

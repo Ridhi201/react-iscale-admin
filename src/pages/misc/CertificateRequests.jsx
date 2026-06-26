@@ -30,7 +30,7 @@ export default function CertificateRequests() {
   })
 
   const fetchData = async (overrideFilters = null, page = currentPage) => {
-    setLoading(true); setTimeout(() => setLoading(false), 2000)
+    setLoading(true); 
     try {
       const token = localStorage.getItem('token')
       const activeFilters = overrideFilters || filters
@@ -79,7 +79,7 @@ export default function CertificateRequests() {
   const openUpdateModal = (row) => {
     setSelectedReg(row)
     setUpdateForm({
-      status: row.certificate_status || 'approved',
+      status: row.certificate_status === 1 ? 'pending' : row.certificate_status === 2 ? 'approved' : row.certificate_status === 3 ? 'declined' : 'approved',
       certificate_no: row.certificate_no || '',
       certificate_pdf: row.certificate_pdf || ''
     })
@@ -91,17 +91,25 @@ export default function CertificateRequests() {
     setUpdateLoading(true)
     try {
       const token = localStorage.getItem('token')
+      
+      let statusInt = 1;
+      if (updateForm.status === 'approved') statusInt = 2;
+      else if (updateForm.status === 'declined') statusInt = 3;
+
       const payload = {
-        status: updateForm.status,
-        certificate_no: updateForm.certificate_no,
-        certificate_pdf: updateForm.certificate_pdf
+        status: statusInt,
+        certificate_status: statusInt,
+        certificate_no: updateForm.certificate_no || '',
+        certificate_pdf: updateForm.certificate_pdf || ''
       }
 
       const response = await axios.put(
         `${BASE_URL}/myadmin/certificate/update-status/${selectedReg.enrollment_id}`,
         payload,
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 
+            Authorization: `Bearer ${token}`
+          }
         }
       )
 
@@ -168,7 +176,7 @@ export default function CertificateRequests() {
         `${row.course_progress || 0}%`,
         `"${row.certificate_no || 'N/A'}"`,
         `"${row.certificate_pdf || 'N/A'}"`,
-        `"${row.certificate_status || ''}"`
+        `"${row.certificate_status === 2 ? 'Approved' : row.certificate_status === 3 ? 'Declined' : 'Pending'}"`
       ];
       csvRows.push(values.join(','));
     });
@@ -303,14 +311,27 @@ export default function CertificateRequests() {
                     </td>
                     <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.course_progress}%</td>
                     <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.certificate_no || 'N/A'}</td>
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.certificate_pdf || 'N/A'}</td>
+                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
+                      {row.certificate_pdf && row.certificate_pdf.startsWith('http') ? (
+                        <a 
+                          href={row.certificate_pdf} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
+                        >
+                          View PDF
+                        </a>
+                      ) : (
+                        row.certificate_pdf || 'N/A'
+                      )}
+                    </td>
                     <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        row.certificate_status === 'approved' ? 'bg-green-100 text-green-700' : 
-                        row.certificate_status === 'declined' ? 'bg-red-100 text-red-700' : 
+                        row.certificate_status === 2 ? 'bg-green-100 text-green-700' : 
+                        row.certificate_status === 3 ? 'bg-red-100 text-red-700' : 
                         'bg-yellow-100 text-yellow-700'
                       }`}>
-                        {row.certificate_status}
+                        {row.certificate_status === 2 ? 'Approved' : row.certificate_status === 3 ? 'Declined' : 'Pending'}
                       </span>
                     </td>
                     <td className="px-3 py-3 text-xs">

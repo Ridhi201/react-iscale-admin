@@ -44,7 +44,7 @@ export default function Registrations() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       try {
         const token = localStorage.getItem('token')
         

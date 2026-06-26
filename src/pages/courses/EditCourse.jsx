@@ -165,7 +165,7 @@ export default function EditCourse() {
   }, [id, location.state]);
 
   const handleSubmit = async () => {
-    setLoading(true); setTimeout(() => setLoading(false), 2000);
+    setLoading(true); 
     try {
       const token = localStorage.getItem('token');
       const payload = new FormData();

@@ -27,7 +27,7 @@ export default function CourseCategories() {
 
   const fetchCategories = async () => {
     try {
-      setLoading(true); setTimeout(() => setLoading(false), 2000)
+      setLoading(true); 
       const token = localStorage.getItem('token')
       console.log('Fetching from REAL backend API...')
       

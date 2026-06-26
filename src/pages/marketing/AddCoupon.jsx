@@ -32,7 +32,7 @@ export default function AddCoupon() {
       await window.customAlert("Coupon Code and Title are required");
       return;
     }
-    setLoading(true); setTimeout(() => setLoading(false), 2000);
+    setLoading(true); 
     try {
       const token = localStorage.getItem('token');
       

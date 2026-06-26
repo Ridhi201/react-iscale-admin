@@ -42,7 +42,7 @@ export default function LiveClasses() {
   }
 
   const fetchLiveClasses = useCallback(async () => {
-    setLoading(true); setTimeout(() => setLoading(false), 2000)
+    setLoading(true); 
     try {
       const token = localStorage.getItem('token')
       const params = {
