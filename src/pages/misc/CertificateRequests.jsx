@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Calendar, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
@@ -24,17 +24,16 @@ export default function CertificateRequests() {
   const [selectedReg, setSelectedReg] = useState(null)
   const [updateLoading, setUpdateLoading] = useState(false)
   const [updateForm, setUpdateForm] = useState({
-    status: 'approved',
+    status: 'pending',
     certificate_no: '',
     certificate_pdf: ''
   })
 
   const fetchData = async (overrideFilters = null, page = currentPage) => {
-    setLoading(true); 
+    setLoading(true)
     try {
       const token = localStorage.getItem('token')
       const activeFilters = overrideFilters || filters
-      
       const queryParams = new URLSearchParams({
         page: page,
         limit: entriesPerPage,
@@ -79,7 +78,7 @@ export default function CertificateRequests() {
   const openUpdateModal = (row) => {
     setSelectedReg(row)
     setUpdateForm({
-      status: row.certificate_status === 1 ? 'pending' : row.certificate_status === 2 ? 'approved' : row.certificate_status === 3 ? 'declined' : 'approved',
+      status: row.certificate_status === 2 ? 'approved' : row.certificate_status === 3 ? 'declined' : 'pending',
       certificate_no: row.certificate_no || '',
       certificate_pdf: row.certificate_pdf || ''
     })
@@ -91,10 +90,9 @@ export default function CertificateRequests() {
     setUpdateLoading(true)
     try {
       const token = localStorage.getItem('token')
-      
-      let statusInt = 1;
-      if (updateForm.status === 'approved') statusInt = 2;
-      else if (updateForm.status === 'declined') statusInt = 3;
+      let statusInt = 1
+      if (updateForm.status === 'approved') statusInt = 2
+      else if (updateForm.status === 'declined') statusInt = 3
 
       const payload = {
         status: statusInt,
@@ -106,11 +104,7 @@ export default function CertificateRequests() {
       const response = await axios.put(
         `${BASE_URL}/myadmin/certificate/update-status/${selectedReg.enrollment_id}`,
         payload,
-        {
-          headers: { 
-            Authorization: `Bearer ${token}`
-          }
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
 
       if (response.data.status) {
@@ -131,24 +125,15 @@ export default function CertificateRequests() {
   const startIndex = (currentPage - 1) * entriesPerPage
   const endIndex = Math.min(startIndex + data.length, totalEntries)
 
-  const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1)
-  }
-
-  const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
-  }
+  const handlePrev = () => { if (currentPage > 1) setCurrentPage(currentPage - 1) }
+  const handleNext = () => { if (currentPage < totalPages) setCurrentPage(currentPage + 1) }
 
   const getPageNumbers = () => {
     let startPage = Math.max(1, currentPage - 2)
     let endPage = Math.min(totalPages, startPage + 4)
-    if (endPage - startPage < 4) {
-      startPage = Math.max(1, endPage - 4)
-    }
+    if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4)
     const pages = []
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i)
-    }
+    for (let i = startPage; i <= endPage; i++) pages.push(i)
     return pages
   }
 
@@ -158,195 +143,216 @@ export default function CertificateRequests() {
   }
 
   const handleExport = async () => {
-    if (!data || data.length === 0) {
-      await window.customAlert("No data to export");
-      return;
-    }
-    
-    const headers = ['S.No.', 'Student Name', 'Email', 'Course', 'Reg Date', 'Progress', 'Certificate No', 'Certificate PDF', 'Status'];
-    const csvRows = [headers.join(',')];
-    
+    if (!data || data.length === 0) { await window.customAlert('No data to export'); return }
+    const headers = ['S.No.', 'Student Name', 'Email', 'Course', 'Reg Date', 'Progress', 'Certificate No', 'Certificate PDF', 'Status']
+    const csvRows = [headers.join(',')]
     data.forEach((row, index) => {
       const values = [
         startIndex + index + 1,
-        `"${row.student_name || ''}"`,
-        `"${row.student_email || ''}"`,
-        `"${row.course_name || ''}"`,
+        `"${row.student_name || ''}"`, `"${row.student_email || ''}"`, `"${row.course_name || ''}"`,
         `"${new Date(row.registration_date).toLocaleDateString()}"`,
-        `${row.course_progress || 0}%`,
-        `"${row.certificate_no || 'N/A'}"`,
+        `${row.course_progress || 0}%`, `"${row.certificate_no || 'N/A'}"`,
         `"${row.certificate_pdf || 'N/A'}"`,
         `"${row.certificate_status === 2 ? 'Approved' : row.certificate_status === 3 ? 'Declined' : 'Pending'}"`
-      ];
-      csvRows.push(values.join(','));
-    });
-    
-    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "certificate_requests.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      ]
+      csvRows.push(values.join(','))
+    })
+    const csvContent = 'data:text/csv;charset=utf-8,' + csvRows.join('\n')
+    const link = document.createElement('a')
+    link.setAttribute('href', encodeURI(csvContent))
+    link.setAttribute('download', 'certificate_requests.csv')
+    document.body.appendChild(link); link.click(); document.body.removeChild(link)
+  }
+
+  const getStatusBadge = (status) => {
+    if (status === 2) return { label: 'Approved', cls: 'bg-green-600 text-white' }
+    if (status === 3) return { label: 'Declined', cls: 'bg-red-500 text-white' }
+    return { label: 'Pending', cls: 'bg-amber-500 text-white' }
   }
 
   return (
     <div className="h-full animate-fade-in-up">
       {/* Title Card */}
-      <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md relative overflow-hidden group mb-5">
-        <h2 className="text-white font-bold tracking-tight text-xl relative z-10">Course Request</h2>
+      <div className="bg-[#144f36] rounded-t-2xl p-5 flex justify-between items-center shadow-md mb-5">
+        <h2 className="text-white font-bold tracking-tight text-xl">Course Request</h2>
       </div>
 
       {/* Filters Card */}
-      <div className="bg-[#f6f6ff] rounded-2xl shadow-md hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] transition-shadow border border-slate-100 transition-colors p-5 mb-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 items-end w-full">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
           {/* From Date */}
-          <div className="w-full">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">From Date</label>
-            <input 
-              type="date" 
-              value={filters.from_date}
-              onChange={(e) => setFilters({...filters, from_date: e.target.value})}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" 
-            />
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">From Date</label>
+            <input type="date" value={filters.from_date}
+              onChange={e => setFilters({ ...filters, from_date: e.target.value })}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-500 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
           </div>
           {/* To Date */}
-          <div className="w-full">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">To Date</label>
-            <input 
-              type="date" 
-              value={filters.to_date}
-              onChange={(e) => setFilters({...filters, to_date: e.target.value})}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 text-slate-500" 
-            />
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">To Date</label>
+            <input type="date" value={filters.to_date}
+              onChange={e => setFilters({ ...filters, to_date: e.target.value })}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-500 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
+          </div>
+          {/* Registration From placeholder */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Registration From</label>
+            <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-500 outline-none focus:border-[#144f36] bg-white">
+              <option value="">Select Value</option>
+              <option value="App">App</option>
+              <option value="Web">Web</option>
+            </select>
           </div>
           {/* Status */}
-          <div className="w-full">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Status</label>
-            <select 
-              value={filters.status}
-              onChange={(e) => setFilters({...filters, status: e.target.value})}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
-            >
-              <option value="">All Statuses</option>
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+            <select value={filters.status}
+              onChange={e => setFilters({ ...filters, status: e.target.value })}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 outline-none focus:border-[#144f36] bg-white">
+              <option value="">Select Value</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="declined">Declined</option>
             </select>
           </div>
-          {/* Search */}
-          <div className="w-full">
-            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Search</label>
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              value={filters.search}
-              onChange={(e) => setFilters({...filters, search: e.target.value})}
-              className="w-full border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" 
-            />
-          </div>
-          {/* Buttons */}
-          <div className="flex gap-2 w-full">
+        </div>
 
-            <button onClick={handleSearchClick} className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Search / Filter</button>
-            <button onClick={handleReset} className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Reset</button>
-            <button onClick={handleExport} className="bg-white border border-[#144f36] text-[#144f36] hover:bg-slate-50 px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all">Export</button>
-
-          </div>
+        {/* Buttons row */}
+        <div className="flex gap-2 mt-4">
+          <button onClick={handleSearchClick}
+            className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-6 py-2 rounded text-sm font-semibold shadow-sm transition-all">
+            Filter
+          </button>
+          <button onClick={handleReset}
+            className="border border-[#144f36] text-[#144f36] hover:bg-[#144f36] hover:text-white px-6 py-2 rounded text-sm font-semibold transition-all bg-white">
+            Reset
+          </button>
+          <button onClick={handleExport}
+            className="border border-[#144f36] text-[#144f36] hover:bg-[#144f36] hover:text-white px-6 py-2 rounded text-sm font-semibold transition-all bg-white">
+            Export
+          </button>
         </div>
       </div>
-      
+
       {/* Table Section */}
-      <div className="bg-[#f6f6ff] dark:bg-[#1f1b2e] border border-slate-200 dark:border-[#1f1b2e] rounded-xl overflow-hidden mb-5 p-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-5">
         {/* Top Controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-          <div className="flex items-center gap-2 mb-4 sm:mb-0">
-            <span className="text-sm text-slate-800 dark:text-slate-200">Show</span>
-            <select 
-              value={entriesPerPage}
-              onChange={handleEntriesChange}
-              className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-[#f6f6ff] dark:bg-[#1f1b2e] text-slate-800 dark:text-slate-200"
-            >
+        <div className="flex flex-col sm:flex-row justify-between items-center p-3 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Show</span>
+            <select value={entriesPerPage} onChange={handleEntriesChange}
+              className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#144f36] bg-white">
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
               <option value={100}>100</option>
             </select>
-            <span className="text-sm text-slate-800 dark:text-slate-200 mr-2">Entries</span>
+            <span className="text-sm text-gray-600">Entries</span>
+            {/* Export icon buttons */}
+            <div className="flex gap-0 border border-gray-300 rounded overflow-hidden ml-2">
+              {[
+                { label: 'Copy', icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg> },
+                { label: 'Excel', icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><path d="M8 13h2" /><path d="M8 17h2" /><path d="M14 13h2" /><path d="M14 17h2" /></svg> },
+                { label: 'PDF', icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /><line x1="16" x2="8" y1="17" y2="17" /><line x1="10" x2="8" y1="9" y2="9" /></svg> },
+                { label: 'Print', icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect width="12" height="8" x="6" y="14" /></svg> },
+              ].map(btn => (
+                <button key={btn.label} title={btn.label}
+                  onClick={async () => {
+                    if (btn.label === 'Print') { window.print() }
+                    else {
+                      const table = document.querySelector('table')
+                      if (!table) return
+                      let csv = ''
+                      table.querySelectorAll('tr').forEach(row => {
+                        const cols = row.querySelectorAll('td, th')
+                        csv += Array.from(cols).map(c => '"' + c.innerText.replace(/"/g, '""') + '"').join(',') + '\n'
+                      })
+                      if (btn.label === 'Copy') {
+                        navigator.clipboard.writeText(csv)
+                        await window.customAlert('Table data copied to clipboard!')
+                      } else {
+                        const blob = new Blob([csv], { type: 'text/csv' })
+                        const url = window.URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url; a.download = 'export.csv'; a.click()
+                      }
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-white hover:bg-gray-50 border-r border-gray-300 last:border-r-0 flex items-center justify-center">
+                  {btn.icon}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Search right side */}
+          <div className="mt-2 sm:mt-0">
+            <input type="text" placeholder="Search..."
+              value={filters.search}
+              onChange={e => setFilters({ ...filters, search: e.target.value })}
+              onKeyDown={e => e.key === 'Enter' && handleSearchClick()}
+              className="border border-gray-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] w-48" />
           </div>
         </div>
 
         <div className="overflow-x-auto">
           {loading ? (
-             <div className="p-4 text-center text-slate-500">Loading...</div>
+            <div className="p-8 text-center text-gray-400">Loading...</div>
           ) : (
-            <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
-              <thead className="bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-gray-800">
-                <tr>
-                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">S.No.</th>
-                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Student Name</th>
-                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Email</th>
-                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Course</th>
-                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top w-20">Reg Date</th>
-                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Progress</th>
-                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Certificate No</th>
-                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Certificate PDF</th>
-                  <th className="px-3 py-3 font-semibold text-xs border-r border-slate-200 dark:border-gray-800/50 align-top">Status</th>
-                  <th className="px-3 py-3 font-semibold text-xs align-top">Action</th>
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr style={{ backgroundColor: '#144f36' }} className="text-white">
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap border-r border-green-700">S.No.</th>
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap border-r border-green-700">Student</th>
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap border-r border-green-700">Course</th>
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap border-r border-green-700">Regn. Date</th>
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap border-r border-green-700">Progress</th>
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap border-r border-green-700">Certificate Number</th>
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap border-r border-green-700">Certificate PDF</th>
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap border-r border-green-700">Status</th>
+                  <th className="px-3 py-3 font-semibold whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {data.map((row, index) => (
-                  <tr 
-                    key={row.enrollment_id} 
-                    className="border-b border-slate-200 dark:border-gray-800/50 bg-[#f6f6ff] dark:bg-[#1f1b2e]"
-                  >
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{startIndex + index + 1}</td>
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.student_name}</td>
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.student_email}</td>
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.course_name}</td>
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
-                      <div className="w-10 break-words">{new Date(row.registration_date).toLocaleDateString()}</div>
-                    </td>
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.course_progress}%</td>
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">{row.certificate_no || 'N/A'}</td>
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
-                      {row.certificate_pdf && row.certificate_pdf.startsWith('http') ? (
-                        <a 
-                          href={row.certificate_pdf} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
-                        >
-                          View PDF
-                        </a>
-                      ) : (
-                        row.certificate_pdf || 'N/A'
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-xs border-r border-slate-200 dark:border-gray-800/50">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        row.certificate_status === 2 ? 'bg-green-100 text-green-700' : 
-                        row.certificate_status === 3 ? 'bg-red-100 text-red-700' : 
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {row.certificate_status === 2 ? 'Approved' : row.certificate_status === 3 ? 'Declined' : 'Pending'}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-xs">
-                      <button 
-                        onClick={() => openUpdateModal(row)}
-                        className="bg-[#144f36] text-white px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap hover:bg-[#0f3d2a] transition-colors"
-                      >
-                        Change Status
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {data.map((row, index) => {
+                  const badge = getStatusBadge(row.certificate_status)
+                  return (
+                    <tr key={row.enrollment_id}
+                      className="border-b border-gray-100 hover:bg-green-50/20 transition-colors bg-white">
+                      <td className="px-3 py-3 border-r border-gray-100 text-gray-700">{startIndex + index + 1}</td>
+                      <td className="px-3 py-3 border-r border-gray-100 text-[#144f36] font-medium">{row.student_name}</td>
+                      <td className="px-3 py-3 border-r border-gray-100 text-[#144f36]">
+                        <div className="max-w-[140px] text-xs font-medium">{row.course_name}</div>
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-100 text-gray-700 whitespace-nowrap">
+                        {row.registration_date ? new Date(row.registration_date).toLocaleDateString('en-GB').replace(/\//g, '-') : 'N/A'}
+                      </td>
+                      <td className="px-3 py-3 border-r border-gray-100 text-gray-700">{row.course_progress || 0}</td>
+                      <td className="px-3 py-3 border-r border-gray-100 text-gray-700">{row.certificate_no || ''}</td>
+                      <td className="px-3 py-3 border-r border-gray-100 text-gray-700">
+                        {row.certificate_pdf && row.certificate_pdf.startsWith('http') ? (
+                          <a href={row.certificate_pdf} target="_blank" rel="noopener noreferrer"
+                            className="text-[#144f36] hover:underline font-semibold">View PDF</a>
+                        ) : (row.certificate_pdf || '')}
+                      </td>
+                      {/* Status Badge */}
+                      <td className="px-3 py-3 border-r border-gray-100 text-center">
+                        <span className={`inline-block px-3 py-1 rounded text-white text-xs font-semibold ${badge.cls}`}>
+                          {badge.label}
+                        </span>
+                      </td>
+                      {/* Action */}
+                      <td className="px-3 py-3">
+                        <button onClick={() => openUpdateModal(row)}
+                          className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-4 py-1.5 rounded text-xs font-semibold whitespace-nowrap transition-colors">
+                          Change Status
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
                 {data.length === 0 && (
                   <tr>
-                    <td colSpan="10" className="px-3 py-4 text-center text-slate-500">
+                    <td colSpan="9" className="px-3 py-8 text-center text-gray-400">
                       No certificate requests found.
                     </td>
                   </tr>
@@ -357,109 +363,77 @@ export default function CertificateRequests() {
         </div>
 
         {/* Pagination */}
-        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center text-sm text-slate-800 dark:text-slate-200">
-          <div className="mb-4 sm:mb-0 font-medium">
+        <div className="mt-4 px-4 pb-4 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600">
+          <div className="mb-2 sm:mb-0">
             Showing {totalEntries > 0 ? startIndex + 1 : 0} to {endIndex} of {totalEntries} entries
           </div>
-          <div className="flex bg-[#f6f6ff] dark:bg-[#1f1b2e] overflow-hidden items-center">
-            <button 
-              onClick={handlePrev}
-              disabled={currentPage === 1}
-              className={`px-3 py-1.5 ${currentPage === 1 ? 'text-slate-800 dark:text-slate-200 cursor-not-allowed' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-500 dark:text-slate-400'}`}
-            >
-              ◀
-            </button>
-            
-            <div className="flex items-center space-x-1 mx-1">
-              {getPageNumbers().map(pageNum => (
-                <button 
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentPage === pageNum ? 'bg-slate-50 dark:bg-[#13111c] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-gray-800' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-600 dark:text-slate-400'}`}
-                >
-                  {pageNum}
-                </button>
-              ))}
-            </div>
-            
-            <button 
-              onClick={handleNext}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className={`px-3 py-1.5 ${currentPage === totalPages || totalPages === 0 ? 'text-slate-800 dark:text-slate-200 cursor-not-allowed' : 'hover:bg-slate-50 dark:bg-[#1f1b2e]/50 text-slate-500 dark:text-slate-400'}`}
-            >
-              ▶
-            </button>
+          <div className="flex border border-gray-300 rounded overflow-hidden">
+            <button onClick={handlePrev} disabled={currentPage === 1}
+              className={`px-3 py-1.5 border-r border-gray-300 ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-50 text-gray-600'}`}>«</button>
+            {getPageNumbers().map(pageNum => (
+              <button key={pageNum} onClick={() => setCurrentPage(pageNum)}
+                className={`px-3 py-1.5 border-r border-gray-300 ${currentPage === pageNum ? 'bg-[#144f36] text-white' : 'hover:bg-gray-50 text-gray-600'}`}>
+                {pageNum}
+              </button>
+            ))}
+            <button onClick={handleNext} disabled={currentPage === totalPages || totalPages === 0}
+              className={`px-3 py-1.5 ${currentPage === totalPages || totalPages === 0 ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-50 text-gray-600'}`}>»</button>
           </div>
         </div>
       </div>
 
-      {/* Modal for Changing Status */}
+      {/* ===== CHANGE STATUS MODAL (matches screenshot 1) ===== */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white dark:bg-[#13111c] rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-slate-200 dark:border-gray-800 flex justify-between items-center bg-slate-50 dark:bg-[#1f1b2e]">
-              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">Update Certificate Status</h3>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
-              >
-                <X size={20} className="text-slate-500" />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-5 py-3 border-b border-gray-200">
+              <h3 className="text-gray-800 font-semibold text-base">Change Status</h3>
+              <button onClick={() => setIsModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors text-lg leading-none">✕</button>
             </div>
-            
-            <form onSubmit={handleUpdateStatus} className="p-6">
+
+            {/* Modal Body */}
+            <form onSubmit={handleUpdateStatus} className="px-5 py-5">
               <div className="space-y-4">
+                {/* Status dropdown */}
                 <div>
-                  <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Status</label>
-                  <select 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
                     value={updateForm.status}
-                    onChange={(e) => setUpdateForm({...updateForm, status: e.target.value})}
-                    className="w-full border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
-                    required
-                  >
+                    onChange={e => setUpdateForm({ ...updateForm, status: e.target.value })}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 bg-white outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
+                    required>
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
                     <option value="declined">Declined</option>
                   </select>
                 </div>
-                
+
+                {/* Certificate Number */}
                 <div>
-                  <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Certificate Number</label>
-                  <input 
-                    type="text" 
-                    value={updateForm.certificate_no}
-                    onChange={(e) => setUpdateForm({...updateForm, certificate_no: e.target.value})}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Certificate Number</label>
+                  <input type="text" value={updateForm.certificate_no}
+                    onChange={e => setUpdateForm({ ...updateForm, certificate_no: e.target.value })}
                     placeholder="Enter Certificate Number"
-                    className="w-full border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
-                  />
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
                 </div>
 
+                {/* Certificate PDF */}
                 <div>
-                  <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Certificate PDF URL/Path</label>
-                  <input 
-                    type="text" 
-                    value={updateForm.certificate_pdf}
-                    onChange={(e) => setUpdateForm({...updateForm, certificate_pdf: e.target.value})}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Certificate PDF URL</label>
+                  <input type="text" value={updateForm.certificate_pdf}
+                    onChange={e => setUpdateForm({ ...updateForm, certificate_pdf: e.target.value })}
                     placeholder="Enter PDF Link or Path"
-                    className="w-full border border-slate-300 dark:border-gray-700 bg-white dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
-                  />
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
                 </div>
               </div>
-              
-              <div className="mt-8 flex justify-end gap-3">
-                <button 
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2 border border-slate-300 dark:border-gray-700 text-slate-600 dark:text-slate-300 rounded-full text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  disabled={updateLoading}
-                  className="px-5 py-2 bg-[#144f36] hover:bg-[#0f3d2a] text-white rounded-full text-sm font-bold transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {updateLoading ? 'Updating...' : 'Save Changes'}
+
+              {/* Modal Footer */}
+              <div className="mt-5 flex justify-end">
+                <button type="submit" disabled={updateLoading}
+                  className="px-6 py-2 bg-[#144f36] hover:bg-[#0f3d2a] text-white rounded text-sm font-semibold transition-colors disabled:opacity-60">
+                  {updateLoading ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </form>
