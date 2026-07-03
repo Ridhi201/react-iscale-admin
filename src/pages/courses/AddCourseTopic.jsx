@@ -11,6 +11,17 @@ const getInitialType = (type) => {
   return '';
 }
 
+const detectVideoType = (videoId, savedType) => {
+  if (!videoId || !videoId.trim()) return savedType || 'VdoCipher';
+  const trimmed = videoId.trim();
+  const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const ytMatch = trimmed.match(ytRegExp);
+  if (ytMatch && ytMatch[2].length === 11) return 'YouTube';
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return 'YouTube';
+  if (savedType === 'YouTube') return 'YouTube';
+  return 'VdoCipher';
+}
+
 export default function AddCourseTopic() {
   const navigate = useNavigate()
   const { subjectId } = useParams()
@@ -38,7 +49,7 @@ export default function AddCourseTopic() {
     ml_hours: editTopic?.ml_hours || '00',
     ml_minutes: editTopic?.ml_minutes || '00',
     ml_seconds: editTopic?.ml_seconds || '00',
-    ml_video_type: editTopic?.ml_video_type || 'VdoCipher',
+    ml_video_type: detectVideoType(editTopic?.ml_video_id, editTopic?.ml_video_type),
     ml_pdffile: null,
     ml_link: (editTopic?.ml_type === '3' || editTopic?.ml_type === 'Link') ? (editTopic?.ml_video_id || '') : '',
     ml_videofile: null
@@ -94,12 +105,8 @@ export default function AddCourseTopic() {
         }
       }
       
-      // If changing video type but ID is empty, force VdoCipher
-      if (name === 'ml_video_type') {
-        if (!prev.ml_video_id || !prev.ml_video_id.trim()) {
-          updated.ml_video_type = 'VdoCipher';
-        }
-      }
+      // Allow manual radio selection freely (no forced override)
+      // ml_video_type change is handled as-is
       return updated;
     });
   }
@@ -467,19 +474,18 @@ export default function AddCourseTopic() {
                   type="radio" 
                   name="ml_video_type" 
                   value="YouTube" 
-                  checked={formData.ml_video_id && formData.ml_video_id.trim() ? formData.ml_video_type === 'YouTube' : false} 
+                  checked={formData.ml_video_type === 'YouTube'} 
                   onChange={handleChange} 
-                  disabled={!formData.ml_video_id || !formData.ml_video_id.trim()}
-                  className="w-4 h-4 text-[#144f36] focus:ring-[#144f36] disabled:opacity-50" 
+                  className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" 
                 />
-                <span className={(!formData.ml_video_id || !formData.ml_video_id.trim()) ? "opacity-50" : ""}>YouTube</span>
+                <span>YouTube</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800 text-sm">
                 <input 
                   type="radio" 
                   name="ml_video_type" 
                   value="VdoCipher" 
-                  checked={!formData.ml_video_id || !formData.ml_video_id.trim() || formData.ml_video_type === 'VdoCipher'} 
+                  checked={formData.ml_video_type === 'VdoCipher'} 
                   onChange={handleChange} 
                   className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" 
                 />
