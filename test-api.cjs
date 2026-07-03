@@ -2,7 +2,7 @@ const axios = require('axios');
 
 async function test() {
   try {
-    const response = await axios.post('https://iscale-backend.onrender.com/myadmin/live-class/add', {
+    const response = await axios.post('https://api.theiscale.com/myadmin/live-class/add', {
       title: "Test Class Team Member",
       class_date: "2026-05-26",
       duration: 60,

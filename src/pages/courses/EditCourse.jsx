@@ -294,9 +294,6 @@ export default function EditCourse() {
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Type</label>
               <select id="m_course_type" value={courseData.m_course_type} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
                 <option value="">Select Type</option>
-                <option value="Self Paced">Self Paced</option>
-                <option value="Live">Live</option>
-                <option value="Hybrid">Hybrid</option>
                 <option value="1">Free</option>
                 <option value="2">Paid</option>
               </select>

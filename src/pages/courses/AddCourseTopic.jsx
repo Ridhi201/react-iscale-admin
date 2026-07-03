@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
+const getInitialType = (type) => {
+  if (type === '1' || type === 'Video') return 'Video';
+  if (type === '2' || type === 'Document' || type === 'PDF') return 'PDF';
+  if (type === '3' || type === 'Link') return 'Link';
+  return '';
+}
+
 export default function AddCourseTopic() {
   const navigate = useNavigate()
   const { subjectId } = useParams()
@@ -22,7 +29,7 @@ export default function AddCourseTopic() {
     ml_subject: editTopic?.ml_subject || subjectId || '',
     ml_title: editTopic?.ml_title || '',
     ml_code: editTopic?.ml_code || '',
-    ml_type: editTopic?.ml_type || '',
+    ml_type: getInitialType(editTopic?.ml_type),
     ml_stype: editTopic?.ml_stype || 'Topic',
     ml_video_id: editTopic?.ml_video_id || '',
     ml_status: editTopic?.ml_status !== undefined ? (
@@ -32,7 +39,9 @@ export default function AddCourseTopic() {
     ml_minutes: editTopic?.ml_minutes || '00',
     ml_seconds: editTopic?.ml_seconds || '00',
     ml_video_type: editTopic?.ml_video_type || 'VdoCipher',
-    ml_pdffile: null
+    ml_pdffile: null,
+    ml_link: (editTopic?.ml_type === '3' || editTopic?.ml_type === 'Link') ? (editTopic?.ml_video_id || '') : '',
+    ml_videofile: null
   })
 
   useEffect(() => {
@@ -66,7 +75,85 @@ export default function AddCourseTopic() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      
+      // Auto-detect video type based on ml_video_id input
+      if (name === 'ml_video_id') {
+        const trimmed = value.trim();
+        if (!trimmed) {
+          updated.ml_video_type = 'VdoCipher';
+        } else {
+          const ytId = getYouTubeId(trimmed);
+          const isYtId = /^[a-zA-Z0-9_-]{11}$/.test(trimmed);
+          if (ytId || isYtId) {
+            updated.ml_video_type = 'YouTube';
+          } else {
+            updated.ml_video_type = 'VdoCipher';
+          }
+        }
+      }
+      
+      // If changing video type but ID is empty, force VdoCipher
+      if (name === 'ml_video_type') {
+        if (!prev.ml_video_id || !prev.ml_video_id.trim()) {
+          updated.ml_video_type = 'VdoCipher';
+        }
+      }
+      return updated;
+    });
+  }
+
+  const getYouTubeId = (url) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  }
+
+  const getVdoCipherId = (url) => {
+    if (/^[a-zA-Z0-9]{32}$/.test(url)) {
+      return url;
+    }
+    const match = url.match(/\/([a-zA-Z0-9]{32})(\/|\?|$)/);
+    if (match) return match[1];
+    return null;
+  }
+
+  const handleEmbed = () => {
+    const link = formData.ml_link || '';
+    if (!link.trim()) {
+      window.customAlert('Please enter a link first');
+      return;
+    }
+
+    const ytId = getYouTubeId(link);
+    if (ytId) {
+      setFormData(prev => ({
+        ...prev,
+        ml_video_id: ytId,
+        ml_video_type: 'YouTube'
+      }));
+      window.customAlert('Successfully extracted YouTube Video ID: ' + ytId);
+      return;
+    }
+
+    const vdoId = getVdoCipherId(link);
+    if (vdoId) {
+      setFormData(prev => ({
+        ...prev,
+        ml_video_id: vdoId,
+        ml_video_type: 'VdoCipher'
+      }));
+      window.customAlert('Successfully extracted VdoCipher Video ID: ' + vdoId);
+      return;
+    }
+
+    // Default: store the entire link in ml_video_id
+    setFormData(prev => ({
+      ...prev,
+      ml_video_id: link
+    }));
+    window.customAlert('Link saved to Topic Video ID');
   }
 
   const handleSubmit = async (e) => {
@@ -85,8 +172,18 @@ export default function AddCourseTopic() {
       
       payload.append('ml_title', formData.ml_title || '')
       payload.append('ml_code', formData.ml_code || '')
+      
       let rawType = formData.ml_type || '';
-      const payloadType = (rawType === 'Video' || rawType === '1') ? '1' : '2';
+      let payloadType = '2';
+      if (rawType === 'Video' || rawType === '1') {
+        payloadType = '1';
+      } else if (rawType === 'PDF' || rawType === '2') {
+        payloadType = '2';
+      } else if (rawType === 'Link' || rawType === '3') {
+        payloadType = '3';
+      } else {
+        payloadType = rawType;
+      }
       
       payload.append('ml_type', payloadType);
       payload.append('ml_stype', formData.ml_stype || 'Topic');
@@ -98,11 +195,18 @@ export default function AddCourseTopic() {
       payload.append('ml_hours', formData.ml_hours || '00')
       payload.append('ml_minutes', formData.ml_minutes || '00')
       payload.append('ml_seconds', formData.ml_seconds || '00')
-      payload.append('ml_video_type', formData.ml_video_type || 'VdoCipher')
+      const finalVideoType = (!formData.ml_video_id || !formData.ml_video_id.trim()) 
+        ? 'VdoCipher' 
+        : (formData.ml_video_type || 'VdoCipher');
+      payload.append('ml_video_type', finalVideoType);
 
       if (formData.ml_pdffile) {
         payload.append('ml_pdffile', formData.ml_pdffile);
       }
+      if (formData.ml_videofile) {
+        payload.append('ml_videofile', formData.ml_videofile);
+      }
+      
       const rawStatus = (formData.ml_status === "1" || formData.ml_status === 1) ? "1" : "0";
       payload.append('ml_status', rawStatus);
       payload.append('status', rawStatus);
@@ -285,6 +389,77 @@ export default function AddCourseTopic() {
               />
             </div>
 
+            {/* Topic Type and Dynamic Topic Field */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+              {/* Topic Type */}
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic Type</label>
+                <select 
+                  name="ml_type" 
+                  value={formData.ml_type} 
+                  onChange={handleChange} 
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
+                >
+                  <option value="">Select Topic Type</option>
+                  <option value="Link">Link</option>
+                  <option value="Video">Video</option>
+                  <option value="PDF">PDF</option>
+                </select>
+              </div>
+
+              {/* Dynamic Field next to Topic Type */}
+              <div>
+                {formData.ml_type === 'Link' && (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        name="ml_link"
+                        value={formData.ml_link || ''}
+                        onChange={handleChange}
+                        placeholder="Enter Topic Link" 
+                        className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white" 
+                      />
+                      <button
+                        type="button"
+                        onClick={handleEmbed}
+                        className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-4 py-2 rounded text-sm font-bold transition-colors shadow-sm whitespace-nowrap"
+                      >
+                        Embed
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {formData.ml_type === 'Video' && (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic</label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        id="video-upload"
+                        accept="video/*"
+                        onChange={(e) =>
+                          setFormData(prev => ({
+                            ...prev,
+                            ml_videofile: e.target.files[0]
+                          }))
+                        }
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="video-upload"
+                        className="w-full bg-[#144f36] hover:bg-[#0f3d2a] text-white text-center py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors cursor-pointer block whitespace-nowrap overflow-hidden text-ellipsis border border-[#144f36]"
+                      >
+                        {formData.ml_videofile ? formData.ml_videofile.name : 'Select File'}
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* YouTube vs VdoCipher Radio Group */}
             <div className="flex items-center gap-6 py-2">
               <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800 text-sm">
@@ -292,38 +467,24 @@ export default function AddCourseTopic() {
                   type="radio" 
                   name="ml_video_type" 
                   value="YouTube" 
-                  checked={formData.ml_video_type === 'YouTube'} 
+                  checked={formData.ml_video_id && formData.ml_video_id.trim() ? formData.ml_video_type === 'YouTube' : false} 
                   onChange={handleChange} 
-                  className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" 
+                  disabled={!formData.ml_video_id || !formData.ml_video_id.trim()}
+                  className="w-4 h-4 text-[#144f36] focus:ring-[#144f36] disabled:opacity-50" 
                 />
-                <span>YouTube</span>
+                <span className={(!formData.ml_video_id || !formData.ml_video_id.trim()) ? "opacity-50" : ""}>YouTube</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800 text-sm">
                 <input 
                   type="radio" 
                   name="ml_video_type" 
                   value="VdoCipher" 
-                  checked={formData.ml_video_type === 'VdoCipher'} 
+                  checked={!formData.ml_video_id || !formData.ml_video_id.trim() || formData.ml_video_type === 'VdoCipher'} 
                   onChange={handleChange} 
                   className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" 
                 />
                 <span>VdoCipher</span>
               </label>
-            </div>
-
-            {/* Topic Type */}
-            <div>
-              <label className="block text-sm font-bold text-slate-800 mb-1.5">Topic Type</label>
-              <select 
-                name="ml_type" 
-                value={formData.ml_type} 
-                onChange={handleChange} 
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
-              >
-                <option value="">Select Topic Type</option>
-                <option value="1">Video</option>
-                <option value="2">Document</option>
-              </select>
             </div>
 
             {/* Topic Video ID */}

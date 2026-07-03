@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = 'https://iscale-backend.onrender.com';
+const BASE_URL = 'https://api.theiscale.com';
 
 async function run() {
   const passwords = ['admin123', '123456', '12345678', 'admin', 'password', 'Iscale@123', 'iscale@123'];

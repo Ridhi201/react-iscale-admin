@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = 'https://iscale-backend.onrender.com';
+const BASE_URL = 'https://api.theiscale.com';
 const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZjE4ZDlmYzkzZDM0NjY4ZmQ0YzgxZCIsImVtYWlsIjoiYWRtaW4xQGdtYWlsLmNvbSIsInJvbGUiOjEsImlhdCI6MTc4MDY1NjM1NCwiZXhwIjoxNzgwNzQyNzU0fQ.RZhAyFUnoj6yk6O85tRLWC_De5eBLfPxoS7VwIw5uAM';
 const candidateId = '6a366498830e919c39b26ae1'; // Rishika
 

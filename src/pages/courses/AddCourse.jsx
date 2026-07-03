@@ -29,7 +29,8 @@ export default function AddCourse() {
   const [graphyInstruction, setGraphyInstruction] = useState('');
   const [certificateShow, setCertificateShow] = useState(false);
   const [liveClassShow, setLiveClassShow] = useState(false);
-  const courseTypes = ['Self Paced', 'Live', 'Hybrid'];
+
+
 
   useEffect(() => {
     const fetchCats = async () => {
@@ -74,8 +75,9 @@ export default function AddCourse() {
       payload.append('m_course_title', titleVal);
       payload.append('m_course_category', categoryVal);
       
-      // Temporarily hardcoded to 1 (Free) to bypass price requirement for testing
-      payload.append('m_course_type', '1');
+      // Get selected course type (1 = Free, 2 = Paid)
+      const courseTypeVal = document.getElementById('course_type')?.value || '1';
+      payload.append('m_course_type', courseTypeVal);
       
       if (selectedInstructor) {
         payload.append('m_course_instructor', selectedInstructor);
@@ -206,9 +208,8 @@ export default function AddCourse() {
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Type</label>
               <select id="course_type" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
                 <option value="">Select Type</option>
-                {courseTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
+                <option value="1">Free</option>
+                <option value="2">Paid</option>
               </select>
             </div>
           </div>

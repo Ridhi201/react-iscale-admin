@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Eye, Edit2, Trash2, Book } from 'lucide-react'
-import * as Icons from 'lucide-react'
+import { Eye, Edit2, Trash2, Book, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
@@ -18,6 +17,64 @@ export default function AllCourses() {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [categoriesDropdown, setCategoriesDropdown] = useState([])
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [currentVideoUrl, setCurrentVideoUrl] = useState('')
+
+  const getYouTubeId = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const getVimeoId = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const match = url.match(/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/i);
+    return match ? match[1] : null;
+  };
+
+  const getVideoLink = (row) => {
+    // Explicitly check known field names first
+    const explicit = row.m_course_video_link || row.video_link || row.course_video_link || row.videoLink || row.m_video_link;
+    if (explicit && typeof explicit === 'string' && explicit.trim()) return explicit.trim();
+
+    // Dynamically scan ALL fields for any that look like a video URL
+    for (const key of Object.keys(row)) {
+      const val = row[key];
+      if (typeof val === 'string' && val.trim()) {
+        const lk = key.toLowerCase();
+        // field name contains "video" or "link"
+        if ((lk.includes('video') || lk.includes('link')) && (val.startsWith('http') || val.startsWith('www'))) {
+          return val.trim();
+        }
+      }
+    }
+    return '';
+  };
+
+  const handleWatchVideo = async (row) => {
+    const videoLink = getVideoLink(row);
+    // Log all fields to help debug what the API returns
+    const videoRelatedFields = Object.entries(row).filter(([k]) => {
+      const lk = k.toLowerCase();
+      return lk.includes('video') || lk.includes('link');
+    });
+    console.log('=== Watch Video clicked: ' + (row.title || row.m_course_title) + ' ===');
+    console.log('Video-related fields:', Object.fromEntries(videoRelatedFields));
+    console.log('Resolved video link:', videoLink);
+    if (!videoLink || typeof videoLink !== 'string' || !videoLink.trim()) {
+      await window.customAlert('❌ Video Not Found.', {
+        title: '',
+        iconContainerClass: 'w-20 h-20 rounded-full border-[4px] border-[#f27474] flex items-center justify-center mb-4 text-[#f27474]',
+        icon: <X className="w-10 h-10 stroke-[3]" />,
+        btnClass: 'bg-[#3fc3ee] hover:bg-[#2db6e3] text-white px-8 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3fc3ee]/20'
+      });
+      return;
+    }
+    setCurrentVideoUrl(videoLink);
+    setIsModalOpen(true);
+  };
 
   useEffect(() => {
     fetchCategoriesDropdown()
@@ -58,8 +115,12 @@ const fetchCategoriesDropdown = async () => {
       )
       
       if (response.data && response.data.status) {
-        console.log("=== FIRST COURSE RAW DATA ===", response.data.data[0])
-        setCourses(response.data.data || [])
+        const allCourses = response.data.data || [];
+        if (allCourses.length > 0) {
+          console.log("=== FIRST COURSE ALL KEYS ===", Object.keys(allCourses[0]));
+          console.log("=== FIRST COURSE RAW DATA ===", allCourses[0]);
+        }
+        setCourses(allCourses)
         setTotalEntries(response.data.pagination?.total || 0)
         setTotalPages(response.data.pagination?.totalPages || 1)
       } else {
@@ -277,8 +338,35 @@ const fetchCategoriesDropdown = async () => {
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      Watch Video
+                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle whitespace-nowrap text-center">
+                      {(() => {
+                        const videoLink = getVideoLink(row);
+                        const ytId = getYouTubeId(videoLink);
+                        return (
+                          <div 
+                            onClick={() => handleWatchVideo(row)}
+                            className="flex items-center gap-2 cursor-pointer group w-fit mx-auto"
+                          >
+                            {ytId ? (
+                              <div className="relative w-12 h-8 rounded border border-slate-200 dark:border-gray-700 overflow-hidden shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105">
+                                <img 
+                                  src={`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`} 
+                                  alt="Preview" 
+                                  className="w-full h-full object-cover" 
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/45 transition-colors">
+                                  <svg className="w-3.5 h-3.5 text-white fill-current drop-shadow" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                  </svg>
+                                </div>
+                              </div>
+                            ) : null}
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover:text-[#144f36] dark:group-hover:text-emerald-400 underline decoration-dotted transition-colors">
+                              Watch Video
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.course_type}</td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.price}</td>
@@ -388,6 +476,45 @@ const fetchCategoriesDropdown = async () => {
           </div>
         </div>
       </div>
+
+      {/* Video View Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 z-[999] flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white dark:bg-[#13111c] border border-slate-100 dark:border-[#1f1b2e] rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-gray-800">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">
+                Video
+              </h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                <X size={24}/>
+              </button>
+            </div>
+            <div className="p-6 bg-slate-50 dark:bg-slate-900/50 flex-1">
+              <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-inner flex items-center justify-center">
+                {(() => {
+                  const ytId = getYouTubeId(currentVideoUrl);
+                  const vimId = getVimeoId(currentVideoUrl);
+                  if (ytId) {
+                    return <iframe src={`https://www.youtube.com/embed/${ytId}?autoplay=1`} className="w-full h-full" frameBorder="0" allow="autoplay; fullscreen" allowFullScreen></iframe>
+                  } else if (vimId) {
+                    return <iframe src={`https://player.vimeo.com/video/${vimId}?autoplay=1`} className="w-full h-full" frameBorder="0" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen></iframe>
+                  } else {
+                    return <video src={currentVideoUrl} className="w-full h-full object-contain" controls autoPlay />
+                  }
+                })()}
+              </div>
+            </div>
+            <div className="p-4 border-t border-slate-200 dark:border-gray-800 flex justify-end bg-white dark:bg-[#13111c]">
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-6 py-2 rounded-lg font-bold transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

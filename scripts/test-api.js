@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 async function testEndpoints() {
-  const baseUrl = 'https://iscale-backend.onrender.com';
+  const baseUrl = 'https://api.theiscale.com';
   const endpoints = [
     '/myadmin/category/get-category',
     '/myadmin/category',

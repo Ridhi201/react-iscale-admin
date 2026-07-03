@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = 'https://iscale-backend.onrender.com';
+const BASE_URL = 'https://api.theiscale.com';
 const passwords = ['admin123', '123456', '12345678', 'admin', 'password', 'Iscale@123', 'iscale@123'];
 const email = 'admin1@gmail.com';
 const enrollment_id = "6a38e58f9ec4b73a297721bf";

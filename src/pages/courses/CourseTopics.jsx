@@ -272,7 +272,12 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
                       <td className="px-3 py-3 border-r border-slate-200 align-middle">{(currentPage - 1) * entriesPerPage + index + 1}</td>
                       <td className="px-3 py-3 border-r border-slate-200 align-middle font-medium text-[#144f36]">{row.ml_title}</td>
                       <td className="px-3 py-3 border-r border-slate-200 align-middle">{row.m_subject_title || row.subject_title || headerData.subject || 'N/A'}</td>
-                      <td className="px-3 py-3 border-r border-slate-200 align-middle">{row.ml_type || 'Topic'}</td>
+                      <td className="px-3 py-3 border-r border-slate-200 align-middle">
+                        {row.ml_type === '1' || row.ml_type === 'Video' ? 'Video' : 
+                         row.ml_type === '2' || row.ml_type === 'Document' || row.ml_type === 'PDF' ? 'PDF' : 
+                         row.ml_type === '3' || row.ml_type === 'Link' ? 'Link' : 
+                         row.ml_type || 'Topic'}
+                      </td>
                       <td className="px-3 py-3 border-r border-slate-200 align-middle">{row.questions || ''}</td>
                       <td className="px-3 py-3 border-r border-slate-200 align-middle"></td>
                       <td className="px-3 py-3 border-r border-slate-200 align-middle">

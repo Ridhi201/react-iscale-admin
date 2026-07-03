@@ -1,4 +1,4 @@
-const BASE_URL = 'https://iscale-backend.onrender.com'
+const BASE_URL = 'https://api.theiscale.com'
 
 export const loginUser = async ({ email, password }) => {
   const response = await fetch(`${BASE_URL}/myadmin/auth/login`, {

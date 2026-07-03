@@ -68,6 +68,20 @@ export default function CustomPopup() {
     };
   }
 
+  // Handle manual option overrides
+  if (modal.title !== undefined) {
+    theme.title = modal.title;
+  }
+  if (modal.btnColor !== undefined) {
+    theme.btnColor = modal.btnColor;
+  }
+  if (modal.icon !== undefined) {
+    theme.icon = modal.icon;
+  }
+  if (modal.iconBg !== undefined) {
+    theme.iconBg = modal.iconBg;
+  }
+
   // Strip emojis from start of message to avoid duplication with icons
   let cleanMessage = modal.message.replace(/^[❌✅⚠️ℹ️\s]+/, '');
 
@@ -95,19 +109,21 @@ export default function CustomPopup() {
 
         <div className="flex flex-col items-center text-center mt-2">
           {/* Theme icon container */}
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${theme.iconBg}`}>
+          <div className={modal.iconContainerClass || `w-16 h-16 rounded-full flex items-center justify-center mb-4 ${theme.iconBg}`}>
             {theme.icon}
           </div>
 
-          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-wide mb-2">
-            {theme.title}
-          </h3>
+          {theme.title && (
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-wide mb-2">
+              {theme.title}
+            </h3>
+          )}
 
           <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-6 whitespace-pre-wrap max-h-48 overflow-y-auto pr-1">
             {cleanMessage}
           </p>
 
-          <div className="flex w-full gap-3">
+          <div className="flex w-full gap-3 justify-center">
             {modal.type === 'confirm' && (
               <button
                 onClick={() => handleClose(false)}
@@ -118,7 +134,7 @@ export default function CustomPopup() {
             )}
             <button
               onClick={() => handleClose(true)}
-              className={`flex-1 px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-[#13111c] ${theme.btnColor}`}
+              className={modal.btnClass || `flex-1 px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-[#13111c] ${theme.btnColor}`}
             >
               {modal.type === 'confirm' ? 'Yes, Confirm' : 'OK'}
             </button>
