@@ -76,6 +76,7 @@ export default function CertificateRequests() {
   }
 
   const openUpdateModal = (row) => {
+    console.log('Selected Row Data:', row) // DEBUG: see actual field names
     setSelectedReg(row)
     setUpdateForm({
       status: row.certificate_status === 2 ? 'approved' : row.certificate_status === 3 ? 'declined' : 'pending',
@@ -101,8 +102,12 @@ export default function CertificateRequests() {
         certificate_pdf: updateForm.certificate_pdf || ''
       }
 
+      // Use whichever ID field exists in the API response
+      const recordId = selectedReg._id || selectedReg.enrollment_id || selectedReg.certificate_id || selectedReg.id
+      console.log('Using ID for update:', recordId, '| Full row:', selectedReg) // DEBUG
+
       const response = await axios.put(
-        `${BASE_URL}/myadmin/certificate/update-status/${selectedReg.enrollment_id}`,
+        `${BASE_URL}/myadmin/certificate/update-status/${recordId}`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       )

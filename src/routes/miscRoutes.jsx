@@ -12,6 +12,7 @@ import SubjectRatings from '../pages/misc/SubjectRatings'
 import AddSubjectRating from '../pages/misc/AddSubjectRating'
 import SendNotification from '../pages/misc/SendNotification'
 import ContactQueriesList from '../pages/misc/ContactQueriesList'
+import PhoneImages from '../pages/marketing/PhoneImages'
 
 const miscRoutes = [
   <Route key="dashboard" path="/" element={<Dashboard />} />,
@@ -24,7 +25,8 @@ const miscRoutes = [
   <Route key="send-notification" path="/general-setting/send-notification" element={<SendNotification />} />,
   <Route key="contact-query" path="/forms/contact-query" element={<ContactQueriesList />} />,
   <Route key="analytics" path="/analytics" element={<AnalyticsList />} />,
-  <Route key="analytics-details" path="/analytics/details/:id" element={<AnalyticsDetails />} />
+  <Route key="analytics-details" path="/analytics/details/:id" element={<AnalyticsDetails />} />,
+  <Route key="phone-images" path="/marketing/phone-images" element={<PhoneImages />} />
 ]
 
 export default miscRoutes

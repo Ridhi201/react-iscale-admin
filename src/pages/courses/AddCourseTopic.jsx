@@ -11,15 +11,21 @@ const getInitialType = (type) => {
   return '';
 }
 
+// Moved above detectVideoType to avoid hoisting issue
+const getYouTubeId = (url) => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
+// Returns "1" (YouTube) or "2" (VdoCipher) — matches DB format
 const detectVideoType = (videoId, savedType) => {
-  if (!videoId || !videoId.trim()) return savedType || 'VdoCipher';
-  const trimmed = videoId.trim();
-  const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const ytMatch = trimmed.match(ytRegExp);
-  if (ytMatch && ytMatch[2].length === 11) return 'YouTube';
-  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return 'YouTube';
-  if (savedType === 'YouTube') return 'YouTube';
-  return 'VdoCipher';
+  if (videoId && videoId.trim()) {
+    const ytId = getYouTubeId(videoId.trim());
+    return ytId ? "1" : "2";
+  }
+  // No video ID — use savedType from DB directly
+  return savedType || "2";
 }
 
 export default function AddCourseTopic() {
@@ -43,13 +49,14 @@ export default function AddCourseTopic() {
     ml_type: getInitialType(editTopic?.ml_type),
     ml_stype: editTopic?.ml_stype || 'Topic',
     ml_video_id: editTopic?.ml_video_id || '',
+    ml_vdocipher_id: editTopic?.ml_vdocipher_id || '',
     ml_status: editTopic?.ml_status !== undefined ? (
       (editTopic.ml_status === 0 || editTopic.ml_status === "0" || editTopic.ml_status === false || editTopic.ml_status === "false" || String(editTopic.ml_status).toLowerCase() === "inactive") ? "0" : "1"
     ) : '1',
     ml_hours: editTopic?.ml_hours || '00',
     ml_minutes: editTopic?.ml_minutes || '00',
     ml_seconds: editTopic?.ml_seconds || '00',
-    ml_video_type: detectVideoType(editTopic?.ml_video_id, editTopic?.ml_video_type),
+    ml_yt_type: detectVideoType(editTopic?.ml_video_id, editTopic?.ml_yt_type),
     ml_pdffile: null,
     ml_link: (editTopic?.ml_type === '3' || editTopic?.ml_type === 'Link') ? (editTopic?.ml_video_id || '') : '',
     ml_videofile: null
@@ -89,32 +96,27 @@ export default function AddCourseTopic() {
     setFormData(prev => {
       const updated = { ...prev, [name]: value };
       
-      // Auto-detect video type based on ml_video_id input
-      if (name === 'ml_video_id') {
+      // Auto-detect video type when user types in ml_video_id
+      if (name === "ml_video_id") {
         const trimmed = value.trim();
         if (!trimmed) {
-          updated.ml_video_type = 'VdoCipher';
+          updated.ml_yt_type = "2";       // default VdoCipher
+          updated.ml_vdocipher_id = "";
         } else {
           const ytId = getYouTubeId(trimmed);
           const isYtId = /^[a-zA-Z0-9_-]{11}$/.test(trimmed);
           if (ytId || isYtId) {
-            updated.ml_video_type = 'YouTube';
+            updated.ml_yt_type = "1";     // YouTube
+            updated.ml_vdocipher_id = ""; // clear VdoCipher ID
           } else {
-            updated.ml_video_type = 'VdoCipher';
+            updated.ml_yt_type = "2";           // VdoCipher
+            updated.ml_vdocipher_id = trimmed;  // store as VdoCipher ID
           }
         }
       }
-      
-      // Allow manual radio selection freely (no forced override)
-      // ml_video_type change is handled as-is
+
       return updated;
     });
-  }
-
-  const getYouTubeId = (url) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
   }
 
   const getVdoCipherId = (url) => {
@@ -138,7 +140,8 @@ export default function AddCourseTopic() {
       setFormData(prev => ({
         ...prev,
         ml_video_id: ytId,
-        ml_video_type: 'YouTube'
+        ml_vdocipher_id: "",   // clear VdoCipher ID for YouTube
+        ml_yt_type: "1"
       }));
       window.customAlert('Successfully extracted YouTube Video ID: ' + ytId);
       return;
@@ -149,7 +152,8 @@ export default function AddCourseTopic() {
       setFormData(prev => ({
         ...prev,
         ml_video_id: vdoId,
-        ml_video_type: 'VdoCipher'
+        ml_vdocipher_id: vdoId, // also set ml_vdocipher_id for VdoCipher                       
+        ml_yt_type: "2"
       }));
       window.customAlert('Successfully extracted VdoCipher Video ID: ' + vdoId);
       return;
@@ -202,10 +206,22 @@ export default function AddCourseTopic() {
       payload.append('ml_hours', formData.ml_hours || '00')
       payload.append('ml_minutes', formData.ml_minutes || '00')
       payload.append('ml_seconds', formData.ml_seconds || '00')
-      const finalVideoType = (!formData.ml_video_id || !formData.ml_video_id.trim()) 
-        ? 'VdoCipher' 
-        : (formData.ml_video_type || 'VdoCipher');
-      payload.append('ml_video_type', finalVideoType);
+      // ml_yt_type is already "1" or "2" — send directly
+      console.log("=== SUBMIT DEBUG ===");
+      console.log("formData.ml_yt_type  :", formData.ml_yt_type);
+      console.log("formData.ml_video_id :", formData.ml_video_id);
+      console.log("formData.ml_vdocipher_id:", formData.ml_vdocipher_id);
+      payload.append("ml_yt_type", formData.ml_yt_type || "2");
+
+      // Send ml_vdocipher_id only when VdoCipher is selected
+      if (formData.ml_yt_type === "2") {
+        payload.append("ml_vdocipher_id", formData.ml_vdocipher_id || formData.ml_video_id || "");
+        console.log("Sending ml_vdocipher_id:", formData.ml_vdocipher_id || formData.ml_video_id);
+      } else {
+        payload.append("ml_vdocipher_id", ""); // clear it for YouTube
+        console.log("YouTube selected — ml_vdocipher_id cleared");
+      }
+      console.log("===================");
 
       if (formData.ml_pdffile) {
         payload.append('ml_pdffile', formData.ml_pdffile);
@@ -472,9 +488,9 @@ export default function AddCourseTopic() {
               <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800 text-sm">
                 <input 
                   type="radio" 
-                  name="ml_video_type" 
-                  value="YouTube" 
-                  checked={formData.ml_video_type === 'YouTube'} 
+                  name="ml_yt_type" 
+                  value="1" 
+                  checked={formData.ml_yt_type === '1'} 
                   onChange={handleChange} 
                   className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" 
                 />
@@ -483,9 +499,9 @@ export default function AddCourseTopic() {
               <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800 text-sm">
                 <input 
                   type="radio" 
-                  name="ml_video_type" 
-                  value="VdoCipher" 
-                  checked={formData.ml_video_type === 'VdoCipher'} 
+                  name="ml_yt_type" 
+                  value="2" 
+                  checked={formData.ml_yt_type === '2'} 
                   onChange={handleChange} 
                   className="w-4 h-4 text-[#144f36] focus:ring-[#144f36]" 
                 />

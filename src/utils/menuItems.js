@@ -127,6 +127,12 @@ export const menuItems = [
     path: '/banners',
   },
   {
+    id: 'phone-images',
+    label: 'Phone Images',
+    icon: 'Smartphone',
+    path: '/marketing/phone-images',
+  },
+  {
     id: 'events',
     label: 'Events',
     icon: 'Calendar',
