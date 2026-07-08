@@ -24,21 +24,17 @@ export default function AppUsers() {
   const [toDate, setToDate] = useState('')
   const [userStatus, setUserStatus] = useState('')
 
-  useEffect(() => {
-    fetchUsers()
-  }, [currentPage])
-
-  const fetchUsers = async () => {
+  const fetchUsers = async (page = currentPage, currentSearch = search, currentFromDate = fromDate, currentToDate = toDate, currentUserStatus = userStatus) => {
     try {
       setLoading(true); 
       const token = localStorage.getItem('token')
       const params = new URLSearchParams({
-        page: currentPage,
-        limit: entriesPerPage,
-        search,
-        from_date: fromDate,
-        to_date: toDate,
-        user_status: userStatus
+        page: String(page),
+        limit: String(entriesPerPage),
+        search: currentSearch,
+        from_date: currentFromDate,
+        to_date: currentToDate,
+        user_status: currentUserStatus
       })
       const res = await axios.get(`${BASE_URL}/myadmin/app-users/all?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -56,9 +52,13 @@ export default function AppUsers() {
     }
   }
 
+  useEffect(() => {
+    fetchUsers(currentPage, search, fromDate, toDate, userStatus)
+  }, [currentPage])
+
   const handleFilter = () => {
     setCurrentPage(1)
-    fetchUsers()
+    fetchUsers(1, search, fromDate, toDate, userStatus)
   }
 
   const handleReset = () => {
@@ -67,24 +67,62 @@ export default function AppUsers() {
     setToDate('')
     setUserStatus('')
     setCurrentPage(1)
-    // Fetch will happen because of state update if we just call it, but let's do it manually or rely on useEffect if page changes.
-    // It's safer to call fetch after a small timeout or rely on the state updates. Since multiple states change, it's better to fetch explicitly.
-    setTimeout(() => {
-      fetchUsers()
-    }, 0)
+    fetchUsers(1, '', '', '', '')
   }
 
   const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1)
+    if (currentPage > 1) {
+      const nextPg = currentPage - 1
+      setCurrentPage(nextPg)
+      fetchUsers(nextPg, search, fromDate, toDate, userStatus)
+    }
   }
 
   const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+    if (currentPage < totalPages) {
+      const nextPg = currentPage + 1
+      setCurrentPage(nextPg)
+      fetchUsers(nextPg, search, fromDate, toDate, userStatus)
+    }
   }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleFilter()
+    }
+  }
+
+  const filteredData = data.filter(row => {
+    // Exclude users that have no name, no email, and no registration date (incomplete/empty signups)
+    const hasName = !!(row.c_display_name || row.c_first_name || row.c_last_name || '').trim();
+    const hasEmail = !!(row.c_email || '').trim();
+    const hasDate = !!row.c_register_date;
+
+    if (!hasName && !hasEmail && !hasDate) {
+      return false;
+    }
+
+    if (!search) return true;
+    const searchLower = search.toLowerCase();
+    const displayName = (row.c_display_name || '').toLowerCase();
+    const firstName = (row.c_first_name || '').toLowerCase();
+    const lastName = (row.c_last_name || '').toLowerCase();
+    const fullName = `${firstName} ${lastName}`.trim().toLowerCase();
+    const contact = String(row.c_contact || '').toLowerCase();
+    const email = (row.c_email || '').toLowerCase();
+    
+    return displayName.includes(searchLower) ||
+           firstName.includes(searchLower) ||
+           lastName.includes(searchLower) ||
+           fullName.includes(searchLower) ||
+           contact.includes(searchLower) ||
+           email.includes(searchLower);
+  });
 
   const getPageNumbers = () => {
     let startPage = Math.max(1, currentPage - 2)
-    let endPage = Math.min(totalPages, startPage + 4)
+    let borderEnd = startPage + 4
+    let endPage = Math.min(totalPages, borderEnd)
     if (endPage - startPage < 4) {
       startPage = Math.max(1, endPage - 4)
     }
@@ -96,7 +134,21 @@ export default function AppUsers() {
   }
 
   const handleDelete = async (id) => {
-    await window.customAlert("Delete API not provided for App User. Please provide DELETE API.")
+    if (!await window.customConfirm("Are you sure you want to delete this app user?")) return;
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.delete(`${BASE_URL}/myadmin/app-users/delete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        await window.customAlert(res.data.message || "App User deleted successfully");
+        fetchUsers();
+      } else {
+        await window.customAlert(res.data.message || "Failed to delete App User");
+      }
+    } catch (err) {
+      await window.customAlert(err.response?.data?.message || "Error deleting user");
+    }
   }
 
   const handleExport = async () => {
@@ -187,7 +239,7 @@ export default function AppUsers() {
           </div>
           <div>
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Search</label>
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={handleKeyDown} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-48" />
           </div>
           <div className="flex gap-2">
             <ThemeButton onClick={handleFilter} variant="solid-green">Filter</ThemeButton>
@@ -212,15 +264,17 @@ export default function AppUsers() {
               <tbody>
                 {loading ? (
                   <tr><td colSpan="7" className="text-center py-6">Loading data...</td></tr>
-                ) : data.length === 0 ? (
+                ) : filteredData.length === 0 ? (
                   <tr><td colSpan="7" className="text-center py-6">No users found.</td></tr>
                 ) : (
-                  data.map((row, index) => (
+                  filteredData.map((row, index) => (
                     <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50">
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{startIndex + index + 1}</td>
-                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.c_display_name || `${row.c_first_name} ${row.c_last_name}`}</td>
-                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.c_contact}</td>
-                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.c_email}</td>
+                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
+                        {(row.c_display_name || `${row.c_first_name || ''} ${row.c_last_name || ''}`).trim() || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.c_contact || 'N/A'}</td>
+                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">{row.c_email || 'N/A'}</td>
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
                         {row.c_register_date ? new Date(row.c_register_date).toLocaleDateString() : 'N/A'}
                       </td>

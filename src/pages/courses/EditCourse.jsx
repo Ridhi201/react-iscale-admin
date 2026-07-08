@@ -183,9 +183,7 @@ export default function EditCourse() {
         } else if (
           [
             "m_course_popular",
-            "m_course_recomended",
-            "m_course_certificate",
-            "m_course_live_class"
+            "m_course_recomended"
           ].includes(key)
         ) {
           const boolVal = (val === "1" || val === 1 || val === true || String(val) === "true") ? "1" : "0";
@@ -193,6 +191,15 @@ export default function EditCourse() {
           // Also append flat version to be safe
           if (key === "m_course_popular") payload.append("popular", boolVal);
           if (key === "m_course_recomended") payload.append("recomended", boolVal);
+        } else if (
+          [
+            "m_course_certificate",
+            "m_course_live_class"
+          ].includes(key)
+        ) {
+          const boolVal = (val === "1" || val === 1 || val === true || String(val) === "true") ? "1" : "2";
+          payload.append(key, boolVal);
+          // Also append flat version to be safe
           if (key === "m_course_certificate") payload.append("certificate", boolVal);
           if (key === "m_course_live_class") payload.append("live_class", boolVal);
         } else if (

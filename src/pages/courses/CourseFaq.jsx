@@ -63,6 +63,15 @@ const fetchFaqs = async () => {
 }
 
 const handleSaveFaq = async () => {
+  if (!title.trim()) {
+    await window.customAlert('Please enter a Title.')
+    return
+  }
+  if (!description.trim()) {
+    await window.customAlert('Please enter a Description.')
+    return
+  }
+
   try {
     setLoading(true); 
 
@@ -104,7 +113,7 @@ const handleSaveFaq = async () => {
     console.log('FAQ RESPONSE:', response.data)
 
     if (response.data?.status) {
-      await window.customAlert(response.data.message)
+      await window.customAlert(response.data.message || 'FAQ saved successfully')
 
       setTitle('')
       setDescription('')
@@ -112,9 +121,12 @@ const handleSaveFaq = async () => {
       setEditId(null)
 
       fetchFaqs()
+    } else {
+      await window.customAlert(response.data?.message || 'Failed to save FAQ')
     }
   } catch (error) {
     console.error(error)
+    await window.customAlert(error.response?.data?.message || error.message || 'Error saving FAQ')
   } finally {
     setLoading(false)
   }

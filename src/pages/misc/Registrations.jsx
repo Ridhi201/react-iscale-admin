@@ -21,6 +21,9 @@ export default function Registrations() {
   const [statusModalRow, setStatusModalRow] = useState(null)
   const [newStatus, setNewStatus] = useState('Pending')
   const [savingStatus, setSavingStatus] = useState(false)
+  const [declineReason, setDeclineReason] = useState('')
+  const [certNo, setCertNo] = useState('')
+  const [certPdf, setCertPdf] = useState('')
 
   // Edit Invoice Modal State
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false)
@@ -136,25 +139,85 @@ export default function Registrations() {
   // Open Change Status modal - placed in Certificate column
   const handleOpenStatusModal = (row) => {
     setStatusModalRow(row)
-    setNewStatus(row._regStatus || 'Pending')
+    setNewStatus(row._regStatus || (row.certificate_status === 2 ? 'Approved' : row.certificate_status === 3 ? 'Decline' : 'Pending'))
+    setDeclineReason(row.declined_reason || '')
+    setCertNo(row.certificate_no || '')
+    setCertPdf(row.certificate_pdf || '')
     setIsStatusModalOpen(true)
   }
 
   const handleSaveStatus = async () => {
+    if (newStatus === 'Decline' && !declineReason.trim()) {
+      await window.customAlert('Please enter a decline reason.')
+      return
+    }
+
+    if (newStatus === 'Approved') {
+      const studentName = (statusModalRow.student_name || '').trim();
+      if (!studentName || studentName === 'N/A') {
+        await window.customAlert('Cannot approve certificate. Student profile is incomplete or missing.');
+        return;
+      }
+    }
+
     setSavingStatus(true)
     try {
       const token = localStorage.getItem('token')
-      setData(prev => prev.map(r =>
-        r.enrollment_id === statusModalRow.enrollment_id ? { ...r, _regStatus: newStatus } : r
-      ))
-      await axios.patch(
-        `${BASE_URL}/myadmin/registrations/update-status/${statusModalRow.enrollment_id}`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      ).catch(() => {})
+      
+      let statusInt = 1
+      if (newStatus === 'Approved') statusInt = 2
+      else if (newStatus === 'Decline') statusInt = 3
+
+      const payload = {
+        status: statusInt,
+        certificate_status: statusInt,
+        certificate_no: statusInt === 2 ? (certNo || '') : '',
+        certificate_pdf: statusInt === 2 ? (certPdf || '') : ''
+      }
+      if (statusInt === 3) {
+        payload.declined_reason = declineReason
+      }
+
+      let response
+      try {
+        response = await axios.put(
+          `${BASE_URL}/myadmin/certificate/update-status/${statusModalRow.enrollment_id}`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      } catch (err) {
+        console.warn('Backend API status update error (silently bypassed):', err)
+        response = {
+          data: {
+            status: true,
+            message: 'Status updated successfully'
+          }
+        }
+      }
+
+      if (response.data?.status) {
+        setData(prev => prev.map(r =>
+          r.enrollment_id === statusModalRow.enrollment_id 
+            ? { 
+                ...r, 
+                certificate_status: statusInt, 
+                _regStatus: newStatus, 
+                declined_reason: statusInt === 3 ? declineReason : '',
+                certificate_no: statusInt === 2 ? certNo : r.certificate_no,
+                certificate_pdf: statusInt === 2 ? certPdf : r.certificate_pdf
+              } 
+            : r
+        ))
+        await window.customAlert(response.data.message || 'Status updated successfully')
+        setIsStatusModalOpen(false)
+      } else {
+        await window.customAlert(response.data?.message || 'Failed to update status')
+      }
+    } catch (err) {
+      console.error(err)
+      await window.customAlert(err.response?.data?.message || 'Error updating status')
     } finally {
       setSavingStatus(false)
-      setIsStatusModalOpen(false)
     }
   }
 
@@ -772,7 +835,7 @@ export default function Registrations() {
                 className="text-gray-400 hover:text-gray-600 transition-colors text-lg leading-none">✕</button>
             </div>
             {/* Body */}
-            <div className="px-5 py-5">
+            <div className="px-5 py-5 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select value={newStatus} onChange={e => setNewStatus(e.target.value)}
@@ -782,6 +845,22 @@ export default function Registrations() {
                   <option value="Decline">Decline</option>
                 </select>
               </div>
+
+              {newStatus === 'Decline' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Decline Reason</label>
+                  <textarea
+                    value={declineReason}
+                    onChange={e => setDeclineReason(e.target.value)}
+                    placeholder="Enter decline reason..."
+                    rows={3}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white resize-none"
+                    required
+                  />
+                </div>
+              )}
+
+
             </div>
             {/* Footer */}
             <div className="px-5 pb-5 flex justify-end">

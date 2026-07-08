@@ -44,6 +44,7 @@ export default function AddCourseTopic() {
 
   const [subjects, setSubjects] = useState([])
   const [loading, setLoading] = useState(false)
+  const [courseTitle, setCourseTitle] = useState(location.state?.courseTitle || '')
 
   // Symmetrical fallbacks so the Video ID is populated when editing, checking all DB variations
   const initialVideoId = 
@@ -86,14 +87,29 @@ export default function AddCourseTopic() {
     ml_videofile: null
   })
 
+  const fetchCourseTitle = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/course/course/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status && response.data.data) {
+        setCourseTitle(response.data.data.title || '')
+      }
+    } catch (error) {
+      console.error('Error fetching course details:', error)
+    }
+  }
+
   useEffect(() => {
     console.log("COURSE ID FOR SUBJECT API:", courseId)
 
     if (courseId) {
       fetchSubjects()
+      if (!courseTitle) {
+        fetchCourseTitle()
+      }
     }
-
-
   }, [courseId, isEditing, editTopic])
 
   const fetchSubjects = async () => {
@@ -122,6 +138,23 @@ export default function AddCourseTopic() {
     setFormData(prev => {
       const updated = { ...prev, [name]: value };
       
+      if (name === "ml_link") {
+        const link = value || '';
+        const ytId = getYouTubeId(link);
+        if (ytId) {
+          updated.ml_video_id = ytId;
+          updated.ml_vdocipher_id = "";
+          updated.ml_yt_type = "1";
+        } else {
+          const vdoId = getVdoCipherId(link);
+          if (vdoId) {
+            updated.ml_video_id = vdoId;
+            updated.ml_vdocipher_id = vdoId;
+            updated.ml_yt_type = "2";
+          }
+        }
+      }
+
       if (name === "ml_video_id") {
         updated.ml_video_id = value;
 
@@ -199,7 +232,7 @@ export default function AddCourseTopic() {
     setLoading(true); 
 
     try {
-      if (!isEditing && !formData.ml_subject) {
+      if (!formData.ml_subject) {
         await window.customAlert("Please select a Topic Subject before submitting")
         setLoading(false)
         return
@@ -259,13 +292,11 @@ export default function AddCourseTopic() {
       payload.append('ml_status', rawStatus);
       payload.append('status', rawStatus);
       
-      if (!isEditing) {
-        payload.append('ml_subject', formData.ml_subject || '')
-        if (courseId) {
-          payload.append('m_course_id', courseId)
-          payload.append('ml_course', courseId)
-          payload.append('course_id', courseId)
-        }
+      payload.append('ml_subject', formData.ml_subject || '')
+      if (courseId) {
+        payload.append('m_course_id', courseId)
+        payload.append('ml_course', courseId)
+        payload.append('course_id', courseId)
       }
 
       console.log("Submitting payload:");
@@ -325,10 +356,10 @@ export default function AddCourseTopic() {
               <span className="font-semibold text-white/70">Category :</span>{' '}
               <span className="text-white font-medium">{location.state?.categoryTitle || 'Cohort Courses'}</span>
             </div>
-            {location.state?.courseTitle && (
+            {courseTitle && (
               <div>
                 <span className="font-semibold text-white/70">Course :</span>{' '}
-                <span className="text-white font-medium">{location.state.courseTitle}</span>
+                <span className="text-white font-medium">{courseTitle}</span>
               </div>
             )}
           </div>
@@ -346,7 +377,6 @@ export default function AddCourseTopic() {
                 value={formData.ml_subject}
                 onChange={handleChange}
                 className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
-                disabled={isEditing}
               >
                 <option value="">Select Subject</option>
                 {subjects.map(s => (
@@ -469,13 +499,13 @@ export default function AddCourseTopic() {
                         placeholder="Enter Topic Link" 
                         className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white" 
                       />
-                      <button
+                      {/* <button
                         type="button"
                         onClick={handleEmbed}
                         className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-4 py-2 rounded text-sm font-bold transition-colors shadow-sm whitespace-nowrap"
                       >
                         Embed
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 )}

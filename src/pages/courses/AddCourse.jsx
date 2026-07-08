@@ -87,8 +87,13 @@ export default function AddCourse() {
       payload.append('m_course_status', statusApp.toLowerCase() === '1' ? '1' : '0');
       payload.append('m_course_status_web', statusWeb.toLowerCase() === '1' ? '1' : '0');
       
-      payload.append('m_course_popular', document.getElementById('course_popular')?.checked ? '1' : '0');
-      payload.append('m_course_recomended', document.getElementById('course_recommended')?.checked ? '1' : '0');
+      const popularVal = document.getElementById('course_popular')?.checked ? '1' : '0';
+      const recommendedVal = document.getElementById('course_recommended')?.checked ? '1' : '0';
+      payload.append('m_course_popular', popularVal);
+      payload.append('m_course_recomended', recommendedVal);
+      payload.append('popular', popularVal);
+      payload.append('recomended', recommendedVal);
+
       payload.append('m_course_description', description || '');
       payload.append('m_course_keyword', keyword || '');
       payload.append('m_course_code', courseCode || '');
@@ -101,8 +106,12 @@ export default function AddCourse() {
       payload.append('m_course_rating', ratings || '0');
       payload.append('m_course_intro', document.getElementById('course_intro')?.value || '');
       
-      // payload.append('m_course_certificate', certificateShow ? 'Yes' : 'No');
-      // payload.append('m_course_live_class', liveClassShow ? 'Yes' : 'No');
+      const certVal = certificateShow ? '1' : '2';
+      const liveVal = liveClassShow ? '1' : '2';
+      payload.append('m_course_certificate', certVal);
+      payload.append('m_course_live_class', liveVal);
+      payload.append('certificate', certVal);
+      payload.append('live_class', liveVal);
       
       payload.append('m_course_app_g_link', appLink || '');
       payload.append('m_course_web_g_link', webLink || '');
@@ -125,8 +134,7 @@ export default function AddCourse() {
 
       const response = await axios.post(`${BASE_URL}/myadmin/course/add-course`, payload, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+          Authorization: `Bearer ${token}`
         },
       });
       if (response.data?.status) {

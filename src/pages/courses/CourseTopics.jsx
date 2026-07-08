@@ -23,8 +23,43 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
 
+  const [subjectTitle, setSubjectTitle] = useState(location.state?.subjectTitle || '')
+  const [courseTitle, setCourseTitle] = useState(location.state?.courseTitle || '')
+  const [categoryTitle, setCategoryTitle] = useState(location.state?.categoryTitle || '')
+
+  const fetchMetadata = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const targetCourseId = courseId || location.state?.courseId || localStorage.getItem('currentCourseId')
+      if (targetCourseId) {
+        // Fetch course details
+        const courseRes = await axios.get(`${BASE_URL}/myadmin/course/course/${targetCourseId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (courseRes.data?.status && courseRes.data.data) {
+          setCourseTitle(courseRes.data.data.title || '')
+          setCategoryTitle(courseRes.data.data.category || '')
+        }
+
+        // Fetch subjects
+        const subjectsRes = await axios.get(`${BASE_URL}/myadmin/subject/get-subjects/${targetCourseId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (subjectsRes.data?.status && subjectsRes.data.data) {
+          const currentSubject = subjectsRes.data.data.find(s => s._id === subjectId)
+          if (currentSubject) {
+            setSubjectTitle(currentSubject.m_subject_title || '')
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching metadata:', error)
+    }
+  }
+
   useEffect(() => {
     fetchTopics()
+    fetchMetadata()
   }, [subjectId])
 
   const fetchTopics = async () => {
@@ -85,9 +120,9 @@ console.log("COURSE TOPICS COURSE ID:", courseId)
     }
 
     const headerData = {
-      subject: location.state?.subjectTitle || (topics[0]?.m_subject_title) || (topics[0]?.subject_title) || (topics[0]?.subject?.m_subject_title) || 'Types Of Batteries',
-      category: location.state?.categoryTitle || (topics[0]?.category_title) || (topics[0]?.category?.title) || 'Cohort Courses',
-      course: location.state?.courseTitle || (topics[0]?.course_title) || (topics[0]?.course?.title) || 'Free Electric Vehicle Basic Course ()'
+      subject: subjectTitle || location.state?.subjectTitle || 'Types Of Batteries',
+      category: categoryTitle && categoryTitle !== 'N/A' ? categoryTitle : (location.state?.categoryTitle || 'Cohort Courses'),
+      course: courseTitle || location.state?.courseTitle || 'Free Electric Vehicle Basic Course ()'
     }
 
     return (
