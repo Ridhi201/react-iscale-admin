@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BASE_URL } from '../../config/api';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { getImageUrl } from '../../utils/imageUtils';
 
 export default function EditCourse() {
   const { id } = useParams();
@@ -38,6 +39,7 @@ export default function EditCourse() {
     m_course_app_g_link: '',
     m_course_web_g_link: '',
     m_course_graphy_instruction: '',
+    m_course_fee_structure: '',
     instructor: '',
     m_course_price: '',
     m_course_offer_price: ''
@@ -45,6 +47,7 @@ export default function EditCourse() {
 
   const [bannerFile, setBannerFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
+  const [feeStructureFile, setFeeStructureFile] = useState(null);
 
   // Generic change handler for text/number inputs
   const handleChange = (e) => {
@@ -155,6 +158,7 @@ export default function EditCourse() {
         m_course_app_g_link: course.app_g_link ?? course.m_course_app_g_link ?? '',
         m_course_web_g_link: course.web_g_link ?? course.m_course_web_g_link ?? '',
         m_course_graphy_instruction: course.graphy_instruction ?? course.m_course_graphy_instruction ?? '',
+        m_course_fee_structure: course.fee_structure ?? course.m_course_fee_structure ?? '',
         instructor: course.instructor ?? course.m_course_instructor ?? '',
         m_course_price: course.price ?? course.m_course_price ?? '',
         m_course_offer_price: course.offer_price ?? course.m_course_offer_price ?? ''
@@ -218,6 +222,7 @@ export default function EditCourse() {
       });
       if (bannerFile) payload.append('m_course_banner', bannerFile);
       if (pdfFile) payload.append('m_course_pdf', pdfFile);
+      if (feeStructureFile) payload.append('m_course_fee_structure', feeStructureFile);
       for (let pair of payload.entries()) {
         console.log(pair[0], pair[1]);
       }
@@ -390,13 +395,24 @@ export default function EditCourse() {
               <input type="file" accept=".pdf" onChange={(e) => setPdfFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Instructor</label>
-              <select id="instructor" value={courseData.instructor} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none">
-                <option value="">- - - Select - - -</option>
-                {instructors.map((ins) => (
-                  <option key={ins._id} value={ins._id}>{ins.name}</option>
-                ))}
-              </select>
+              <div className="mb-4">
+                <label className="block text-[13px] font-bold text-slate-800 mb-1">Fee Structure</label>
+                <input type="file" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => setFeeStructureFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
+                {courseData.m_course_fee_structure && (
+                  <a href={getImageUrl(courseData.m_course_fee_structure)} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline block mt-1">
+                    📄 View Existing Fee Structure
+                  </a>
+                )}
+              </div>
+              <div>
+                <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Instructor</label>
+                <select id="instructor" value={courseData.instructor} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none">
+                  <option value="">- - - Select - - -</option>
+                  {instructors.map((ins) => (
+                    <option key={ins._id} value={ins._id}>{ins.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -407,15 +423,15 @@ export default function EditCourse() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">App GLink</label>
-              <input id="m_course_app_g_link" type="text" value={courseData.m_course_app_g_link} onChange={handleChange} placeholder="App GLink" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">App Graphy Link</label>
+              <input id="m_course_app_g_link" type="text" value={courseData.m_course_app_g_link} onChange={handleChange} placeholder="App Graphy Link" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Web GLink</label>
-              <input id="m_course_web_g_link" type="text" value={courseData.m_course_web_g_link} onChange={handleChange} placeholder="Web GLink" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">Web Graphy Link</label>
+              <input id="m_course_web_g_link" type="text" value={courseData.m_course_web_g_link} onChange={handleChange} placeholder="Web Graphy Link" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Graphy Instruction</label>
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">Instruction</label>
               <textarea id="m_course_graphy_instruction" rows="2" value={courseData.m_course_graphy_instruction} onChange={handleChange} placeholder="Graphy Instruction" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"></textarea>
             </div>
           </div>
