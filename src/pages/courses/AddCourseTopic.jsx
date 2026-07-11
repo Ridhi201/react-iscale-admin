@@ -5,9 +5,10 @@ import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
 const getInitialType = (type) => {
-  if (type === '1' || type === 'Video') return 'Video';
-  if (type === '2' || type === 'Document' || type === 'PDF') return 'PDF';
-  if (type === '3' || type === 'Link') return 'Link';
+  const t = type !== undefined && type !== null ? String(type) : '';
+  if (t === '1' || t === 'Video') return 'Video';
+  if (t === '2' || t === 'Document' || t === 'PDF') return 'PDF';
+  if (t === '3' || t === 'Link') return 'Link';
   return '';
 }
 
@@ -25,7 +26,7 @@ const detectVideoType = (videoId, savedType) => {
     return ytId ? "1" : "2";
   }
   // No video ID — use savedType from DB directly
-  return savedType || "2";
+  return savedType !== undefined && savedType !== null ? String(savedType) : "2";
 }
 
 export default function AddCourseTopic() {
@@ -35,12 +36,36 @@ export default function AddCourseTopic() {
   
   const editTopic = location.state?.editTopic
   const isEditing = !!editTopic
-  const courseId = location.state?.courseId || localStorage.getItem('currentCourseId')
+  const courseId = editTopic?.ml_course || location.state?.courseId || localStorage.getItem('currentCourseId')
 
   console.log("COURSE ID RECEIVED:", courseId)
+  console.log("editTopic object on load:", editTopic)
+  console.log("editTopic keys on load:", Object.keys(editTopic || {}))
 
   const [subjects, setSubjects] = useState([])
   const [loading, setLoading] = useState(false)
+  const [courseTitle, setCourseTitle] = useState(location.state?.courseTitle || '')
+
+  // Symmetrical fallbacks so the Video ID is populated when editing, checking all DB variations
+  const initialVideoId = 
+    editTopic?.ml_video_id || 
+    editTopic?.video_id || 
+    editTopic?.ml_vdocipher_id || 
+    editTopic?.vdocipher_id || 
+    editTopic?.video || 
+    editTopic?.video_url || 
+    editTopic?.video_link || 
+    editTopic?.url || 
+    editTopic?.link || 
+    '';
+
+  const initialVdoCipherId = 
+    editTopic?.ml_vdocipher_id || 
+    editTopic?.vdocipher_id || 
+    editTopic?.ml_video_id || 
+    editTopic?.video_id || 
+    initialVideoId || 
+    '';
 
   const [formData, setFormData] = useState({
     ml_subject: editTopic?.ml_subject || subjectId || '',
@@ -48,27 +73,44 @@ export default function AddCourseTopic() {
     ml_code: editTopic?.ml_code || '',
     ml_type: getInitialType(editTopic?.ml_type),
     ml_stype: editTopic?.ml_stype || 'Topic',
-    ml_video_id: editTopic?.ml_video_id || '',
-    ml_vdocipher_id: editTopic?.ml_vdocipher_id || '',
+    ml_video_id: initialVideoId,
+    ml_vdocipher_id: initialVdoCipherId,
     ml_status: editTopic?.ml_status !== undefined ? (
       (editTopic.ml_status === 0 || editTopic.ml_status === "0" || editTopic.ml_status === false || editTopic.ml_status === "false" || String(editTopic.ml_status).toLowerCase() === "inactive") ? "0" : "1"
     ) : '1',
     ml_hours: editTopic?.ml_hours || '00',
     ml_minutes: editTopic?.ml_minutes || '00',
     ml_seconds: editTopic?.ml_seconds || '00',
-    ml_yt_type: detectVideoType(editTopic?.ml_video_id, editTopic?.ml_yt_type),
+    ml_yt_type: detectVideoType(initialVideoId, editTopic?.ml_yt_type),
     ml_pdffile: null,
-    ml_link: (editTopic?.ml_type === '3' || editTopic?.ml_type === 'Link') ? (editTopic?.ml_video_id || '') : '',
+    ml_link: (String(editTopic?.ml_type) === "3" || editTopic?.ml_type === "Link") ? initialVideoId : '',
     ml_videofile: null
   })
+
+  const fetchCourseTitle = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/course/course/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status && response.data.data) {
+        setCourseTitle(response.data.data.title || '')
+      }
+    } catch (error) {
+      console.error('Error fetching course details:', error)
+    }
+  }
 
   useEffect(() => {
     console.log("COURSE ID FOR SUBJECT API:", courseId)
 
     if (courseId) {
       fetchSubjects()
+      if (!courseTitle) {
+        fetchCourseTitle()
+      }
     }
-  }, [courseId])
+  }, [courseId, isEditing, editTopic])
 
   const fetchSubjects = async () => {
     try {
@@ -96,22 +138,40 @@ export default function AddCourseTopic() {
     setFormData(prev => {
       const updated = { ...prev, [name]: value };
       
-      // Auto-detect video type when user types in ml_video_id
-      if (name === "ml_video_id") {
-        const trimmed = value.trim();
-        if (!trimmed) {
-          updated.ml_yt_type = "2";       // default VdoCipher
+      if (name === "ml_link") {
+        const link = value || '';
+        const ytId = getYouTubeId(link);
+        if (ytId) {
+          updated.ml_video_id = ytId;
           updated.ml_vdocipher_id = "";
+          updated.ml_yt_type = "1";
         } else {
-          const ytId = getYouTubeId(trimmed);
-          const isYtId = /^[a-zA-Z0-9_-]{11}$/.test(trimmed);
-          if (ytId || isYtId) {
-            updated.ml_yt_type = "1";     // YouTube
-            updated.ml_vdocipher_id = ""; // clear VdoCipher ID
-          } else {
-            updated.ml_yt_type = "2";           // VdoCipher
-            updated.ml_vdocipher_id = trimmed;  // store as VdoCipher ID
+          const vdoId = getVdoCipherId(link);
+          if (vdoId) {
+            updated.ml_video_id = vdoId;
+            updated.ml_vdocipher_id = vdoId;
+            updated.ml_yt_type = "2";
           }
+        }
+      }
+
+      if (name === "ml_video_id") {
+        updated.ml_video_id = value;
+
+        if (updated.ml_yt_type === "2") {
+          updated.ml_vdocipher_id = value;
+        } else {
+          updated.ml_vdocipher_id = "";
+        }
+      }
+
+      if (name === "ml_yt_type") {
+        updated.ml_yt_type = value;
+
+        if (value === "2") {
+          updated.ml_vdocipher_id = updated.ml_video_id;
+        } else {
+          updated.ml_vdocipher_id = "";
         }
       }
 
@@ -172,7 +232,7 @@ export default function AddCourseTopic() {
     setLoading(true); 
 
     try {
-      if (!isEditing && !formData.ml_subject) {
+      if (!formData.ml_subject) {
         await window.customAlert("Please select a Topic Subject before submitting")
         setLoading(false)
         return
@@ -185,6 +245,9 @@ export default function AddCourseTopic() {
       payload.append('ml_code', formData.ml_code || '')
       
       let rawType = formData.ml_type || '';
+      if (!rawType && formData.ml_video_id) {
+        rawType = 'Link';
+      }
       let payloadType = '2';
       if (rawType === 'Video' || rawType === '1') {
         payloadType = '1';
@@ -199,19 +262,14 @@ export default function AddCourseTopic() {
       payload.append('ml_type', payloadType);
       payload.append('ml_stype', formData.ml_stype || 'Topic');
       
-      if (formData.ml_video_id) {
-        payload.append('ml_video_id', formData.ml_video_id);
-      }
+      payload.append('ml_video_id', formData.ml_video_id || '');
       
       payload.append('ml_hours', formData.ml_hours || '00')
       payload.append('ml_minutes', formData.ml_minutes || '00')
       payload.append('ml_seconds', formData.ml_seconds || '00')
       // ml_yt_type is already "1" or "2" — send directly
-      console.log("=== SUBMIT DEBUG ===");
-      console.log("formData.ml_yt_type  :", formData.ml_yt_type);
-      console.log("formData.ml_video_id :", formData.ml_video_id);
-      console.log("formData.ml_vdocipher_id:", formData.ml_vdocipher_id);
-      payload.append("ml_yt_type", formData.ml_yt_type || "2");
+      console.log("FINAL TYPE =", formData.ml_yt_type);
+      payload.append("ml_yt_type", formData.ml_yt_type);
 
       // Send ml_vdocipher_id only when VdoCipher is selected
       if (formData.ml_yt_type === "2") {
@@ -234,13 +292,11 @@ export default function AddCourseTopic() {
       payload.append('ml_status', rawStatus);
       payload.append('status', rawStatus);
       
-      if (!isEditing) {
-        payload.append('ml_subject', formData.ml_subject || '')
-        if (courseId) {
-          payload.append('m_course_id', courseId)
-          payload.append('ml_course', courseId)
-          payload.append('course_id', courseId)
-        }
+      payload.append('ml_subject', formData.ml_subject || '')
+      if (courseId) {
+        payload.append('m_course_id', courseId)
+        payload.append('ml_course', courseId)
+        payload.append('course_id', courseId)
       }
 
       console.log("Submitting payload:");
@@ -300,10 +356,10 @@ export default function AddCourseTopic() {
               <span className="font-semibold text-white/70">Category :</span>{' '}
               <span className="text-white font-medium">{location.state?.categoryTitle || 'Cohort Courses'}</span>
             </div>
-            {location.state?.courseTitle && (
+            {courseTitle && (
               <div>
                 <span className="font-semibold text-white/70">Course :</span>{' '}
-                <span className="text-white font-medium">{location.state.courseTitle}</span>
+                <span className="text-white font-medium">{courseTitle}</span>
               </div>
             )}
           </div>
@@ -321,7 +377,6 @@ export default function AddCourseTopic() {
                 value={formData.ml_subject}
                 onChange={handleChange}
                 className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white"
-                disabled={isEditing}
               >
                 <option value="">Select Subject</option>
                 {subjects.map(s => (
@@ -444,13 +499,13 @@ export default function AddCourseTopic() {
                         placeholder="Enter Topic Link" 
                         className="flex-1 border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-white" 
                       />
-                      <button
+                      {/* <button
                         type="button"
                         onClick={handleEmbed}
                         className="bg-[#144f36] hover:bg-[#0f3d2a] text-white px-4 py-2 rounded text-sm font-bold transition-colors shadow-sm whitespace-nowrap"
                       >
                         Embed
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 )}
@@ -578,6 +633,8 @@ export default function AddCourseTopic() {
                 Cancel
               </button>
             </div>
+
+
 
           </form>
         </div>

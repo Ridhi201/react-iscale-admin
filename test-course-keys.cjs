@@ -29,10 +29,21 @@ async function run() {
   }
   
   try {
-    const res = await axios.get(`${BASE_URL}/myadmin/course/all-courses?limit=5`, {
+    const res = await axios.get(`${BASE_URL}/myadmin/course/all-courses?limit=10`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    console.log("Courses response sample:", JSON.stringify(res.data.data, null, 2));
+    const courses = res.data.data;
+    if (courses && courses.length > 0) {
+      const validCourse = courses.find(c => c._id) || courses[0];
+      console.log("Fetching details for course:", validCourse._id, validCourse.title);
+      const detailRes = await axios.get(`${BASE_URL}/myadmin/course/course/${validCourse._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log("Course detail keys:", Object.keys(detailRes.data.data));
+      console.log("Course detail content:", JSON.stringify(detailRes.data.data, null, 2));
+    } else {
+      console.log("No courses found.");
+    }
   } catch (err) {
     console.log("Error:", err.response ? err.response.data : err.message);
   }

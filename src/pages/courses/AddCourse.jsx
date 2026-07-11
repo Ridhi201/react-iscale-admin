@@ -12,6 +12,7 @@ export default function AddCourse() {
   const [instructors, setInstructors] = useState([]);
   const [bannerFile, setBannerFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
+  const [feeStructureFile, setFeeStructureFile] = useState(null);
 
   // Form state
   const [description, setDescription] = useState('');
@@ -86,8 +87,13 @@ export default function AddCourse() {
       payload.append('m_course_status', statusApp.toLowerCase() === '1' ? '1' : '0');
       payload.append('m_course_status_web', statusWeb.toLowerCase() === '1' ? '1' : '0');
       
-      payload.append('m_course_popular', document.getElementById('course_popular')?.checked ? '1' : '0');
-      payload.append('m_course_recomended', document.getElementById('course_recommended')?.checked ? '1' : '0');
+      const popularVal = document.getElementById('course_popular')?.checked ? '1' : '0';
+      const recommendedVal = document.getElementById('course_recommended')?.checked ? '1' : '0';
+      payload.append('m_course_popular', popularVal);
+      payload.append('m_course_recomended', recommendedVal);
+      payload.append('popular', popularVal);
+      payload.append('recomended', recommendedVal);
+
       payload.append('m_course_description', description || '');
       payload.append('m_course_keyword', keyword || '');
       payload.append('m_course_code', courseCode || '');
@@ -100,8 +106,12 @@ export default function AddCourse() {
       payload.append('m_course_rating', ratings || '0');
       payload.append('m_course_intro', document.getElementById('course_intro')?.value || '');
       
-      // payload.append('m_course_certificate', certificateShow ? 'Yes' : 'No');
-      // payload.append('m_course_live_class', liveClassShow ? 'Yes' : 'No');
+      const certVal = certificateShow ? '1' : '2';
+      const liveVal = liveClassShow ? '1' : '2';
+      payload.append('m_course_certificate', certVal);
+      payload.append('m_course_live_class', liveVal);
+      payload.append('certificate', certVal);
+      payload.append('live_class', liveVal);
       
       payload.append('m_course_app_g_link', appLink || '');
       payload.append('m_course_web_g_link', webLink || '');
@@ -113,6 +123,9 @@ export default function AddCourse() {
       if (pdfFile) {
         payload.append('m_course_pdf', pdfFile);
       }
+      if (feeStructureFile) {
+        payload.append('m_course_fee_structure', feeStructureFile);
+      }
 
       console.log('=== ADD COURSE PAYLOAD ===');
       for (let pair of payload.entries()) {
@@ -121,8 +134,7 @@ export default function AddCourse() {
 
       const response = await axios.post(`${BASE_URL}/myadmin/course/add-course`, payload, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+          Authorization: `Bearer ${token}`
         },
       });
       if (response.data?.status) {
@@ -282,23 +294,44 @@ export default function AddCourse() {
               <input type="file" accept=".pdf" onChange={e => setPdfFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Instructor</label>
-              <select id="course_instructor" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none" value={selectedInstructor} onChange={e => setSelectedInstructor(e.target.value)}>
-                <option value="">- - - Select - - -</option>
-                {instructors.map(ins => (
-                  <option key={ins._id} value={ins._id}>{ins.name}</option>
-                ))}
-              </select>
+              <div className="mb-4">
+                <label className="block text-[13px] font-bold text-slate-800 mb-1">Fee Structure</label>
+                <input type="file" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={e => setFeeStructureFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
+              </div>
+              <div>
+                <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Instructor</label>
+                <select id="course_instructor" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none" value={selectedInstructor} onChange={e => setSelectedInstructor(e.target.value)}>
+                  <option value="">- - - Select - - -</option>
+                  {instructors.map(ins => (
+                    <option key={ins._id} value={ins._id}>{ins.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
           {/* Intro and Description */}
           <div className="mb-4">
             <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Intro</label>
-            <textarea rows="3" placeholder="Enter Course Intro" className="w-1/2 border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36]"></textarea>
+            <textarea id="course_intro" rows="3" placeholder="Enter Course Intro" className="w-1/2 border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36]"></textarea>
           </div>
           <div className="mb-6">
             <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Description</label>
             <textarea id="course_description" rows="6" placeholder="Enter Course Description" className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none" value={description} onChange={e => setDescription(e.target.value)}></textarea>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">App Graphy Link</label>
+              <input type="text" value={appLink} onChange={e => setAppLink(e.target.value)} placeholder="App Graphy Link" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">Web Graphy Link</label>
+              <input type="text" value={webLink} onChange={e => setWebLink(e.target.value)} placeholder="Web Graphy Link" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">Instruction</label>
+              <textarea rows="2" value={graphyInstruction} onChange={e => setGraphyInstruction(e.target.value)} placeholder="Graphy Instruction" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"></textarea>
+            </div>
           </div>
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 border-t border-slate-200 pt-4 mt-8">
