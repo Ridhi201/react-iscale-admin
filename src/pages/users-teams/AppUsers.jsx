@@ -7,9 +7,39 @@ import AppUserDetails from './AppUserDetails'
 import ThemeButton from '../../components/common/ThemeButton'
 import CardHeader from '../../components/ui/CardHeader'
 
+// Users with no name, no email, and no registration date are incomplete/empty signups
+const isValidUserRow = (row) => {
+  const hasName = !!(row.c_display_name || row.c_first_name || row.c_last_name || '').trim()
+  const hasEmail = !!(row.c_email || '').trim()
+  const hasDate = !!row.c_register_date
+  return hasName || hasEmail || hasDate
+}
+
+// Matches search text against name, email, and contact number
+const matchesUserSearch = (row, searchLower) => {
+  if (!searchLower) return true
+  const displayName = (row.c_display_name || '').toLowerCase()
+  const firstName = (row.c_first_name || '').toLowerCase()
+  const lastName = (row.c_last_name || '').toLowerCase()
+  const fullName = `${firstName} ${lastName}`.trim().toLowerCase()
+  const contact = String(row.c_contact || '').toLowerCase()
+  const email = (row.c_email || '').toLowerCase()
+
+  return displayName.includes(searchLower) ||
+         firstName.includes(searchLower) ||
+         lastName.includes(searchLower) ||
+         fullName.includes(searchLower) ||
+         contact.includes(searchLower) ||
+         email.includes(searchLower)
+}
+
+// Large enough to pull the full matching set for a given date/status filter so
+// name/email/contact search can run entirely client-side (backend `search` may only match name).
+const SEARCH_FETCH_LIMIT = 10000
+
 export default function AppUsers() {
   const navigate = useNavigate()
-  
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedUserId, setSelectedUserId] = useState(null)
@@ -26,12 +56,17 @@ export default function AppUsers() {
 
   const fetchUsers = async (page = currentPage, currentSearch = search, currentFromDate = fromDate, currentToDate = toDate, currentUserStatus = userStatus) => {
     try {
-      setLoading(true); 
+      setLoading(true);
       const token = localStorage.getItem('token')
+      const searchTerm = currentSearch.trim()
+      const isSearching = !!searchTerm
+
+      // While searching, don't rely on the backend's `search` matching (it may only match name) —
+      // pull the full date/status-filtered set and match name/email/contact ourselves.
       const params = new URLSearchParams({
-        page: String(page),
-        limit: String(entriesPerPage),
-        search: currentSearch,
+        page: String(isSearching ? 1 : page),
+        limit: String(isSearching ? SEARCH_FETCH_LIMIT : entriesPerPage),
+        search: isSearching ? '' : currentSearch,
         from_date: currentFromDate,
         to_date: currentToDate,
         user_status: currentUserStatus
@@ -39,11 +74,25 @@ export default function AppUsers() {
       const res = await axios.get(`${BASE_URL}/myadmin/app-users/all?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      
+
       if (res.data?.status) {
-        setData(res.data.data || [])
-        setTotalPages(res.data.pagination?.totalPages || 1)
-        setTotalEntries(res.data.pagination?.total || 0)
+        if (isSearching) {
+          const searchLower = searchTerm.toLowerCase()
+          const matched = (res.data.data || [])
+            .filter(isValidUserRow)
+            .filter(row => matchesUserSearch(row, searchLower))
+          const pages = Math.max(1, Math.ceil(matched.length / entriesPerPage))
+          const safePage = Math.min(page, pages)
+          const start = (safePage - 1) * entriesPerPage
+          setData(matched.slice(start, start + entriesPerPage))
+          setTotalPages(pages)
+          setTotalEntries(matched.length)
+          if (safePage !== page) setCurrentPage(safePage)
+        } else {
+          setData(res.data.data || [])
+          setTotalPages(res.data.pagination?.totalPages || 1)
+          setTotalEntries(res.data.pagination?.total || 0)
+        }
       }
     } catch (err) {
       console.error(err)
@@ -92,32 +141,9 @@ export default function AppUsers() {
     }
   }
 
-  const filteredData = data.filter(row => {
-    // Exclude users that have no name, no email, and no registration date (incomplete/empty signups)
-    const hasName = !!(row.c_display_name || row.c_first_name || row.c_last_name || '').trim();
-    const hasEmail = !!(row.c_email || '').trim();
-    const hasDate = !!row.c_register_date;
-
-    if (!hasName && !hasEmail && !hasDate) {
-      return false;
-    }
-
-    if (!search) return true;
-    const searchLower = search.toLowerCase();
-    const displayName = (row.c_display_name || '').toLowerCase();
-    const firstName = (row.c_first_name || '').toLowerCase();
-    const lastName = (row.c_last_name || '').toLowerCase();
-    const fullName = `${firstName} ${lastName}`.trim().toLowerCase();
-    const contact = String(row.c_contact || '').toLowerCase();
-    const email = (row.c_email || '').toLowerCase();
-    
-    return displayName.includes(searchLower) ||
-           firstName.includes(searchLower) ||
-           lastName.includes(searchLower) ||
-           fullName.includes(searchLower) ||
-           contact.includes(searchLower) ||
-           email.includes(searchLower);
-  });
+  const filteredData = data.filter(row =>
+    isValidUserRow(row) && matchesUserSearch(row, search.trim().toLowerCase())
+  );
 
   const getPageNumbers = () => {
     let startPage = Math.max(1, currentPage - 2)
@@ -154,10 +180,12 @@ export default function AppUsers() {
   const handleExport = async () => {
     try {
       const token = localStorage.getItem('token')
+      const searchTerm = search.trim()
+      const isSearching = !!searchTerm
       const params = new URLSearchParams({
         page: 1,
-        limit: totalEntries > 0 ? totalEntries : 10000,
-        search,
+        limit: isSearching ? SEARCH_FETCH_LIMIT : (totalEntries > 0 ? totalEntries : 10000),
+        search: isSearching ? '' : search,
         from_date: fromDate,
         to_date: toDate,
         user_status: userStatus
@@ -165,14 +193,17 @@ export default function AppUsers() {
       const res = await axios.get(`${BASE_URL}/myadmin/app-users/all?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      
+
       if (res.data?.status) {
-        const exportData = res.data.data || []
+        const searchLower = searchTerm.toLowerCase()
+        const exportData = (res.data.data || [])
+          .filter(isValidUserRow)
+          .filter(row => matchesUserSearch(row, searchLower))
         const headers = ['S.No.', 'User Name', 'Contact No.', 'Email', 'Joined On', 'Status']
         const csvRows = [headers.join(',')]
         
         exportData.forEach((row, index) => {
-          const userName = (row.c_display_name || `${row.c_first_name || ''} ${row.c_last_name || ''}`).trim()
+          const userName = ( `${row.c_first_name || ''} ${row.c_last_name || ''}`).trim()
           const contact = row.c_contact || ''
           const email = row.c_email || ''
           const joinedOn = row.c_register_date ? new Date(row.c_register_date).toLocaleDateString() : 'N/A'
