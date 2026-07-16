@@ -168,40 +168,21 @@ export default function AppUsers() {
     }
   }
 
-  const handleToggleStatus = async (id, currentStatus) => {
-    const nextLabel = currentStatus === 1 ? 'Unverified' : 'Verified'
+  const handleToggleVerified = async (id, currentlyVerified) => {
+    const nextLabel = currentlyVerified ? 'Unverified' : 'Verified'
     if (!await window.customConfirm(`Are you sure you want to mark this user as ${nextLabel}?`)) return
     try {
       const token = localStorage.getItem('token')
-      const url = `${BASE_URL}/myadmin/app-users/status/${id}`
-      const config = { headers: { Authorization: `Bearer ${token}` } }
-
-      let res
-      try {
-        res = await axios.put(url, {}, config)
-      } catch (err) {
-        if (err.response?.status === 404) {
-          try {
-            res = await axios.post(url, {}, config)
-          } catch (err2) {
-            if (err2.response?.status === 404) {
-              res = await axios.patch(url, {}, config)
-            } else throw err2
-          }
-        } else throw err
-      }
-
-      if (res?.data?.status) {
+      const res = await axios.patch(`${BASE_URL}/myadmin/app-users/toggle-verified/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
         fetchUsers()
       } else {
-        await window.customAlert(res?.data?.message || 'Failed to update status')
+        await window.customAlert(res.data?.message || 'Failed to update verification status')
       }
     } catch (err) {
-      if (err.response?.status === 404) {
-        await window.customAlert('Status API endpoint not found (404). Please ask your backend developer to verify the route for toggling app user status.')
-      } else {
-        await window.customAlert(err.response?.data?.message || 'Error updating status')
-      }
+      await window.customAlert(err.response?.data?.message || 'Error updating verification status')
     }
   }
 
@@ -234,7 +215,7 @@ export default function AppUsers() {
           const contact = row.c_contact || ''
           const email = row.c_email || ''
           const joinedOn = row.c_register_date ? new Date(row.c_register_date).toLocaleDateString() : 'N/A'
-          const status = row.c_user_status === 1 ? 'Verified' : 'Unverified'
+          const status = row.isVerified ? 'Verified' : 'Unverified'
           
           csvRows.push([
             index + 1,
@@ -291,8 +272,8 @@ export default function AppUsers() {
             <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">User Type</label>
             <select value={userStatus} onChange={(e) => setUserStatus(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-40">
               <option value="">Select Type</option>
-              <option value="1">Verified (Active)</option>
-              <option value="0">Unverified (Inactive)</option>
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
             </select>
           </div>
           <div>
@@ -338,11 +319,11 @@ export default function AppUsers() {
                       </td>
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
                         <button
-                          onClick={() => handleToggleStatus(row._id, row.c_user_status)}
-                          className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap cursor-pointer transition-opacity hover:opacity-80 ${row.c_user_status === 1 ? 'bg-[#144f36]' : 'bg-red-500'}`}
-                          title={`Click to mark as ${row.c_user_status === 1 ? 'Unverified' : 'Verified'}`}
+                          onClick={() => handleToggleVerified(row._id, row.isVerified)}
+                          className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap cursor-pointer transition-opacity hover:opacity-80 ${row.isVerified ? 'bg-[#144f36]' : 'bg-red-500'}`}
+                          title={`Click to mark as ${row.isVerified ? 'Unverified' : 'Verified'}`}
                         >
-                          {row.c_user_status === 1 ? 'Verified' : 'Unverified'}
+                          {row.isVerified ? 'Verified' : 'Unverified'}
                         </button>
                       </td>
                       <td className="px-4 py-3 align-middle">
