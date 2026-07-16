@@ -7,14 +7,6 @@ import AppUserDetails from './AppUserDetails'
 import ThemeButton from '../../components/common/ThemeButton'
 import CardHeader from '../../components/ui/CardHeader'
 
-// Users with no name, no email, and no registration date are incomplete/empty signups
-const isValidUserRow = (row) => {
-  const hasName = !!(row.c_display_name || row.c_first_name || row.c_last_name || '').trim()
-  const hasEmail = !!(row.c_email || '').trim()
-  const hasDate = !!row.c_register_date
-  return hasName || hasEmail || hasDate
-}
-
 // Matches search text against name, email, and contact number
 const matchesUserSearch = (row, searchLower) => {
   if (!searchLower) return true
@@ -79,7 +71,6 @@ export default function AppUsers() {
         if (isSearching) {
           const searchLower = searchTerm.toLowerCase()
           const matched = (res.data.data || [])
-            .filter(isValidUserRow)
             .filter(row => matchesUserSearch(row, searchLower))
           const pages = Math.max(1, Math.ceil(matched.length / entriesPerPage))
           const safePage = Math.min(page, pages)
@@ -142,7 +133,7 @@ export default function AppUsers() {
   }
 
   const filteredData = data.filter(row =>
-    isValidUserRow(row) && matchesUserSearch(row, search.trim().toLowerCase())
+    matchesUserSearch(row, search.trim().toLowerCase())
   );
 
   const getPageNumbers = () => {
@@ -177,6 +168,43 @@ export default function AppUsers() {
     }
   }
 
+  const handleToggleStatus = async (id, currentStatus) => {
+    const nextLabel = currentStatus === 1 ? 'Unverified' : 'Verified'
+    if (!await window.customConfirm(`Are you sure you want to mark this user as ${nextLabel}?`)) return
+    try {
+      const token = localStorage.getItem('token')
+      const url = `${BASE_URL}/myadmin/app-users/status/${id}`
+      const config = { headers: { Authorization: `Bearer ${token}` } }
+
+      let res
+      try {
+        res = await axios.put(url, {}, config)
+      } catch (err) {
+        if (err.response?.status === 404) {
+          try {
+            res = await axios.post(url, {}, config)
+          } catch (err2) {
+            if (err2.response?.status === 404) {
+              res = await axios.patch(url, {}, config)
+            } else throw err2
+          }
+        } else throw err
+      }
+
+      if (res?.data?.status) {
+        fetchUsers()
+      } else {
+        await window.customAlert(res?.data?.message || 'Failed to update status')
+      }
+    } catch (err) {
+      if (err.response?.status === 404) {
+        await window.customAlert('Status API endpoint not found (404). Please ask your backend developer to verify the route for toggling app user status.')
+      } else {
+        await window.customAlert(err.response?.data?.message || 'Error updating status')
+      }
+    }
+  }
+
   const handleExport = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -197,7 +225,6 @@ export default function AppUsers() {
       if (res.data?.status) {
         const searchLower = searchTerm.toLowerCase()
         const exportData = (res.data.data || [])
-          .filter(isValidUserRow)
           .filter(row => matchesUserSearch(row, searchLower))
         const headers = ['S.No.', 'User Name', 'Contact No.', 'Email', 'Joined On', 'Status']
         const csvRows = [headers.join(',')]
@@ -310,9 +337,13 @@ export default function AppUsers() {
                         {row.c_register_date ? new Date(row.c_register_date).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                        <span className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap ${row.c_user_status === 1 ? 'bg-[#144f36]' : 'bg-red-500'}`}>
+                        <button
+                          onClick={() => handleToggleStatus(row._id, row.c_user_status)}
+                          className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap cursor-pointer transition-opacity hover:opacity-80 ${row.c_user_status === 1 ? 'bg-[#144f36]' : 'bg-red-500'}`}
+                          title={`Click to mark as ${row.c_user_status === 1 ? 'Unverified' : 'Verified'}`}
+                        >
                           {row.c_user_status === 1 ? 'Verified' : 'Unverified'}
-                        </span>
+                        </button>
                       </td>
                       <td className="px-4 py-3 align-middle">
                         <div className="flex gap-1.5">
