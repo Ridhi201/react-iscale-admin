@@ -85,7 +85,11 @@ export default function AppUserDetails({ userId, onClose }) {
                   </div>
                   <div>
                     <div className="text-xs text-slate-400 font-semibold mb-0.5">Alternate Mobile</div>
-                    <div className="text-sm text-slate-800 font-bold">{user.c_alt_contact || user.c_whatsapp || 'N/A'}</div>
+                    <div className="text-sm text-slate-800 font-bold">{user.c_alt_contact || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-400 font-semibold mb-0.5">WhatsApp Number</div>
+                    <div className="text-sm text-slate-800 font-bold">{user.c_whatsapp || 'N/A'}</div>
                   </div>
                   <div className="md:col-span-2">
                     <div className="text-xs text-slate-400 font-semibold mb-0.5">Address</div>
