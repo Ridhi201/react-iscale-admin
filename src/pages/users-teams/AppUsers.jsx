@@ -25,8 +25,26 @@ const matchesUserSearch = (row, searchLower) => {
          email.includes(searchLower)
 }
 
+const isTruthyFlag = (v) => v === 1 || v === '1' || v === true
+
+// hasPhoneValue: '' (any), 'yes' (has a contact number), 'no' (no contact number)
+const matchesHasPhone = (row, hasPhoneValue) => {
+  if (!hasPhoneValue) return true
+  const hasContact = !!String(row.c_contact || '').trim()
+  return hasPhoneValue === 'yes' ? hasContact : !hasContact
+}
+
+// emailVerifiedValue: '' (any), '1' (email verified), '0' (email not verified)
+const matchesEmailVerified = (row, emailVerifiedValue) => {
+  if (!emailVerifiedValue) return true
+  const verified = isTruthyFlag(row.c_email_verified)
+  return emailVerifiedValue === '1' ? verified : !verified
+}
+
 // Large enough to pull the full matching set for a given date/status filter so
-// name/email/contact search can run entirely client-side (backend `search` may only match name).
+// name/email/contact search, phone-presence, and email-verification filters can run
+// entirely client-side (backend `search` may only match name, and has-phone /
+// email-verified aren't backend query params at all).
 const SEARCH_FETCH_LIMIT = 10000
 
 export default function AppUsers() {
@@ -45,20 +63,31 @@ export default function AppUsers() {
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [userStatus, setUserStatus] = useState('')
+  const [hasPhone, setHasPhone] = useState('')
+  const [emailVerified, setEmailVerified] = useState('')
 
-  const fetchUsers = async (page = currentPage, currentSearch = search, currentFromDate = fromDate, currentToDate = toDate, currentUserStatus = userStatus) => {
+  const fetchUsers = async (
+    page = currentPage,
+    currentSearch = search,
+    currentFromDate = fromDate,
+    currentToDate = toDate,
+    currentUserStatus = userStatus,
+    currentHasPhone = hasPhone,
+    currentEmailVerified = emailVerified
+  ) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token')
       const searchTerm = currentSearch.trim()
-      const isSearching = !!searchTerm
+      const hasClientFilter = !!searchTerm || !!currentHasPhone || !!currentEmailVerified
 
-      // While searching, don't rely on the backend's `search` matching (it may only match name) —
-      // pull the full date/status-filtered set and match name/email/contact ourselves.
+      // Phone-presence and email-verified filters have no backend query params, and `search` may
+      // only match name server-side — so whenever any of these are active, pull the full
+      // date/status-filtered set and filter/paginate entirely client-side.
       const params = new URLSearchParams({
-        page: String(isSearching ? 1 : page),
-        limit: String(isSearching ? SEARCH_FETCH_LIMIT : entriesPerPage),
-        search: isSearching ? '' : currentSearch,
+        page: String(hasClientFilter ? 1 : page),
+        limit: String(hasClientFilter ? SEARCH_FETCH_LIMIT : entriesPerPage),
+        search: hasClientFilter ? '' : currentSearch,
         from_date: currentFromDate,
         to_date: currentToDate,
         user_status: currentUserStatus
@@ -68,10 +97,12 @@ export default function AppUsers() {
       })
 
       if (res.data?.status) {
-        if (isSearching) {
+        if (hasClientFilter) {
           const searchLower = searchTerm.toLowerCase()
           const matched = (res.data.data || [])
             .filter(row => matchesUserSearch(row, searchLower))
+            .filter(row => matchesHasPhone(row, currentHasPhone))
+            .filter(row => matchesEmailVerified(row, currentEmailVerified))
           const pages = Math.max(1, Math.ceil(matched.length / entriesPerPage))
           const safePage = Math.min(page, pages)
           const start = (safePage - 1) * entriesPerPage
@@ -93,12 +124,12 @@ export default function AppUsers() {
   }
 
   useEffect(() => {
-    fetchUsers(currentPage, search, fromDate, toDate, userStatus)
+    fetchUsers(currentPage, search, fromDate, toDate, userStatus, hasPhone, emailVerified)
   }, [currentPage])
 
   const handleFilter = () => {
     setCurrentPage(1)
-    fetchUsers(1, search, fromDate, toDate, userStatus)
+    fetchUsers(1, search, fromDate, toDate, userStatus, hasPhone, emailVerified)
   }
 
   const handleReset = () => {
@@ -106,15 +137,17 @@ export default function AppUsers() {
     setFromDate('')
     setToDate('')
     setUserStatus('')
+    setHasPhone('')
+    setEmailVerified('')
     setCurrentPage(1)
-    fetchUsers(1, '', '', '', '')
+    fetchUsers(1, '', '', '', '', '', '')
   }
 
   const handlePrev = () => {
     if (currentPage > 1) {
       const nextPg = currentPage - 1
       setCurrentPage(nextPg)
-      fetchUsers(nextPg, search, fromDate, toDate, userStatus)
+      fetchUsers(nextPg, search, fromDate, toDate, userStatus, hasPhone, emailVerified)
     }
   }
 
@@ -122,7 +155,7 @@ export default function AppUsers() {
     if (currentPage < totalPages) {
       const nextPg = currentPage + 1
       setCurrentPage(nextPg)
-      fetchUsers(nextPg, search, fromDate, toDate, userStatus)
+      fetchUsers(nextPg, search, fromDate, toDate, userStatus, hasPhone, emailVerified)
     }
   }
 
@@ -133,7 +166,9 @@ export default function AppUsers() {
   }
 
   const filteredData = data.filter(row =>
-    matchesUserSearch(row, search.trim().toLowerCase())
+    matchesUserSearch(row, search.trim().toLowerCase()) &&
+    matchesHasPhone(row, hasPhone) &&
+    matchesEmailVerified(row, emailVerified)
   );
 
   const getPageNumbers = () => {
@@ -190,11 +225,11 @@ export default function AppUsers() {
     try {
       const token = localStorage.getItem('token')
       const searchTerm = search.trim()
-      const isSearching = !!searchTerm
+      const hasClientFilter = !!searchTerm || !!hasPhone || !!emailVerified
       const params = new URLSearchParams({
         page: 1,
-        limit: isSearching ? SEARCH_FETCH_LIMIT : (totalEntries > 0 ? totalEntries : 10000),
-        search: isSearching ? '' : search,
+        limit: hasClientFilter ? SEARCH_FETCH_LIMIT : (totalEntries > 0 ? totalEntries : 10000),
+        search: hasClientFilter ? '' : search,
         from_date: fromDate,
         to_date: toDate,
         user_status: userStatus
@@ -207,6 +242,8 @@ export default function AppUsers() {
         const searchLower = searchTerm.toLowerCase()
         const exportData = (res.data.data || [])
           .filter(row => matchesUserSearch(row, searchLower))
+          .filter(row => matchesHasPhone(row, hasPhone))
+          .filter(row => matchesEmailVerified(row, emailVerified))
         const headers = ['S.No.', 'User Name', 'Contact No.', 'Email', 'Joined On', 'Status']
         const csvRows = [headers.join(',')]
         
@@ -274,6 +311,22 @@ export default function AppUsers() {
               <option value="">Select Type</option>
               <option value="1">Active</option>
               <option value="0">Inactive</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Phone Number</label>
+            <select value={hasPhone} onChange={(e) => setHasPhone(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-40">
+              <option value="">All</option>
+              <option value="yes">Has Phone</option>
+              <option value="no">No Phone</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Email Verification</label>
+            <select value={emailVerified} onChange={(e) => setEmailVerified(e.target.value)} className="border border-slate-300 dark:border-gray-700 bg-[#f6f6ff] dark:bg-[#13111c] text-slate-700 dark:text-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 w-44">
+              <option value="">All</option>
+              <option value="1">Verified</option>
+              <option value="0">Unverified</option>
             </select>
           </div>
           <div>
