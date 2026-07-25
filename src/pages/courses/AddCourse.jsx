@@ -30,6 +30,8 @@ export default function AddCourse() {
   const [graphyInstruction, setGraphyInstruction] = useState('');
   const [certificateShow, setCertificateShow] = useState(false);
   const [liveClassShow, setLiveClassShow] = useState(false);
+  const [price, setPrice] = useState('');
+  const [offerPrice, setOfferPrice] = useState('');
 
 
 
@@ -65,6 +67,16 @@ export default function AddCourse() {
     const categoryVal = document.getElementById('course_category')?.value;
     if (!titleVal) { await window.customAlert('❌ Course Title is required!'); return; }
     if (!categoryVal) { await window.customAlert('❌ Please select a Course Category!'); return; }
+    const courseTypeVal = document.getElementById('course_type')?.value || '1';
+    if (courseTypeVal === '2' && (!price || Number(price) <= 0)) {
+      await window.customAlert('A paid course requires a price greater than 0.');
+      return;
+    }
+    if ((durationApp && (!Number.isFinite(Number(durationApp)) || Number(durationApp) < 0)) ||
+        (durationWeb && (!Number.isFinite(Number(durationWeb)) || Number(durationWeb) < 0))) {
+      await window.customAlert('Course durations must be non-negative numbers.');
+      return;
+    }
     setLoading(true); 
     try {
       const token = localStorage.getItem('token');
@@ -77,11 +89,12 @@ export default function AddCourse() {
       payload.append('m_course_category', categoryVal);
       
       // Get selected course type (1 = Free, 2 = Paid)
-      const courseTypeVal = document.getElementById('course_type')?.value || '1';
       payload.append('m_course_type', courseTypeVal);
+      payload.append('m_course_price', price || '0');
+      payload.append('m_course_offer_price', offerPrice || '0');
       
       if (selectedInstructor) {
-        payload.append('m_course_instructor', selectedInstructor);
+        payload.append('m_course_trainee', selectedInstructor);
       }
       // Backend expects inconsistent formats
       payload.append('m_course_status', statusApp.toLowerCase() === '1' ? '1' : '0');
@@ -124,7 +137,7 @@ export default function AddCourse() {
         payload.append('m_course_pdf', pdfFile);
       }
       if (feeStructureFile) {
-        payload.append('m_course_fee_structure', feeStructureFile);
+        payload.append('m_course_feestructure', feeStructureFile);
       }
 
       console.log('=== ADD COURSE PAYLOAD ===');
@@ -225,6 +238,16 @@ export default function AddCourse() {
               </select>
             </div>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div>
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Price</label>
+              <input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="Required for paid courses" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-slate-800 mb-1">Offer Price</label>
+              <input type="number" min="0" step="0.01" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} placeholder="Optional" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Keywords</label>
@@ -232,11 +255,11 @@ export default function AddCourse() {
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Duration (App)</label>
-              <input type="text" placeholder="Course Duration In App" value={durationApp} onChange={e => setDurationApp(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+              <input type="number" min="0" step="any" placeholder="Course Duration In App" value={durationApp} onChange={e => setDurationApp(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Duration (Web)</label>
-              <input type="text" placeholder="Course Duration In Web" value={durationWeb} onChange={e => setDurationWeb(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+              <input type="number" min="0" step="any" placeholder="Course Duration In Web" value={durationWeb} onChange={e => setDurationWeb(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">

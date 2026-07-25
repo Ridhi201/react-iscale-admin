@@ -40,7 +40,7 @@ export default function EditCourse() {
     m_course_web_g_link: '',
     m_course_graphy_instruction: '',
     m_course_fee_structure: '',
-    instructor: '',
+    m_course_trainee: '',
     m_course_price: '',
     m_course_offer_price: ''
   });
@@ -159,7 +159,7 @@ export default function EditCourse() {
         m_course_web_g_link: course.web_g_link ?? course.m_course_web_g_link ?? '',
         m_course_graphy_instruction: course.graphy_instruction ?? course.m_course_graphy_instruction ?? '',
         m_course_fee_structure: course.fee_structure ?? course.m_course_fee_structure ?? '',
-        instructor: course.instructor ?? course.m_course_instructor ?? '',
+        m_course_trainee: course.trainees?.[0]?.trainee_id ?? course.m_course_trainee?.[0]?._id ?? course.m_course_trainee?.[0] ?? '',
         m_course_price: course.price ?? course.m_course_price ?? '',
         m_course_offer_price: course.offer_price ?? course.m_course_offer_price ?? ''
       });
@@ -229,7 +229,7 @@ export default function EditCourse() {
       });
       if (bannerFile) payload.append('m_course_banner', bannerFile);
       if (pdfFile) payload.append('m_course_pdf', pdfFile);
-      if (feeStructureFile) payload.append('m_course_fee_structure', feeStructureFile);
+      if (feeStructureFile) payload.append('m_course_feestructure', feeStructureFile);
       for (let pair of payload.entries()) {
         console.log(pair[0], pair[1]);
       }
@@ -330,11 +330,11 @@ export default function EditCourse() {
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Duration (App)</label>
-              <input id="m_course_duration_app" type="text" value={courseData.m_course_duration_app} onChange={handleChange} placeholder="Course Duration In App" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+              <input id="m_course_duration_app" type="number" min="0" step="any" value={courseData.m_course_duration_app} onChange={handleChange} placeholder="Course Duration In App" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Duration (Web)</label>
-              <input id="m_course_duration_web" type="text" value={courseData.m_course_duration_web} onChange={handleChange} placeholder="Course Duration In Web" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+              <input id="m_course_duration_web" type="number" min="0" step="any" value={courseData.m_course_duration_web} onChange={handleChange} placeholder="Course Duration In Web" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
           </div>
 
@@ -413,7 +413,7 @@ export default function EditCourse() {
               </div>
               <div>
                 <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Instructor</label>
-                <select id="instructor" value={courseData.instructor} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none">
+                <select id="m_course_trainee" value={courseData.m_course_trainee} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none">
                   <option value="">- - - Select - - -</option>
                   {instructors.map((ins) => (
                     <option key={ins._id} value={ins._id}>{ins.name}</option>
