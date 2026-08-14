@@ -22,6 +22,15 @@ function MenuItem({ item, collapsed }) {
     if (hasChildren) setOpen(o => !o)
   }
 
+  if (item.isHeader) {
+    if (collapsed) return <div className="border-t border-white/10 mx-4 my-3" />
+    return (
+      <div className="px-6 pt-5 pb-2">
+        <span className="text-[10px] text-white/40 font-bold tracking-[0.2em] uppercase">{item.label}</span>
+      </div>
+    )
+  }
+
   // Luxury sidebar styles
   const baseStyle = "flex items-center w-full text-left py-2.5 px-4 transition-all duration-300 rounded-r-lg group border-l-4 border-transparent hover:translate-x-2"
   const activeStyle = isActive 
