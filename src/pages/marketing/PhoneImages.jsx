@@ -50,7 +50,7 @@ export default function PhoneImages() {
     try {
       const token = localStorage.getItem('token')
       const payload = new FormData()
-      payload.append('image', addForm.image)
+      payload.append('phone_image', addForm.image)
       if (addForm.title) payload.append('title', addForm.title)
 
       const res = await axios.post(
@@ -82,7 +82,7 @@ export default function PhoneImages() {
       const token = localStorage.getItem('token')
       const payload = new FormData()
       if (editForm.title) payload.append('title', editForm.title)
-      if (editForm.image) payload.append('image', editForm.image)
+      if (editForm.image) payload.append('phone_image', editForm.image)
 
       const res = await axios.put(
         `${BASE_URL}/myadmin/phone-images/${editItem._id}`,
