@@ -43,11 +43,13 @@ export default function ActivityFeed({ apiData }) {
     const latestEnrollments = dataSource.latestEnrollments || [];
 
     if (Array.isArray(latestCandidates) && Array.isArray(latestEnrollments) && (latestCandidates.length > 0 || latestEnrollments.length > 0)) {
+      const fullName = (first, last) => [first, last].filter(Boolean).join(' ').trim();
+
       const candActivities = latestCandidates.map(cand => ({
         id: cand._id || `cand-${cand.c_email}`,
         type: 'user',
         title: 'New Student Registered',
-        desc: `${cand.c_display_name || (cand.c_first_name + ' ' + cand.c_last_name).trim() || 'A new student'} registered (${cand.c_email || 'no email'})`,
+        desc: `${cand.c_display_name || fullName(cand.c_first_name, cand.c_last_name) || 'A new student'} registered (${cand.c_email || 'no email'})`,
         time: getRelativeTime(cand.c_register_date),
         date: new Date(cand.c_register_date || Date.now()),
         icon: 'User',
@@ -58,7 +60,7 @@ export default function ActivityFeed({ apiData }) {
         id: enroll._id || `enroll-${enroll.enrolled_on}`,
         type: 'course',
         title: 'Course Purchased',
-        desc: `${enroll.user_id?.c_display_name || (enroll.user_id ? (enroll.user_id.c_first_name + ' ' + enroll.user_id.c_last_name).trim() : '') || 'A student'} purchased ${enroll.course_id?.m_course_title || 'a course'}`,
+        desc: `${enroll.user_id?.c_display_name || fullName(enroll.user_id?.c_first_name, enroll.user_id?.c_last_name) || 'A student'} purchased ${enroll.course_id?.m_course_title || 'a course'}`,
         time: getRelativeTime(enroll.enrolled_on),
         date: new Date(enroll.enrolled_on || Date.now()),
         icon: 'ShoppingCart',
