@@ -10,7 +10,7 @@ export default function AddStudentTestimonial() {
     m_st_url: '',
     m_st_status: 1
   })
-  const [videoFile, setVideoFile] = useState(null)
+  const [videoFiles, setVideoFiles] = useState([])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -22,25 +22,27 @@ export default function AddStudentTestimonial() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true); 
+    setLoading(true);
 
     try {
       const token = localStorage.getItem('token')
-      
+
       const payload = new FormData()
       payload.append('m_st_url', formData.m_st_url)
       payload.append('m_st_status', formData.m_st_status === 1 ? 'active' : 'inactive')
-      
-      if (videoFile) {
-        payload.append('m_st_video', videoFile)
-      }
 
-      await axios.post(`${BASE_URL}/myadmin/stdtestimonial/add-stdtestimonial`, payload, {
-        headers: { 
+      videoFiles.forEach(file => payload.append('m_st_video', file))
+
+      const res = await axios.post(`${BASE_URL}/myadmin/stdtestimonial/add-stdtestimonial`, payload, {
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       })
+      const addedCount = res.data?.data?.length || 1
+      if (addedCount > 1) {
+        await window.customAlert(`${addedCount} testimonials added successfully.`)
+      }
       navigate('/master/student-testimonial')
     } catch (error) {
       console.error('Submit error:', error)
@@ -83,14 +85,20 @@ export default function AddStudentTestimonial() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-slate-800 mb-1">Upload Video File (Optional)</label>
-                <input 
-                  type="file" 
+                <label className="block text-sm font-bold text-slate-800 mb-1">Upload Video File(s) (Optional)</label>
+                <input
+                  type="file"
                   name="m_st_video"
                   accept="video/*"
-                  onChange={(e) => setVideoFile(e.target.files[0])}
+                  multiple
+                  onChange={(e) => setVideoFiles(Array.from(e.target.files))}
                   className="w-full border border-slate-300 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] bg-[#f6f6ff] text-slate-700"
                 />
+                {videoFiles.length > 0 && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    {videoFiles.length} video{videoFiles.length > 1 ? 's' : ''} selected — each will be added as a separate testimonial.
+                  </p>
+                )}
               </div>
 
               <div>
