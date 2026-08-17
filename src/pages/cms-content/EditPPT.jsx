@@ -208,8 +208,6 @@ export default function EditPPT() {
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="1">1 (Active)</option>
-                <option value="0">0 (Inactive)</option>
               </select>
             </div>
           </div>

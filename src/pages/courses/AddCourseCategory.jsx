@@ -26,6 +26,14 @@ export default function AddCourseCategory() {
     }))
   }
 
+  const handleFileChange = (e, setFile) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0])
+    } else {
+      setFile(null)
+    }
+  }
+
   const handleSubmit = async (e) => {
 
   e.preventDefault()

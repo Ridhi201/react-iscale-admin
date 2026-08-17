@@ -18,6 +18,10 @@ export default function EditCourseCategory() {
   })
   const [iconFile, setIconFile] = useState(null)
   const [bannerFile, setBannerFile] = useState(null)
+  const [currentIcon, setCurrentIcon] = useState('')
+  const [currentBanner, setCurrentBanner] = useState('')
+  const [removeIcon, setRemoveIcon] = useState(false)
+  const [removeBanner, setRemoveBanner] = useState(false)
 
   useEffect(() => {
     // Fetch the specific category from real backend
@@ -54,6 +58,8 @@ export default function EditCourseCategory() {
             order: cat.m_category_order ? cat.m_category_order.toString() : '1',
             keywords: cat.m_category_keywords || ''
           })
+          setCurrentIcon(cat.m_category_icon || '')
+          setCurrentBanner(cat.m_category_banner || '')
         }
       } catch (error) {
         console.error("Failed to fetch category:", error)
@@ -70,9 +76,10 @@ export default function EditCourseCategory() {
     }))
   }
 
-  const handleFileChange = (e, setFile) => {
+  const handleFileChange = (e, setFile, clearRemoveFlag) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0])
+      clearRemoveFlag(false)
     } else {
       setFile(null)
     }
@@ -100,10 +107,14 @@ export default function EditCourseCategory() {
     // Try these names if backend expects them
     if (iconFile) {
       payload.append('category_icon', iconFile)
+    } else if (removeIcon) {
+      payload.append('remove_category_icon', 'true')
     }
 
     if (bannerFile) {
       payload.append('category_banner', bannerFile)
+    } else if (removeBanner) {
+      payload.append('remove_category_banner', 'true')
     }
 
     const response = await axios.put(
@@ -190,10 +201,23 @@ export default function EditCourseCategory() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Category Icon</label>
+                {currentIcon && !removeIcon && !iconFile && (
+                  <div className="flex items-center gap-2">
+                    <img src={currentIcon} alt="Current icon" className="w-12 h-12 object-cover rounded border border-slate-200" />
+                    <button
+                      type="button"
+                      onClick={() => { setRemoveIcon(true); setIconFile(null) }}
+                      className="text-xs text-red-600 hover:text-red-700 font-medium"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                )}
+                {removeIcon && <p className="text-xs text-amber-600">Icon will be removed on save.</p>}
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileChange(e, setIconFile)}
+                  onChange={(e) => handleFileChange(e, setIconFile, setRemoveIcon)}
                   className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
                 <p className="text-xs text-slate-500">Recommended size: 100x100 pixels. Leave empty to keep current.</p>
@@ -201,10 +225,23 @@ export default function EditCourseCategory() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Category Banner</label>
+                {currentBanner && !removeBanner && !bannerFile && (
+                  <div className="flex items-center gap-2">
+                    <img src={currentBanner} alt="Current banner" className="w-20 h-10 object-cover rounded border border-slate-200" />
+                    <button
+                      type="button"
+                      onClick={() => { setRemoveBanner(true); setBannerFile(null) }}
+                      className="text-xs text-red-600 hover:text-red-700 font-medium"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                )}
+                {removeBanner && <p className="text-xs text-amber-600">Banner will be removed on save.</p>}
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileChange(e, setBannerFile)}
+                  onChange={(e) => handleFileChange(e, setBannerFile, setRemoveBanner)}
                   className="w-full border border-slate-300 dark:border-[#1f1b2e] rounded-md px-4 py-2 text-sm outline-none focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36]"
                 />
                 <p className="text-xs text-slate-500">Recommended size: 1200x400 pixels. Leave empty to keep current.</p>
