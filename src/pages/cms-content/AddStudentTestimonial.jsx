@@ -35,8 +35,7 @@ export default function AddStudentTestimonial() {
 
       const res = await axios.post(`${BASE_URL}/myadmin/stdtestimonial/add-stdtestimonial`, payload, {
         headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+          Authorization: `Bearer ${token}`
         }
       })
       const addedCount = res.data?.data?.length || 1

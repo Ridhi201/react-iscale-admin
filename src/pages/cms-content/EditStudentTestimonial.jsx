@@ -57,9 +57,8 @@ export default function EditStudentTestimonial() {
       }
 
       await axios.put(`${BASE_URL}/myadmin/stdtestimonial/update-stdtestimonial/${id}`, payload, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       })
       navigate('/master/student-testimonial')

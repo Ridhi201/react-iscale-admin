@@ -56,7 +56,7 @@ export default function PhoneImages() {
       const res = await axios.post(
         `${BASE_URL}/myadmin/phone-images/upload`,
         payload,
-        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       if (res.data?.status || res.status === 200 || res.status === 201) {
         await window.customAlert(res.data?.message || 'Image uploaded successfully')
@@ -87,7 +87,7 @@ export default function PhoneImages() {
       const res = await axios.put(
         `${BASE_URL}/myadmin/phone-images/${editItem._id}`,
         payload,
-        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       if (res.data?.status || res.status === 200) {
         await window.customAlert(res.data?.message || 'Image updated successfully')

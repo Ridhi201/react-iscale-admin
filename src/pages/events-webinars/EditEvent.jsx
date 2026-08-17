@@ -116,17 +116,15 @@ export default function EditEvent() {
       let res;
       try {
         res = await axios.put(`${BASE_URL}/myadmin/event/update-event/${id}`, data, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         });
       } catch (err) {
         if (err.response?.status === 404) {
           res = await axios.post(`${BASE_URL}/myadmin/event/update-event/${id}`, data, {
-            headers: { 
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data'
+            headers: {
+              Authorization: `Bearer ${token}`
             }
           });
         } else throw err;

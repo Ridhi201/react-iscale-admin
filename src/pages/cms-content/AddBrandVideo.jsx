@@ -38,9 +38,8 @@ export default function AddBrandVideo() {
       }
 
       await axios.post(`${BASE_URL}/myadmin/brand-video/add`, payload, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       })
       navigate('/master/brand-video')

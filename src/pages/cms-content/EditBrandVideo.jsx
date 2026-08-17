@@ -62,9 +62,8 @@ export default function EditBrandVideo() {
       }
 
       await axios.put(`${BASE_URL}/myadmin/brand-video/update/${id}`, payload, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       })
       navigate('/master/brand-video')

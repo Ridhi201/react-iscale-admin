@@ -155,11 +155,11 @@ export default function HomePageReviews() {
 
       if (isEditing) {
         await axios.put(`${BASE_URL}/myadmin/user-reviews/update/${formData.id}`, payload, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+          headers: { Authorization: `Bearer ${token}` }
         })
       } else {
         await axios.post(`${BASE_URL}/myadmin/user-reviews/add`, payload, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+          headers: { Authorization: `Bearer ${token}` }
         })
       }
       

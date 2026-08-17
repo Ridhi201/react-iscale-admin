@@ -110,9 +110,8 @@ export default function AddEvent() {
       }
 
       const res = await axios.post(`${BASE_URL}/myadmin/event/add-event`, data, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       });
       if (res.data?.status || res.data?.success || res.data?.msg) {

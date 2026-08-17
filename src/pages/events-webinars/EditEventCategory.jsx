@@ -76,17 +76,15 @@ export default function EditEventCategory() {
       let res;
       try {
         res = await axios.put(`${BASE_URL}/myadmin/event-category/update-event-category/${id}`, data, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         });
       } catch (err) {
         if (err.response?.status === 404) {
           res = await axios.post(`${BASE_URL}/myadmin/event-category/update-event-category/${id}`, data, {
-            headers: { 
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data'
+            headers: {
+              Authorization: `Bearer ${token}`
             }
           });
         } else throw err;

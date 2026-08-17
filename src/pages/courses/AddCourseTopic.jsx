@@ -307,16 +307,14 @@ export default function AddCourseTopic() {
       let response
       if (isEditing) {
         response = await axios.put(`${BASE_URL}/myadmin/topics/update-topic/${editTopic._id}`, payload, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         })
       } else {
         response = await axios.post(`${BASE_URL}/myadmin/topics/add-topic`, payload, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         })
       }

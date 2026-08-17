@@ -70,9 +70,8 @@ export default function AddBanner() {
       const method = isEdit ? 'put' : 'post'
 
       const res = await axios[method](url, payload, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       })
 

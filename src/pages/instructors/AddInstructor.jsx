@@ -55,10 +55,9 @@ export default function AddInstructor() {
       const response = await axios.post(
         `${BASE_URL}/myadmin/instructor/add-instructor`,
         payload,
-        { headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          } 
+        { headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
       )
 

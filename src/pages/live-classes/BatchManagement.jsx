@@ -167,16 +167,14 @@ export default function BatchManagement() {
       let response;
       if (isEditing) {
         response = await axios.put(`${BASE_URL}/myadmin/batch/update/${editId}`, submitData, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         })
       } else {
         response = await axios.post(`${BASE_URL}/myadmin/batch/add`, submitData, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         })
       }

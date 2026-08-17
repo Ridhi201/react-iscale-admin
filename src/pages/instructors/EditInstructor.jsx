@@ -96,10 +96,9 @@ export default function EditInstructor() {
       const response = await axios.put(
         `${BASE_URL}/myadmin/instructor/update-instructor/${id}`,
         payload,
-        { headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          } 
+        { headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
       )
 

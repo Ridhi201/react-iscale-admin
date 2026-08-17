@@ -165,11 +165,11 @@ export default function StudentNewsList() {
 
       if (isEditing) {
         await axios.put(`${BASE_URL}/myadmin/news/update-news/${formData.id}`, payload, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+          headers: { Authorization: `Bearer ${token}` }
         })
       } else {
         await axios.post(`${BASE_URL}/myadmin/news/add-news`, payload, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+          headers: { Authorization: `Bearer ${token}` }
         })
       }
       

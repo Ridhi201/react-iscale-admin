@@ -127,11 +127,11 @@ export default function StudentTestimonialList() {
 
       if (isEditing) {
         await axios.put(`${BASE_URL}/myadmin/stdtestimonial/update-stdtestimonial/${formData.id}`, payload, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+          headers: { Authorization: `Bearer ${token}` }
         })
       } else {
         await axios.post(`${BASE_URL}/myadmin/stdtestimonial/add-stdtestimonial`, payload, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+          headers: { Authorization: `Bearer ${token}` }
         })
       }
       

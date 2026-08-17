@@ -83,16 +83,14 @@ export default function CourseTools() {
       let response
       if (isEditing) {
         response = await axios.put(`${BASE_URL}/myadmin/tools/update-tool/${editId}`, formData, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         })
       } else {
         response = await axios.post(`${BASE_URL}/myadmin/tools/add-tool`, formData, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         })
       }
