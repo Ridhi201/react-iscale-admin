@@ -135,6 +135,24 @@ const fetchCategoriesDropdown = async () => {
     }
   }
 
+  const handleToggleLms = async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.patch(
+        `${BASE_URL}/myadmin/course/lms-status/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (response.data?.status) {
+        fetchCourses()
+      } else {
+        await window.customAlert(response.data?.message || 'Failed to update LMS status')
+      }
+    } catch (error) {
+      await window.customAlert(error.response?.data?.message || 'Error updating LMS status')
+    }
+  }
+
   const handleDelete = async (id) => {
   if (!await window.customConfirm('Are you sure you want to delete this course?')) {
     return
@@ -313,6 +331,7 @@ const fetchCategoriesDropdown = async () => {
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Test Package</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Training Highlights</th>
                   <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Status</th>
+                  <th className="px-3 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">LMS</th>
                   <th className="px-3 py-3 font-bold whitespace-nowrap">Action</th>
                 </tr>
               </thead>
@@ -418,6 +437,15 @@ const fetchCategoriesDropdown = async () => {
                         );
                       })()}
                     </td>
+                    <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
+                      <button
+                        onClick={() => handleToggleLms(row._id)}
+                        className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap cursor-pointer transition-opacity hover:opacity-80 ${row.m_course_lms_status === 1 ? 'bg-[#144f36]' : 'bg-gray-500'}`}
+                        title={`Click to ${row.m_course_lms_status === 1 ? 'remove from' : 'add to'} the LMS course list`}
+                      >
+                        {row.m_course_lms_status === 1 ? 'On LMS' : 'Not on LMS'}
+                      </button>
+                    </td>
                     <td className="px-3 py-3 align-middle">
                       <div className="flex gap-1.5">
                       <button onClick={() => navigate(`/courses/view/${row._id}`, { state: { courseData: row } })} className="bg-[#144f36] text-white p-1.5 rounded hover:bg-[#0f3d2a] transition-colors">
@@ -435,7 +463,7 @@ const fetchCategoriesDropdown = async () => {
                 ))}
                 {currentData.length === 0 && (
                   <tr>
-                    <td colSpan="17" className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
+                    <td colSpan="18" className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                       No Data Available In Table
                     </td>
                   </tr>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Eye, Edit2, Trash2 } from 'lucide-react'
+import { Eye, Edit2, Trash2, BookOpen } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
@@ -305,6 +305,9 @@ export default function AppUsers() {
   return (
     <div className="h-full animate-fade-in-up">
       <CardHeader title="App Users List" className="rounded-2xl mb-5">
+        <ThemeButton variant="white-add" onClick={() => navigate('/app-users/add')}>
+          + Add Student
+        </ThemeButton>
         <ThemeButton variant="white-add" onClick={handleExport}>
           Export
         </ThemeButton>
@@ -416,6 +419,9 @@ export default function AppUsers() {
                           </button>
                           <button onClick={() => navigate(`/app-users/edit/${row._id}`)} className="bg-green-600 text-white p-1.5 rounded hover:bg-green-700 transition-colors" title="Edit User">
                             <Edit2 size={14} />
+                          </button>
+                          <button onClick={() => navigate(`/app-users/assign-courses/${row._id}`)} className="bg-[#6366f1] text-white p-1.5 rounded hover:bg-[#4f46e5] transition-colors" title="Assign Courses">
+                            <BookOpen size={14} />
                           </button>
                           <button onClick={() => handleDelete(row._id)} className="btn-glossy-red icon-only" title="Delete User">
                             <Trash2 size={14} />
