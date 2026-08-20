@@ -18,8 +18,13 @@ function MenuItem({ item, collapsed }) {
     (item.children && item.children.some(c => c.path === location.pathname))
   const hasChildren = item.children && item.children.length > 0
 
-  const handleClick = () => {
-    if (hasChildren) setOpen(o => !o)
+  const handleClick = (e) => {
+    if (!hasChildren) return
+    // Let the browser handle ctrl/cmd/shift/middle-click as a normal
+    // link open (new tab / new window) instead of just toggling the submenu.
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return
+    e.preventDefault()
+    setOpen(o => !o)
   }
 
   if (item.isHeader) {
@@ -40,7 +45,8 @@ function MenuItem({ item, collapsed }) {
   return (
     <div className="mb-1 pr-3">
       {hasChildren ? (
-        <button
+        <Link
+          to={item.path}
           onClick={handleClick}
           title={collapsed ? item.label : ''}
           className={`${baseStyle} ${activeStyle}`}
@@ -56,7 +62,7 @@ function MenuItem({ item, collapsed }) {
               </span>
             </>
           )}
-        </button>
+        </Link>
       ) : (
         <Link
           to={item.path}

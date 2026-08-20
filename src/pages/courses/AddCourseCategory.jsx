@@ -93,14 +93,14 @@ export default function AddCourseCategory() {
 
     if (iconFile) {
       payload.append(
-        'm_category_icon',
+        'category_icon',
         iconFile
       )
     }
 
     if (bannerFile) {
       payload.append(
-        'm_category_banner',
+        'category_banner',
         bannerFile
       )
     }

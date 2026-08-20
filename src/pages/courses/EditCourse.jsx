@@ -24,8 +24,6 @@ export default function EditCourse() {
     m_course_popular: 0,
     m_course_recomended: 0,
     m_course_description: '',
-    m_course_keyword: '',
-    m_course_code: '',
     m_course_video_link: '',
     m_course_duration_app: '',
     m_course_duration_web: '',
@@ -48,6 +46,16 @@ export default function EditCourse() {
   const [bannerFile, setBannerFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [feeStructureFile, setFeeStructureFile] = useState(null);
+
+  const [pricingMode, setPricingMode] = useState('1'); // 1 = single price, 2 = 3-tier pricing
+  const [feeTiers, setFeeTiers] = useState([
+    { tier_name: 'Basic', price: '', offer_price: '' },
+    { tier_name: 'Premium', price: '', offer_price: '' },
+    { tier_name: 'Pro', price: '', offer_price: '' },
+  ]);
+  const [existingPartnerLogos, setExistingPartnerLogos] = useState([]); // [{url, public_id}]
+  const [removedPartnerLogoIds, setRemovedPartnerLogoIds] = useState([]);
+  const [newPartnerLogoFiles, setNewPartnerLogoFiles] = useState([]);
 
   // Generic change handler for text/number inputs
   const handleChange = (e) => {
@@ -143,8 +151,6 @@ export default function EditCourse() {
         m_course_popular: isTruthy(course.popular ?? course.m_course_popular),
         m_course_recomended: isTruthy(course.recomended ?? course.recommended ?? course.m_course_recomended),
         m_course_description: course.description ?? course.m_course_description ?? '',
-        m_course_keyword: course.keyword ?? course.m_course_keyword ?? '',
-        m_course_code: course.code ?? course.m_course_code ?? '',
         m_course_video_link: course.video_link ?? course.m_course_video_link ?? '',
         m_course_duration_app: course.duration_app ?? course.m_course_duration_app ?? '',
         m_course_duration_web: course.duration_web ?? course.m_course_duration_web ?? '',
@@ -163,6 +169,17 @@ export default function EditCourse() {
         m_course_price: course.price ?? course.m_course_price ?? '',
         m_course_offer_price: course.offer_price ?? course.m_course_offer_price ?? ''
       });
+
+      const tiers = course.fee_tiers ?? course.m_course_fee_tiers ?? [];
+      setPricingMode(String(course.pricing_mode ?? course.m_course_pricing_mode ?? 1));
+      if (Array.isArray(tiers) && tiers.length > 0) {
+        setFeeTiers([0, 1, 2].map(i => ({
+          tier_name: tiers[i]?.tier_name ?? ['Basic', 'Premium', 'Pro'][i],
+          price: tiers[i]?.price ?? '',
+          offer_price: tiers[i]?.offer_price ?? '',
+        })));
+      }
+      setExistingPartnerLogos(course.partner_logos ?? course.m_course_partner_logos ?? []);
     };
 
     loadData();
@@ -227,9 +244,19 @@ export default function EditCourse() {
           payload.append(key, val ?? "");
         }
       });
+      payload.append('m_course_pricing_mode', pricingMode);
+      if (pricingMode === '2') {
+        const validTiers = feeTiers.filter(t => t.tier_name?.trim() && Number(t.price) > 0);
+        payload.append('m_course_fee_tiers', JSON.stringify(validTiers));
+      }
+
       if (bannerFile) payload.append('m_course_banner', bannerFile);
       if (pdfFile) payload.append('m_course_pdf', pdfFile);
-      if (feeStructureFile) payload.append('m_course_feestructure', feeStructureFile);
+      if (String(courseData.m_course_type) === '2' && feeStructureFile) payload.append('m_course_feestructure', feeStructureFile);
+      newPartnerLogoFiles.forEach(file => payload.append('m_course_partner_logos', file));
+      if (removedPartnerLogoIds.length) {
+        payload.append('m_course_partner_logos_remove', JSON.stringify(removedPartnerLogoIds));
+      }
       for (let pair of payload.entries()) {
         console.log(pair[0], pair[1]);
       }
@@ -295,10 +322,6 @@ export default function EditCourse() {
           {/* Additional Details */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
             <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Code</label>
-              <input id="m_course_code" type="text" value={courseData.m_course_code} onChange={handleChange} placeholder="Course Code" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
-            </div>
-            <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Demo Video Link</label>
               <input id="m_course_video_link" type="text" value={courseData.m_course_video_link} onChange={handleChange} placeholder="https://..." className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
@@ -310,28 +333,53 @@ export default function EditCourse() {
                 <option value="2">Paid</option>
               </select>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-            <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Price</label>
-              <input id="m_course_price" type="number" value={courseData.m_course_price} onChange={handleChange} placeholder="Course Price" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
-            </div>
-            <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Offer Price</label>
-              <input id="m_course_offer_price" type="number" value={courseData.m_course_offer_price} onChange={handleChange} placeholder="Offer Price" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-            <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Keywords</label>
-              <input id="m_course_keyword" type="text" value={courseData.m_course_keyword} onChange={handleChange} placeholder="Course Keyword" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
-            </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Duration (App)</label>
               <input id="m_course_duration_app" type="number" min="0" step="any" value={courseData.m_course_duration_app} onChange={handleChange} placeholder="Course Duration In App" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
+          </div>
+
+          {String(courseData.m_course_type) === '2' && (
+            <div className="mb-4">
+              <div className="flex items-center gap-6 mb-3">
+                <label className="text-[13px] font-bold text-slate-800">Pricing Type:</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                  <input type="radio" name="pricing_mode" checked={pricingMode === '1'} onChange={() => setPricingMode('1')} /> Single Price
+                </label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                  <input type="radio" name="pricing_mode" checked={pricingMode === '2'} onChange={() => setPricingMode('2')} /> 3-Tier Pricing
+                </label>
+              </div>
+
+              {pricingMode === '1' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Price</label>
+                    <input id="m_course_price" type="number" value={courseData.m_course_price} onChange={handleChange} placeholder="Course Price" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-800 mb-1">Offer Price</label>
+                    <input id="m_course_offer_price" type="number" value={courseData.m_course_offer_price} onChange={handleChange} placeholder="Offer Price" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {feeTiers.map((tier, idx) => (
+                    <div key={idx} className="border border-slate-200 rounded p-3">
+                      <label className="block text-[13px] font-bold text-slate-800 mb-1">Tier Name</label>
+                      <input type="text" value={tier.tier_name} onChange={e => setFeeTiers(prev => prev.map((t, i) => i === idx ? { ...t, tier_name: e.target.value } : t))} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] mb-2" />
+                      <label className="block text-[13px] font-bold text-slate-800 mb-1">Price</label>
+                      <input type="number" min="0" step="0.01" value={tier.price} onChange={e => setFeeTiers(prev => prev.map((t, i) => i === idx ? { ...t, price: e.target.value } : t))} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] mb-2" />
+                      <label className="block text-[13px] font-bold text-slate-800 mb-1">Offer Price</label>
+                      <input type="number" min="0" step="0.01" value={tier.offer_price} onChange={e => setFeeTiers(prev => prev.map((t, i) => i === idx ? { ...t, offer_price: e.target.value } : t))} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Duration (Web)</label>
               <input id="m_course_duration_web" type="number" min="0" step="any" value={courseData.m_course_duration_web} onChange={handleChange} placeholder="Course Duration In Web" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
@@ -402,15 +450,17 @@ export default function EditCourse() {
               <input type="file" accept=".pdf" onChange={(e) => setPdfFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
             </div>
             <div>
-              <div className="mb-4">
-                <label className="block text-[13px] font-bold text-slate-800 mb-1">Fee Structure</label>
-                <input type="file" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => setFeeStructureFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
-                {courseData.m_course_fee_structure && (
-                  <a href={getImageUrl(courseData.m_course_fee_structure)} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline block mt-1">
-                    📄 View Existing Fee Structure
-                  </a>
-                )}
-              </div>
+              {String(courseData.m_course_type) === '2' && (
+                <div className="mb-4">
+                  <label className="block text-[13px] font-bold text-slate-800 mb-1">Fee Structure</label>
+                  <input type="file" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={(e) => setFeeStructureFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
+                  {courseData.m_course_fee_structure && (
+                    <a href={getImageUrl(courseData.m_course_fee_structure)} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline block mt-1">
+                      📄 View Existing Fee Structure
+                    </a>
+                  )}
+                </div>
+              )}
               <div>
                 <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Instructor</label>
                 <select id="m_course_trainee" value={courseData.m_course_trainee} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none">
@@ -421,6 +471,43 @@ export default function EditCourse() {
                 </select>
               </div>
             </div>
+          </div>
+
+          {/* Collaboration / Certification Partner Logos */}
+          <div className="mb-6">
+            <label className="block text-[13px] font-bold text-slate-800 mb-1">Collaboration / Certification Partner Logos</label>
+            <p className="text-xs text-slate-500 mb-2">Logos of companies you've collaborated with for this course (e.g. Microsoft, IBM) who co-provide the certificate.</p>
+            {existingPartnerLogos.filter(logo => !removedPartnerLogoIds.includes(logo.public_id)).length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-3">
+                {existingPartnerLogos.filter(logo => !removedPartnerLogoIds.includes(logo.public_id)).map((logo) => (
+                  <div key={logo.public_id} className="relative border border-slate-200 rounded p-1.5">
+                    <img src={getImageUrl(logo.url)} alt="Partner logo" className="h-12 w-auto object-contain" />
+                    <button
+                      type="button"
+                      onClick={() => setRemovedPartnerLogoIds(prev => [...prev, logo.public_id])}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600"
+                      title="Remove logo"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={e => setNewPartnerLogoFiles(Array.from(e.target.files))}
+              className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]"
+            />
+            {newPartnerLogoFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {newPartnerLogoFiles.map((file, idx) => (
+                  <span key={idx} className="text-xs bg-slate-100 border border-slate-200 rounded px-2 py-1">{file.name}</span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Intro and Description */}

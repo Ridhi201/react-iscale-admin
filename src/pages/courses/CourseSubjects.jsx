@@ -14,10 +14,26 @@ export default function CourseSubjects() {
   
   const [subjects, setSubjects] = useState([])
   const [loading, setLoading] = useState(true)
+  const [courseTitle, setCourseTitle] = useState('')
 
   useEffect(() => {
     fetchSubjects()
+    fetchCourseTitle()
   }, [id])
+
+  const fetchCourseTitle = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${BASE_URL}/myadmin/course/course/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.data?.status && response.data.data) {
+        setCourseTitle(response.data.data.title || '')
+      }
+    } catch (error) {
+      console.error('Error fetching course details:', error)
+    }
+  }
 
   const fetchSubjects = async () => {
     try {
@@ -59,6 +75,42 @@ export default function CourseSubjects() {
     }
   }
 
+  const handleSequenceInput = (subjectId, newSeq) => {
+    setSubjects(prev => prev.map(s => s._id === subjectId ? { ...s, m_subject_seq: newSeq } : s))
+  }
+
+  const handleSequenceSave = async (subjectId, newSeq) => {
+    try {
+      const token = localStorage.getItem('token')
+      await axios.put(`${BASE_URL}/myadmin/subject/update-subject/${subjectId}`, {
+        m_subject_seq: newSeq
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    } catch (error) {
+      console.error('Error updating sequence:', error)
+      await window.customAlert(error.response?.data?.message || 'Failed to update sequence')
+      fetchSubjects()
+    }
+  }
+
+  const handleStatusToggle = async (subject) => {
+    const newStatus = subject.m_subject_status === 1 ? 0 : 1
+    setSubjects(prev => prev.map(s => s._id === subject._id ? { ...s, m_subject_status: newStatus } : s))
+    try {
+      const token = localStorage.getItem('token')
+      await axios.put(`${BASE_URL}/myadmin/subject/update-subject/${subject._id}`, {
+        m_subject_status: newStatus
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    } catch (error) {
+      console.error('Error updating status:', error)
+      await window.customAlert(error.response?.data?.message || 'Failed to update status')
+      fetchSubjects()
+    }
+  }
+
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value))
     setCurrentPage(1)
@@ -75,7 +127,7 @@ export default function CourseSubjects() {
           
           <div className="flex items-center relative z-10">
             <div className="w-1.5 h-7 bg-white dark:bg-[#13111c]/90 rounded-full mr-4 shadow-[0_0_12px_rgba(255,255,255,0.9)] hidden sm:block"></div>
-            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Subject List (Free Electric Vehicle Basic Course)</h2>
+            <h2 className="text-white font-bold tracking-wide text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">Subject List{courseTitle ? ` (${courseTitle})` : ''}</h2>
           </div>
           
           <div className="flex gap-4 relative z-10">
@@ -233,10 +285,16 @@ export default function CourseSubjects() {
                       </button>
                     </td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                      <input type="number" defaultValue={row.sequence || 0} className="w-16 border border-slate-300 dark:border-gray-700 rounded px-2 py-1 text-center text-sm outline-none focus:border-[#144f36] bg-transparent text-slate-800 dark:text-slate-200" />
+                      <input
+                        type="number"
+                        value={row.m_subject_seq ?? 0}
+                        onChange={(e) => handleSequenceInput(row._id, Number(e.target.value))}
+                        onBlur={(e) => handleSequenceSave(row._id, Number(e.target.value))}
+                        className="w-16 border border-slate-300 dark:border-gray-700 rounded px-2 py-1 text-center text-sm outline-none focus:border-[#144f36] bg-transparent text-slate-800 dark:text-slate-200"
+                      />
                     </td>
                     <td className="px-3 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle text-center">
-                      <button className={`px-3 py-1 rounded-full text-xs font-medium text-white transition-colors whitespace-nowrap ${row.m_subject_status === 1 ? 'bg-[#144f36]' : 'bg-[#144f36]'}`}>
+                      <button onClick={() => handleStatusToggle(row)} className={`px-3 py-1 rounded-full text-xs font-medium text-white transition-colors whitespace-nowrap ${row.m_subject_status === 1 ? 'bg-[#144f36]' : 'bg-slate-400'}`}>
                         {row.m_subject_status === 1 ? 'Active' : 'In-Active'}
                       </button>
                     </td>

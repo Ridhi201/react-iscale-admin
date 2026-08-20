@@ -14,7 +14,8 @@ export default function AddCourseSubject() {
 
   const [title, setTitle] = useState(editSubject?.m_subject_title || '')
   const [description, setDescription] = useState(editSubject?.m_subject_desc || '')
-  // We can add more fields here if the backend starts supporting them
+  const [status, setStatus] = useState(editSubject?.m_subject_status ?? 1)
+  const [sequence, setSequence] = useState(editSubject?.m_subject_seq ?? 0)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -26,9 +27,11 @@ export default function AddCourseSubject() {
         const updatePayload = new FormData()
         updatePayload.append('m_subject_title', title)
         updatePayload.append('m_subject_desc', description || '')
-        
+        updatePayload.append('m_subject_status', Number(status))
+        updatePayload.append('m_subject_seq', Number(sequence))
+
         response = await axios.put(`${BASE_URL}/myadmin/subject/update-subject/${editSubject._id}`, updatePayload, {
-          headers: { 
+          headers: {
             Authorization: `Bearer ${token}`
           }
         })
@@ -37,9 +40,11 @@ export default function AddCourseSubject() {
         addPayload.append('m_subject_title', title)
         addPayload.append('m_subject_course', id)
         addPayload.append('m_subject_desc', description || '')
-        
+        addPayload.append('m_subject_status', Number(status))
+        addPayload.append('m_subject_seq', Number(sequence))
+
         response = await axios.post(`${BASE_URL}/myadmin/subject/add-subject`, addPayload, {
-          headers: { 
+          headers: {
             Authorization: `Bearer ${token}`
           }
         })
@@ -85,13 +90,26 @@ export default function AddCourseSubject() {
                 required
               />
             </div>
-            {/* Kept disabled fields from original UI for display/future use */}
             <div>
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Subject Status (Disabled)</label>
-              <select disabled className="w-full border border-slate-300 dark:border-gray-700 bg-slate-100 dark:bg-[#1f1b2e] text-slate-500 rounded px-3 py-2 text-sm outline-none cursor-not-allowed">
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Subject Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(Number(e.target.value))}
+                className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] bg-white dark:bg-[#13111c] text-slate-800 dark:text-slate-200"
+              >
+                <option value={1}>Active</option>
+                <option value={0}>Inactive</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Sequence</label>
+              <input
+                type="number"
+                value={sequence}
+                onChange={(e) => setSequence(e.target.value)}
+                placeholder="Enter display order"
+                className="w-full border border-slate-300 dark:border-gray-700 rounded px-3 py-2 text-sm outline-none focus:border-[#144f36] bg-white dark:bg-[#13111c] text-slate-800 dark:text-slate-200"
+              />
             </div>
           </div>
 

@@ -13,12 +13,18 @@ export default function AddCourse() {
   const [bannerFile, setBannerFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [feeStructureFile, setFeeStructureFile] = useState(null);
+  const [partnerLogoFiles, setPartnerLogoFiles] = useState([]);
 
   // Form state
   const [description, setDescription] = useState('');
   const [selectedInstructor, setSelectedInstructor] = useState('');
-  const [courseCode, setCourseCode] = useState('');
-  const [keyword, setKeyword] = useState('');
+  const [courseType, setCourseType] = useState('1');
+  const [pricingMode, setPricingMode] = useState('1'); // 1 = single price, 2 = 3-tier pricing
+  const [feeTiers, setFeeTiers] = useState([
+    { tier_name: 'Basic', price: '', offer_price: '' },
+    { tier_name: 'Premium', price: '', offer_price: '' },
+    { tier_name: 'Pro', price: '', offer_price: '' },
+  ]);
   const [order, setOrder] = useState('');
   const [views, setViews] = useState('0');
   const [reviews, setReviews] = useState('0');
@@ -67,10 +73,17 @@ export default function AddCourse() {
     const categoryVal = document.getElementById('course_category')?.value;
     if (!titleVal) { await window.customAlert('❌ Course Title is required!'); return; }
     if (!categoryVal) { await window.customAlert('❌ Please select a Course Category!'); return; }
-    const courseTypeVal = document.getElementById('course_type')?.value || '1';
-    if (courseTypeVal === '2' && (!price || Number(price) <= 0)) {
+    const courseTypeVal = courseType || '1';
+    if (courseTypeVal === '2' && pricingMode === '1' && (!price || Number(price) <= 0)) {
       await window.customAlert('A paid course requires a price greater than 0.');
       return;
+    }
+    if (courseTypeVal === '2' && pricingMode === '2') {
+      const hasValidTier = feeTiers.some(t => t.tier_name?.trim() && Number(t.price) > 0);
+      if (!hasValidTier) {
+        await window.customAlert('Add at least one pricing tier with a name and price.');
+        return;
+      }
     }
     if ((durationApp && (!Number.isFinite(Number(durationApp)) || Number(durationApp) < 0)) ||
         (durationWeb && (!Number.isFinite(Number(durationWeb)) || Number(durationWeb) < 0))) {
@@ -92,7 +105,12 @@ export default function AddCourse() {
       payload.append('m_course_type', courseTypeVal);
       payload.append('m_course_price', price || '0');
       payload.append('m_course_offer_price', offerPrice || '0');
-      
+      payload.append('m_course_pricing_mode', pricingMode);
+      if (pricingMode === '2') {
+        const validTiers = feeTiers.filter(t => t.tier_name?.trim() && Number(t.price) > 0);
+        payload.append('m_course_fee_tiers', JSON.stringify(validTiers));
+      }
+
       if (selectedInstructor) {
         payload.append('m_course_trainee', selectedInstructor);
       }
@@ -108,8 +126,6 @@ export default function AddCourse() {
       payload.append('recomended', recommendedVal);
 
       payload.append('m_course_description', description || '');
-      payload.append('m_course_keyword', keyword || '');
-      payload.append('m_course_code', courseCode || '');
       payload.append('m_course_video_link', document.getElementById('course_video_link')?.value || '');
       payload.append('m_course_duration_app', durationApp || '');
       payload.append('m_course_duration_web', durationWeb || '');
@@ -136,9 +152,12 @@ export default function AddCourse() {
       if (pdfFile) {
         payload.append('m_course_pdf', pdfFile);
       }
-      if (feeStructureFile) {
+      if (courseTypeVal === '2' && feeStructureFile) {
         payload.append('m_course_feestructure', feeStructureFile);
       }
+      partnerLogoFiles.forEach(file => {
+        payload.append('m_course_partner_logos', file);
+      });
 
       console.log('=== ADD COURSE PAYLOAD ===');
       for (let pair of payload.entries()) {
@@ -222,41 +241,63 @@ export default function AddCourse() {
           {/* Additional Details */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
             <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Code</label>
-              <input id="course_code" type="text" placeholder="Course Code" value={courseCode} onChange={e => setCourseCode(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
-            </div>
-            <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Demo Video Link</label>
               <input id="course_video_link" type="text" placeholder="https://..." className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Type</label>
-              <select id="course_type" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
-                <option value="">Select Type</option>
+              <select id="course_type" value={courseType} onChange={e => setCourseType(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[#144f36]">
                 <option value="1">Free</option>
                 <option value="2">Paid</option>
               </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-            <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Price</label>
-              <input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="Required for paid courses" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
-            </div>
-            <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Offer Price</label>
-              <input type="number" min="0" step="0.01" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} placeholder="Optional" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-            <div>
-              <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Keywords</label>
-              <input type="text" placeholder="Course Keyword" value={keyword} onChange={e => setKeyword(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Duration (App)</label>
               <input type="number" min="0" step="any" placeholder="Course Duration In App" value={durationApp} onChange={e => setDurationApp(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
             </div>
+          </div>
+
+          {courseType === '2' && (
+            <div className="mb-4">
+              <div className="flex items-center gap-6 mb-3">
+                <label className="text-[13px] font-bold text-slate-800">Pricing Type:</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                  <input type="radio" name="pricing_mode" checked={pricingMode === '1'} onChange={() => setPricingMode('1')} /> Single Price
+                </label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                  <input type="radio" name="pricing_mode" checked={pricingMode === '2'} onChange={() => setPricingMode('2')} /> 3-Tier Pricing
+                </label>
+              </div>
+
+              {pricingMode === '1' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Price</label>
+                    <input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="Required for paid courses" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-800 mb-1">Offer Price</label>
+                    <input type="number" min="0" step="0.01" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} placeholder="Optional" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {feeTiers.map((tier, idx) => (
+                    <div key={idx} className="border border-slate-200 rounded p-3">
+                      <label className="block text-[13px] font-bold text-slate-800 mb-1">Tier Name</label>
+                      <input type="text" value={tier.tier_name} onChange={e => setFeeTiers(prev => prev.map((t, i) => i === idx ? { ...t, tier_name: e.target.value } : t))} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] mb-2" />
+                      <label className="block text-[13px] font-bold text-slate-800 mb-1">Price</label>
+                      <input type="number" min="0" step="0.01" value={tier.price} onChange={e => setFeeTiers(prev => prev.map((t, i) => i === idx ? { ...t, price: e.target.value } : t))} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36] mb-2" />
+                      <label className="block text-[13px] font-bold text-slate-800 mb-1">Offer Price</label>
+                      <input type="number" min="0" step="0.01" value={tier.offer_price} onChange={e => setFeeTiers(prev => prev.map((t, i) => i === idx ? { ...t, offer_price: e.target.value } : t))} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-1">Duration (Web)</label>
               <input type="number" min="0" step="any" placeholder="Course Duration In Web" value={durationWeb} onChange={e => setDurationWeb(e.target.value)} className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#144f36]" />
@@ -317,10 +358,12 @@ export default function AddCourse() {
               <input type="file" accept=".pdf" onChange={e => setPdfFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
             </div>
             <div>
-              <div className="mb-4">
-                <label className="block text-[13px] font-bold text-slate-800 mb-1">Fee Structure</label>
-                <input type="file" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={e => setFeeStructureFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
-              </div>
+              {courseType === '2' && (
+                <div className="mb-4">
+                  <label className="block text-[13px] font-bold text-slate-800 mb-1">Fee Structure</label>
+                  <input type="file" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" onChange={e => setFeeStructureFile(e.target.files[0])} className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]" />
+                </div>
+              )}
               <div>
                 <label className="block text-[13px] font-bold text-slate-800 mb-1">Course Instructor</label>
                 <select id="course_instructor" className="w-full border border-slate-300 rounded px-3 py-1.5 text-sm bg-white outline-none" value={selectedInstructor} onChange={e => setSelectedInstructor(e.target.value)}>
@@ -331,6 +374,26 @@ export default function AddCourse() {
                 </select>
               </div>
             </div>
+          </div>
+
+          {/* Collaboration / Certification Partner Logos */}
+          <div className="mb-6">
+            <label className="block text-[13px] font-bold text-slate-800 mb-1">Collaboration / Certification Partner Logos</label>
+            <p className="text-xs text-slate-500 mb-2">Upload logos of companies you've collaborated with for this course (e.g. Microsoft, IBM) who co-provide the certificate.</p>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={e => setPartnerLogoFiles(Array.from(e.target.files))}
+              className="w-full border border-slate-300 rounded px-3 py-1 text-sm outline-none bg-white focus:border-[#144f36]"
+            />
+            {partnerLogoFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {partnerLogoFiles.map((file, idx) => (
+                  <span key={idx} className="text-xs bg-slate-100 border border-slate-200 rounded px-2 py-1">{file.name}</span>
+                ))}
+              </div>
+            )}
           </div>
           {/* Intro and Description */}
           <div className="mb-4">
