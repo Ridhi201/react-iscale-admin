@@ -1,5 +1,6 @@
 import * as Icons from 'lucide-react';
 import Button from '../../components/common/Button';
+import ToggleSwitch from '../../components/common/ToggleSwitch';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -36,6 +37,9 @@ export default function AddCourse() {
   const [graphyInstruction, setGraphyInstruction] = useState('');
   const [certificateShow, setCertificateShow] = useState(false);
   const [liveClassShow, setLiveClassShow] = useState(false);
+  const [popularShow, setPopularShow] = useState(false);
+  const [recommendedShow, setRecommendedShow] = useState(false);
+  const [lifetimeShow, setLifetimeShow] = useState(false);
   const [price, setPrice] = useState('');
   const [offerPrice, setOfferPrice] = useState('');
 
@@ -118,10 +122,12 @@ export default function AddCourse() {
       payload.append('m_course_status', statusApp.toLowerCase() === '1' ? '1' : '0');
       payload.append('m_course_status_web', statusWeb.toLowerCase() === '1' ? '1' : '0');
       
-      const popularVal = document.getElementById('course_popular')?.checked ? '1' : '0';
-      const recommendedVal = document.getElementById('course_recommended')?.checked ? '1' : '0';
+      const popularVal = popularShow ? '1' : '0';
+      const recommendedVal = recommendedShow ? '1' : '0';
+      const lifetimeVal = lifetimeShow ? '1' : '0';
       payload.append('m_course_popular', popularVal);
       payload.append('m_course_recomended', recommendedVal);
+      payload.append('m_course_lifetime', lifetimeVal);
       payload.append('popular', popularVal);
       payload.append('recomended', recommendedVal);
 
@@ -342,11 +348,12 @@ export default function AddCourse() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-2">Add to</label>
-              <div className="flex flex-col gap-1.5">
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold"><input id="course_popular" type="checkbox" className="rounded" /> Add to popular course</label>
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold"><input id="course_recommended" type="checkbox" className="rounded" /> Add to recommended course</label>
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold"><input id="course_certificate" type="checkbox" checked={certificateShow} onChange={e => setCertificateShow(e.target.checked)} className="rounded" /> Is Certificate Show</label>
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold"><input id="course_live_class" type="checkbox" checked={liveClassShow} onChange={e => setLiveClassShow(e.target.checked)} className="rounded" /> Is Live Class Show</label>
+              <div className="flex flex-col gap-2">
+                <ToggleSwitch id="course_popular" checked={popularShow} onChange={e => setPopularShow(e.target.checked)} label="Add to popular course" />
+                <ToggleSwitch id="course_recommended" checked={recommendedShow} onChange={e => setRecommendedShow(e.target.checked)} label="Add to recommended course" />
+                <ToggleSwitch id="course_lifetime" checked={lifetimeShow} onChange={e => setLifetimeShow(e.target.checked)} label="Add to lifetime courses" />
+                <ToggleSwitch id="course_certificate" checked={certificateShow} onChange={e => setCertificateShow(e.target.checked)} label="Is Certificate Show" />
+                <ToggleSwitch id="course_live_class" checked={liveClassShow} onChange={e => setLiveClassShow(e.target.checked)} label="Is Live Class Show" />
               </div>
             </div>
             <div>

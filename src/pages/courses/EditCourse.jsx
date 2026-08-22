@@ -3,6 +3,7 @@ import axios from 'axios';
 import { BASE_URL } from '../../config/api';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { getImageUrl } from '../../utils/imageUtils';
+import ToggleSwitch from '../../components/common/ToggleSwitch';
 
 export default function EditCourse() {
   const { id } = useParams();
@@ -23,6 +24,7 @@ export default function EditCourse() {
     m_course_status_web: 1,
     m_course_popular: 0,
     m_course_recomended: 0,
+    m_course_lifetime: 0,
     m_course_description: '',
     m_course_video_link: '',
     m_course_duration_app: '',
@@ -150,6 +152,7 @@ export default function EditCourse() {
         m_course_status_web: normStatus(course.status_web ?? course.m_course_status_web),
         m_course_popular: isTruthy(course.popular ?? course.m_course_popular),
         m_course_recomended: isTruthy(course.recomended ?? course.recommended ?? course.m_course_recomended),
+        m_course_lifetime: isTruthy(course.lifetime ?? course.m_course_lifetime),
         m_course_description: course.description ?? course.m_course_description ?? '',
         m_course_video_link: course.video_link ?? course.m_course_video_link ?? '',
         m_course_duration_app: course.duration_app ?? course.m_course_duration_app ?? '',
@@ -200,7 +203,8 @@ export default function EditCourse() {
         } else if (
           [
             "m_course_popular",
-            "m_course_recomended"
+            "m_course_recomended",
+            "m_course_lifetime"
           ].includes(key)
         ) {
           const boolVal = (val === "1" || val === 1 || val === true || String(val) === "true") ? "1" : "0";
@@ -426,19 +430,12 @@ export default function EditCourse() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <div>
               <label className="block text-[13px] font-bold text-slate-800 mb-2">Add to</label>
-              <div className="flex flex-col gap-1.5">
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold">
-                  <input id="m_course_popular" type="checkbox" checked={courseData.m_course_popular === 1} onChange={handleChange} className="rounded text-[#144f36] focus:ring-[#144f36]" /> Add to popular course
-                </label>
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold">
-                  <input id="m_course_recomended" type="checkbox" checked={courseData.m_course_recomended === 1} onChange={handleChange} className="rounded text-[#144f36] focus:ring-[#144f36]" /> Add to recommended course
-                </label>
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold">
-                  <input id="m_course_certificate" type="checkbox" checked={courseData.m_course_certificate === 1} onChange={handleChange} className="rounded text-[#144f36] focus:ring-[#144f36]" /> Certificate Show
-                </label>
-                <label className="flex items-center gap-2 text-xs text-slate-800 font-bold">
-                  <input id="m_course_live_class" type="checkbox" checked={courseData.m_course_live_class === 1} onChange={handleChange} className="rounded text-[#144f36] focus:ring-[#144f36]" /> Live Class Show
-                </label>
+              <div className="flex flex-col gap-2">
+                <ToggleSwitch id="m_course_popular" checked={courseData.m_course_popular === 1} onChange={handleChange} label="Add to popular course" />
+                <ToggleSwitch id="m_course_recomended" checked={courseData.m_course_recomended === 1} onChange={handleChange} label="Add to recommended course" />
+                <ToggleSwitch id="m_course_lifetime" checked={courseData.m_course_lifetime === 1} onChange={handleChange} label="Add to lifetime courses" />
+                <ToggleSwitch id="m_course_certificate" checked={courseData.m_course_certificate === 1} onChange={handleChange} label="Certificate Show" />
+                <ToggleSwitch id="m_course_live_class" checked={courseData.m_course_live_class === 1} onChange={handleChange} label="Live Class Show" />
               </div>
             </div>
             <div>
