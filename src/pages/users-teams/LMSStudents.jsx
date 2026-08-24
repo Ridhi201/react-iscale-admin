@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BookOpen, Trash2 } from 'lucide-react'
+import { BookOpen, ScanFace, Trash2 } from 'lucide-react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 import ThemeButton from '../../components/common/ThemeButton'
@@ -84,6 +84,26 @@ export default function LMSStudents() {
     }
   }
 
+  // Clears the student's enrolled face-lock data so they can register a
+  // new one from the app (e.g. new phone, wrong/bad enrollment) - the app
+  // otherwise refuses to overwrite an already-registered face.
+  const handleResetFace = async (id) => {
+    if (!await window.customConfirm('Remove this student\'s registered face? They will be able to enroll a new one from the app.')) return
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.patch(`${BASE_URL}/myadmin/app-users/reset-face/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        await window.customAlert(res.data.message || 'Face data removed successfully')
+      } else {
+        await window.customAlert(res.data?.message || 'Failed to remove face data')
+      }
+    } catch (err) {
+      await window.customAlert(err.response?.data?.message || 'Error removing face data')
+    }
+  }
+
   const startIndex = (currentPage - 1) * entriesPerPage
 
   return (
@@ -152,13 +172,22 @@ export default function LMSStudents() {
                         </button>
                       </td>
                       <td className="px-4 py-3 align-middle">
-                        <button
-                          onClick={() => handleDelete(row._id)}
-                          className="btn-glossy-red icon-only"
-                          title="Remove from LMS"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => handleResetFace(row._id)}
+                            className="bg-[#d87025] text-white p-1.5 rounded hover:bg-[#c2621f] transition-colors"
+                            title="Remove Registered Face"
+                          >
+                            <ScanFace size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(row._id)}
+                            className="btn-glossy-red icon-only"
+                            title="Remove from LMS"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
