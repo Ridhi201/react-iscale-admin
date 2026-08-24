@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Trash2 } from 'lucide-react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 import ThemeButton from '../../components/common/ThemeButton'
@@ -64,6 +64,24 @@ export default function LMSStudents() {
     if (didSave) fetchStudents()
   }
 
+  const handleDelete = async (id) => {
+    if (!await window.customConfirm('Are you sure you want to delete this student? This also removes all of their assigned course access.')) return
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.delete(`${BASE_URL}/myadmin/app-users/delete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        await window.customAlert(res.data.message || 'Student deleted successfully')
+        fetchStudents()
+      } else {
+        await window.customAlert(res.data?.message || 'Failed to delete student')
+      }
+    } catch (err) {
+      await window.customAlert(err.response?.data?.message || 'Error deleting student')
+    }
+  }
+
   const startIndex = (currentPage - 1) * entriesPerPage
 
   return (
@@ -102,14 +120,15 @@ export default function LMSStudents() {
                   <th className="px-4 py-3 font-bold border-r border-slate-200 whitespace-nowrap">Contact No.</th>
                   <th className="px-4 py-3 font-bold border-r border-slate-200 whitespace-nowrap">Email</th>
                   <th className="px-4 py-3 font-bold border-r border-slate-200 whitespace-nowrap">Joined On</th>
-                  <th className="px-4 py-3 font-bold whitespace-nowrap">Assign Courses</th>
+                  <th className="px-4 py-3 font-bold border-r border-slate-200 whitespace-nowrap">Assign Courses</th>
+                  <th className="px-4 py-3 font-bold whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="6" className="text-center py-6">Loading data...</td></tr>
+                  <tr><td colSpan="7" className="text-center py-6">Loading data...</td></tr>
                 ) : data.length === 0 ? (
-                  <tr><td colSpan="6" className="text-center py-6">No students found.</td></tr>
+                  <tr><td colSpan="7" className="text-center py-6">No students found.</td></tr>
                 ) : (
                   data.map((row, index) => (
                     <tr key={row._id} className="border-b border-slate-200 hover:bg-slate-50">
@@ -122,12 +141,21 @@ export default function LMSStudents() {
                       <td className="px-4 py-3 border-r border-slate-200 align-middle">
                         {row.c_register_date ? new Date(row.c_register_date).toLocaleDateString() : 'N/A'}
                       </td>
-                      <td className="px-4 py-3 align-middle">
+                      <td className="px-4 py-3 border-r border-slate-200 align-middle">
                         <button
                           onClick={() => setAssignTarget(row)}
                           className="bg-[#6366f1] text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-[#4f46e5] transition-colors inline-flex items-center gap-1.5"
                         >
                           <BookOpen size={14} /> Assign Courses
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <button
+                          onClick={() => handleDelete(row._id)}
+                          className="btn-glossy-red icon-only"
+                          title="Delete Student"
+                        >
+                          <Trash2 size={14} />
                         </button>
                       </td>
                     </tr>
