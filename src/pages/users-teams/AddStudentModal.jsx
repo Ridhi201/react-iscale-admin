@@ -144,7 +144,7 @@ function ExistingStudentPicker({ onBack, onDone }) {
           <div className="p-4 text-center text-sm text-slate-400">Type to search existing students.</div>
         ) : (
           results.map((row) => {
-            const name = (row.c_display_name || `${row.c_first_name || ''} ${row.c_last_name || ''}`).trim() || 'N/A'
+            const name = `${row.c_first_name || ''} ${row.c_last_name || ''}`.trim() || row.c_display_name || 'N/A'
             const isSelecting = selectingId === row._id
             return (
               <button

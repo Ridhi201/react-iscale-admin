@@ -136,7 +136,7 @@ export default function LMSStudents() {
                     <tr key={row._id} className="border-b border-slate-200 hover:bg-slate-50">
                       <td className="px-4 py-3 border-r border-slate-200 align-middle">{startIndex + index + 1}</td>
                       <td className="px-4 py-3 border-r border-slate-200 align-middle">
-                        {(row.c_display_name || `${row.c_first_name || ''} ${row.c_last_name || ''}`).trim() || 'N/A'}
+                        {`${row.c_first_name || ''} ${row.c_last_name || ''}`.trim() || row.c_display_name || 'N/A'}
                       </td>
                       <td className="px-4 py-3 border-r border-slate-200 align-middle">{row.c_contact || 'N/A'}</td>
                       <td className="px-4 py-3 border-r border-slate-200 align-middle">{row.c_email || 'N/A'}</td>

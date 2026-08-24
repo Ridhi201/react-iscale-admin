@@ -70,7 +70,7 @@ export default function AppUserDetails({ userId, onClose }) {
                   <div>
                     <div className="text-xs text-slate-400 font-semibold mb-0.5">Name</div>
                     <div className="text-sm text-slate-800 font-bold flex items-center gap-2">
-                      {user.c_display_name || `${user.c_first_name || ''} ${user.c_last_name || ''}`.trim() || 'N/A'}
+                      {`${user.c_first_name || ''} ${user.c_last_name || ''}`.trim() || user.c_display_name || 'N/A'}
                       <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${user.c_user_status === 1 ? 'bg-[#144f36]/10 text-[#144f36] border border-[#144f36]/20' : 'bg-[#d87025]/10 text-[#d87025] border border-[#d87025]/20'}`}>
                         {user.c_user_status === 1 ? 'Verified' : 'Unverified'}
                       </span>
@@ -274,7 +274,7 @@ export default function AppUserDetails({ userId, onClose }) {
             </div>
             <div>
               <h3 className="text-xl font-bold text-slate-800 flex flex-wrap items-center gap-2">
-                {user.c_display_name || `${user.c_first_name || ''} ${user.c_last_name || ''}`.trim() || 'N/A'}
+                {`${user.c_first_name || ''} ${user.c_last_name || ''}`.trim() || user.c_display_name || 'N/A'}
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${user.c_user_status === 1 ? 'bg-[#144f36]/10 text-[#144f36] border border-[#144f36]/20' : 'bg-rose-100 text-rose-800 border border-rose-200'}`}>
                   {user.c_user_status === 1 ? 'Verified' : 'Unverified'}
                 </span>
@@ -895,7 +895,7 @@ function DetailsModal({ isOpen, onClose, data, type }) {
 
   // 1. Candidate Info
   const candidate = data.user_id || {};
-  const candidateName = candidate.c_display_name || `${candidate.c_first_name || ''} ${candidate.c_last_name || ''}`.trim() || 'N/A';
+  const candidateName = `${candidate.c_first_name || ''} ${candidate.c_last_name || ''}`.trim() || candidate.c_display_name || 'N/A';
   const candidateEmail = candidate.c_email || 'N/A';
   const candidateMobile = candidate.c_contact || 'N/A';
   const candidateAltMobile = candidate.c_alt_contact || candidate.c_whatsapp || 'N/A';

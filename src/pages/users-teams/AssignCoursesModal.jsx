@@ -116,7 +116,7 @@ export default function AssignCoursesModal({ student, onClose }) {
     }
   }
 
-  const studentName = (student?.c_display_name || `${student?.c_first_name || ''} ${student?.c_last_name || ''}`).trim() || 'Student'
+  const studentName = `${student?.c_first_name || ''} ${student?.c_last_name || ''}`.trim() || student?.c_display_name || 'Student'
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
