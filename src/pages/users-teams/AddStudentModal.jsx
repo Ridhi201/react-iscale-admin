@@ -184,7 +184,13 @@ function NewStudentForm({ onBack, onDone }) {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
-        onDone(res.data.data)
+        const created = res.data.data
+        // addUser doesn't register for LMS itself (it's shared with the
+        // plain App Users "+ Add Student" flow) - do that explicitly here.
+        await axios.patch(`${BASE_URL}/myadmin/app-users/lms-status/${created._id}`, { is_lms_student: 1 }, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        onDone(created)
       } else {
         await window.customAlert(res.data?.message || 'Failed to add student')
       }
