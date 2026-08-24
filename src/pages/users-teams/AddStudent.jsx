@@ -33,7 +33,7 @@ export default function AddStudent() {
       })
       if (res.data?.status) {
         await window.customAlert(res.data.message || 'Student added successfully')
-        navigate(`/app-users/assign-courses/${res.data.data._id}`)
+        navigate('/app-users')
       } else {
         await window.customAlert(res.data?.message || 'Failed to add student')
       }
@@ -91,7 +91,7 @@ export default function AddStudent() {
               Cancel
             </button>
             <button type="submit" disabled={loading} className="px-5 py-2.5 bg-[#144f36] text-white rounded-lg hover:bg-[#0f3d2a] transition-colors font-medium text-sm disabled:opacity-60">
-              {loading ? 'Adding...' : 'Add Student & Assign Courses'}
+              {loading ? 'Adding...' : 'Add Student'}
             </button>
           </div>
         </form>
