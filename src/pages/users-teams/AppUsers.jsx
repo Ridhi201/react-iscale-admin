@@ -221,26 +221,6 @@ export default function AppUsers() {
     }
   }
 
-  // Manual override for the iScale mobile app's lifetime-access purchase
-  // (support/comps/refunds, or granting access before Razorpay is live).
-  const handleToggleLifetimeAccess = async (id, currentlyHasAccess) => {
-    const nextLabel = currentlyHasAccess ? 'revoke' : 'grant'
-    if (!await window.customConfirm(`Are you sure you want to ${nextLabel} mobile app lifetime access for this user?`)) return
-    try {
-      const token = localStorage.getItem('token')
-      const res = await axios.patch(`${BASE_URL}/myadmin/app-users/toggle-lifetime-access/${id}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (res.data?.status) {
-        fetchUsers()
-      } else {
-        await window.customAlert(res.data?.message || 'Failed to update lifetime access')
-      }
-    } catch (err) {
-      await window.customAlert(err.response?.data?.message || 'Error updating lifetime access')
-    }
-  }
-
   const handleExport = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -373,15 +353,14 @@ export default function AppUsers() {
                   <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Email</th>
                   <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Joined On</th>
                   <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">Status</th>
-                  <th className="px-4 py-3 font-bold border-r border-slate-200 dark:border-gray-800/50 whitespace-nowrap">App Lifetime Access</th>
                   <th className="px-4 py-3 font-bold whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="8" className="text-center py-6">Loading data...</td></tr>
+                  <tr><td colSpan="7" className="text-center py-6">Loading data...</td></tr>
                 ) : filteredData.length === 0 ? (
-                  <tr><td colSpan="8" className="text-center py-6">No users found.</td></tr>
+                  <tr><td colSpan="7" className="text-center py-6">No users found.</td></tr>
                 ) : (
                   filteredData.map((row, index) => (
                     <tr key={row._id} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:bg-[#1f1b2e]/50">
@@ -401,15 +380,6 @@ export default function AppUsers() {
                           title={`Click to mark as ${row.isVerified ? 'Unverified' : 'Verified'}`}
                         >
                           {row.isVerified ? 'Verified' : 'Unverified'}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 border-r border-slate-200 dark:border-gray-800/50 align-middle">
-                        <button
-                          onClick={() => handleToggleLifetimeAccess(row._id, row.mobile_app_lifetime_access)}
-                          className={`px-3 py-1 rounded-full text-white text-xs whitespace-nowrap cursor-pointer transition-opacity hover:opacity-80 ${row.mobile_app_lifetime_access ? 'bg-[#144f36]' : 'bg-[#d87025]'}`}
-                          title={`Click to ${row.mobile_app_lifetime_access ? 'revoke' : 'grant'} lifetime access`}
-                        >
-                          {row.mobile_app_lifetime_access ? 'Access Granted' : 'No Access'}
                         </button>
                       </td>
                       <td className="px-4 py-3 align-middle">

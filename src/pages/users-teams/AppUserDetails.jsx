@@ -43,25 +43,6 @@ export default function AppUserDetails({ userId, onClose }) {
     fetchUserDetails()
   }, [id])
 
-  // Manual override for the iScale mobile app's lifetime-access purchase.
-  const handleToggleLifetimeAccess = async () => {
-    const nextLabel = user?.mobile_app_lifetime_access ? 'revoke' : 'grant'
-    if (!await window.customConfirm(`Are you sure you want to ${nextLabel} mobile app lifetime access for this user?`)) return
-    try {
-      const token = localStorage.getItem('token')
-      const res = await axios.patch(`${BASE_URL}/myadmin/app-users/toggle-lifetime-access/${id}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (res.data?.status) {
-        fetchUserDetails()
-      } else {
-        await window.customAlert(res.data?.message || 'Failed to update lifetime access')
-      }
-    } catch (err) {
-      await window.customAlert(err.response?.data?.message || 'Error updating lifetime access')
-    }
-  }
-
   if (isModal) {
     return (
       <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in text-left">
@@ -94,16 +75,6 @@ export default function AppUserDetails({ userId, onClose }) {
                         {user.c_user_status === 1 ? 'Verified' : 'Unverified'}
                       </span>
                     </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-slate-400 font-semibold mb-0.5">App Lifetime Access</div>
-                    <button
-                      onClick={handleToggleLifetimeAccess}
-                      className={`px-3 py-1 rounded-full text-white text-xs font-bold whitespace-nowrap cursor-pointer transition-opacity hover:opacity-80 ${user.mobile_app_lifetime_access ? 'bg-[#144f36]' : 'bg-[#d87025]'}`}
-                      title={`Click to ${user.mobile_app_lifetime_access ? 'revoke' : 'grant'} lifetime access`}
-                    >
-                      {user.mobile_app_lifetime_access ? 'Access Granted' : 'No Access'}
-                    </button>
                   </div>
                   <div>
                     <div className="text-xs text-slate-400 font-semibold mb-0.5">Email</div>
@@ -307,13 +278,6 @@ export default function AppUserDetails({ userId, onClose }) {
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${user.c_user_status === 1 ? 'bg-[#144f36]/10 text-[#144f36] border border-[#144f36]/20' : 'bg-rose-100 text-rose-800 border border-rose-200'}`}>
                   {user.c_user_status === 1 ? 'Verified' : 'Unverified'}
                 </span>
-                <button
-                  onClick={handleToggleLifetimeAccess}
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-opacity hover:opacity-80 ${user.mobile_app_lifetime_access ? 'bg-[#144f36] text-white' : 'bg-[#d87025] text-white'}`}
-                  title={`Click to ${user.mobile_app_lifetime_access ? 'revoke' : 'grant'} app lifetime access`}
-                >
-                  {user.mobile_app_lifetime_access ? 'App Access Granted' : 'No App Access'}
-                </button>
               </h3>
               <p className="text-sm text-slate-500 font-semibold mt-0.5">Candidate ID: {user.candidate_idno || 'N/A'}</p>
             </div>
