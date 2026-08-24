@@ -52,6 +52,12 @@ export const menuItems = [
     path: '/app-users',
   },
   {
+    id: 'lms',
+    label: 'LMS',
+    icon: 'GraduationCap',
+    path: '/lms',
+  },
+  {
     id: 'live',
     label: 'Live Classes',
     icon: 'Video',
