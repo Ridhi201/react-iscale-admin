@@ -25,7 +25,7 @@ export default function LMSStudents() {
     try {
       const token = localStorage.getItem('token')
       const res = await axios.get(`${BASE_URL}/myadmin/app-users/all`, {
-        params: { page, limit: entriesPerPage, search: currentSearch },
+        params: { page, limit: entriesPerPage, search: currentSearch, lms_only: 1 },
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
@@ -64,21 +64,23 @@ export default function LMSStudents() {
     if (didSave) fetchStudents()
   }
 
+  // Doesn't delete the account - removes them from the LMS list and blocks
+  // their login, but keeps their record and enrollment history intact.
   const handleDelete = async (id) => {
-    if (!await window.customConfirm('Are you sure you want to delete this student? This also removes all of their assigned course access.')) return
+    if (!await window.customConfirm('Remove this student from LMS? They will no longer be able to log in, but their account and course history are kept.')) return
     try {
       const token = localStorage.getItem('token')
-      const res = await axios.delete(`${BASE_URL}/myadmin/app-users/delete/${id}`, {
+      const res = await axios.patch(`${BASE_URL}/myadmin/app-users/lms-status/${id}`, { is_lms_student: 0 }, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data?.status) {
-        await window.customAlert(res.data.message || 'Student deleted successfully')
+        await window.customAlert(res.data.message || 'Student removed from LMS')
         fetchStudents()
       } else {
-        await window.customAlert(res.data?.message || 'Failed to delete student')
+        await window.customAlert(res.data?.message || 'Failed to remove student from LMS')
       }
     } catch (err) {
-      await window.customAlert(err.response?.data?.message || 'Error deleting student')
+      await window.customAlert(err.response?.data?.message || 'Error removing student from LMS')
     }
   }
 
@@ -153,7 +155,7 @@ export default function LMSStudents() {
                         <button
                           onClick={() => handleDelete(row._id)}
                           className="btn-glossy-red icon-only"
-                          title="Delete Student"
+                          title="Remove from LMS"
                         >
                           <Trash2 size={14} />
                         </button>

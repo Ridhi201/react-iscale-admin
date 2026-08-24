@@ -65,6 +65,7 @@ function ExistingStudentPicker({ onBack, onDone }) {
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
+  const [selectingId, setSelectingId] = useState(null)
   const debounceRef = useRef(null)
 
   useEffect(() => {
@@ -96,6 +97,28 @@ function ExistingStudentPicker({ onBack, onDone }) {
     }
   }
 
+  // Registers this already-existing candidate into LMS (is_lms_student: 1)
+  // before handing off to course assignment - unlike the "New Student"
+  // path, no account is created here, just this flag flipped on.
+  const handleSelect = async (row) => {
+    setSelectingId(row._id)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.patch(`${BASE_URL}/myadmin/app-users/lms-status/${row._id}`, { is_lms_student: 1 }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.data?.status) {
+        onDone(res.data.data || row)
+      } else {
+        await window.customAlert(res.data?.message || 'Failed to register student for LMS')
+      }
+    } catch (err) {
+      await window.customAlert(err.response?.data?.message || 'Error registering student for LMS')
+    } finally {
+      setSelectingId(null)
+    }
+  }
+
   return (
     <div>
       <button onClick={onBack} className="text-xs text-slate-500 hover:text-[#144f36] mb-4">&larr; Back</button>
@@ -122,17 +145,19 @@ function ExistingStudentPicker({ onBack, onDone }) {
         ) : (
           results.map((row) => {
             const name = (row.c_display_name || `${row.c_first_name || ''} ${row.c_last_name || ''}`).trim() || 'N/A'
+            const isSelecting = selectingId === row._id
             return (
               <button
                 key={row._id}
-                onClick={() => onDone(row)}
-                className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
+                onClick={() => handleSelect(row)}
+                disabled={!!selectingId}
+                className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 disabled:opacity-60"
               >
                 <div className="min-w-0">
                   <div className="text-sm font-bold text-slate-800 truncate">{name}</div>
                   <div className="text-xs text-slate-500">{row.c_contact || 'No phone'} {row.c_email ? `· ${row.c_email}` : ''}</div>
                 </div>
-                <span className="text-xs font-medium text-[#144f36] shrink-0">Select &rarr;</span>
+                <span className="text-xs font-medium text-[#144f36] shrink-0">{isSelecting ? 'Adding...' : 'Select →'}</span>
               </button>
             )
           })
