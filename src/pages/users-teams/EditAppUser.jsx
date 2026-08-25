@@ -147,6 +147,14 @@ export default function EditAppUser() {
               <input type="date" name="c_dob" value={formData.c_dob?.split('T')[0] || ''} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] outline-none" />
             </div>
             <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Pincode</label>
+              <input type="text" name="c_current_pincode" value={formData.c_current_pincode} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] outline-none" />
+            </div>
+            <div className="md:col-span-2 lg:col-span-3">
+              <label className="block text-sm font-bold text-slate-700 mb-1">Address</label>
+              <textarea name="c_current_address1" value={formData.c_current_address1} onChange={handleChange} rows={2} className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] outline-none" />
+            </div>
+            <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
               <select name="c_user_status" value={formData.c_user_status} onChange={handleChange} className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-[#144f36] focus:ring-1 focus:ring-[#144f36] outline-none">
                 <option value="1">Active</option>

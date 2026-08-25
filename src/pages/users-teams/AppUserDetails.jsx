@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Trash2, Edit2, Eye, User, Mail, Phone, Calendar } from 'lucide-react'
+import { Trash2, Edit2, Eye, User, Mail, Phone, Calendar, MessageCircle, MapPin, Cake, Hash } from 'lucide-react'
 import axios from 'axios'
 import { BASE_URL } from '../../config/api'
 
@@ -9,6 +9,11 @@ function formatDate(dateStr) {
   const d = new Date(dateStr);
   return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
 }
+
+// Matches AppUsers.jsx's list-page definition - c_user_status is a
+// separate Active/Inactive account flag, unrelated to this.
+const isVerifiedUser = (user) =>
+  Boolean(user.c_mobile_verified || user.c_email_verified || user.c_admin_verified);
 
 export default function AppUserDetails({ userId, onClose }) {
   const { id: paramId } = useParams()
@@ -69,10 +74,13 @@ export default function AppUserDetails({ userId, onClose }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
                   <div>
                     <div className="text-xs text-slate-400 font-semibold mb-0.5">Name</div>
-                    <div className="text-sm text-slate-800 font-bold flex items-center gap-2">
+                    <div className="text-sm text-slate-800 font-bold flex items-center gap-2 flex-wrap">
                       {`${user.c_first_name || ''} ${user.c_last_name || ''}`.trim() || user.c_display_name || 'N/A'}
                       <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${user.c_user_status === 1 ? 'bg-[#144f36]/10 text-[#144f36] border border-[#144f36]/20' : 'bg-[#d87025]/10 text-[#d87025] border border-[#d87025]/20'}`}>
-                        {user.c_user_status === 1 ? 'Verified' : 'Unverified'}
+                        {user.c_user_status === 1 ? 'Active' : 'Inactive'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isVerifiedUser(user) ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                        {isVerifiedUser(user) ? 'Verified' : 'Unverified'}
                       </span>
                     </div>
                   </div>
@@ -110,6 +118,14 @@ export default function AppUserDetails({ userId, onClose }) {
                       <div className="text-sm text-slate-800 font-bold capitalize">{user.c_gender}</div>
                     </div>
                   )}
+                  <div>
+                    <div className="text-xs text-slate-400 font-semibold mb-0.5">Date of Birth</div>
+                    <div className="text-sm text-slate-800 font-bold">{formatDate(user.c_dob)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-400 font-semibold mb-0.5">Pincode</div>
+                    <div className="text-sm text-slate-800 font-bold">{user.c_current_pincode || 'N/A'}</div>
+                  </div>
                 </div>
               </div>
 
@@ -276,7 +292,10 @@ export default function AppUserDetails({ userId, onClose }) {
               <h3 className="text-xl font-bold text-slate-800 flex flex-wrap items-center gap-2">
                 {`${user.c_first_name || ''} ${user.c_last_name || ''}`.trim() || user.c_display_name || 'N/A'}
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${user.c_user_status === 1 ? 'bg-[#144f36]/10 text-[#144f36] border border-[#144f36]/20' : 'bg-rose-100 text-rose-800 border border-rose-200'}`}>
-                  {user.c_user_status === 1 ? 'Verified' : 'Unverified'}
+                  {user.c_user_status === 1 ? 'Active' : 'Inactive'}
+                </span>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${isVerifiedUser(user) ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                  {isVerifiedUser(user) ? 'Verified' : 'Unverified'}
                 </span>
               </h3>
               <p className="text-sm text-slate-500 font-semibold mt-0.5">Candidate ID: {user.candidate_idno || 'N/A'}</p>
@@ -293,8 +312,24 @@ export default function AppUserDetails({ userId, onClose }) {
               <span className="font-semibold">{user.c_contact || 'N/A'}</span>
             </div>
             <div className="flex items-center gap-2.5 text-sm text-slate-700">
+              <Phone size={16} className="text-slate-400 shrink-0" />
+              <span className="font-semibold">Alt: {user.c_alt_contact || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-slate-700">
+              <MessageCircle size={16} className="text-slate-400 shrink-0" />
+              <span className="font-semibold">{user.c_whatsapp || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-slate-700">
               <Calendar size={16} className="text-slate-400 shrink-0" />
               <span className="font-semibold">Joined: {formatDate(user.c_register_date)}</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-slate-700">
+              <Cake size={16} className="text-slate-400 shrink-0" />
+              <span className="font-semibold">DOB: {formatDate(user.c_dob)}</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-slate-700">
+              <Hash size={16} className="text-slate-400 shrink-0" />
+              <span className="font-semibold">{user.c_current_pincode || 'N/A'}</span>
             </div>
             {user.c_gender && (
               <div className="flex items-center gap-2.5 text-sm text-slate-700">
@@ -302,6 +337,10 @@ export default function AppUserDetails({ userId, onClose }) {
                 <span className="font-semibold capitalize">{user.c_gender}</span>
               </div>
             )}
+            <div className="flex items-center gap-2.5 text-sm text-slate-700 sm:col-span-2 md:col-span-3">
+              <MapPin size={16} className="text-slate-400 shrink-0" />
+              <span className="font-semibold">{user.c_current_address1 || 'N/A'}</span>
+            </div>
           </div>
         </div>
       ) : null}
